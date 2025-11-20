@@ -261,4 +261,21 @@ CREATE TABLE PasswordResetToken (
   FOREIGN KEY (user_id) REFERENCES User(user_id)
 );
 
+CREATE TABLE IF NOT EXISTS Exchange (
+    exchange_id INT NOT NULL AUTO_INCREMENT,
+    item_barcode VARCHAR(50) NOT NULL,
+    exchange_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (exchange_id),
+    FOREIGN KEY (item_barcode) REFERENCES Copy(item_barcode) 
+      ON DELETE CASCADE
+);
 
+CREATE TABLE IF NOT EXISTS Exchange_Borrower (
+    exchange_id INT NOT NULL,
+    borrowed_user_id INT NOT NULL,
+    PRIMARY KEY (exchange_id, borrowed_user_id),
+    FOREIGN KEY (exchange_id) REFERENCES Exchange(exchange_id) 
+      ON DELETE CASCADE,
+    FOREIGN KEY (borrowed_user_id) REFERENCES Reader(reader_id) 
+      ON DELETE CASCADE
+);

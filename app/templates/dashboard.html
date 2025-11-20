@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="search-header-container">
+    <h1 class="page-title">Library Search</h1>
+    
+    <form action="{{ url_for('main_page') }}" method="GET" class="search-form">
+        
+        <div class="search-controls">
+            <div class="search-bar-wrapper">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" name="search_query" class="search-input" 
+                       placeholder="Search by title, author, or ISBN..." 
+                       value="{{ request.args.get('search_query', '') }}">
+            </div>
+
+            <div class="filter-dropdown-wrapper">
+                <button type="button" class="btn-filter-toggle" onclick="toggleFilterMenu()">
+                    <i class="fa-solid fa-sliders"></i> Filters
+                </button>
+
+                <div class="filter-dropdown-menu" id="filterMenu">
+                    
+                    <div class="filter-section">
+                        <label>Genre</label>
+                        <select name="genre" class="filter-select">
+                            <option value="">All Genres</option>
+                            <option value="Science Fiction" {% if request.args.get('genre') == 'Science Fiction' %}selected{% endif %}>Science Fiction</option>
+                            <option value="Fantasy" {% if request.args.get('genre') == 'Fantasy' %}selected{% endif %}>Fantasy</option>
+                            <option value="Mystery / Thriller" {% if request.args.get('genre') == 'Mystery / Thriller' %}selected{% endif %}>Mystery / Thriller</option>
+                            <option value="Classic Literature" {% if request.args.get('genre') == 'Classic Literature' %}selected{% endif %}>Classic Literature</option>
+                            <option value="Historical Fiction" {% if request.args.get('genre') == 'Historical Fiction' %}selected{% endif %}>Historical Fiction</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-section">
+                        <label>Language</label>
+                        <select name="language" class="filter-select">
+                            <option value="">All Languages</option>
+                            <option value="English" {% if request.args.get('language') == 'English' %}selected{% endif %}>English</option>
+                            <option value="Swedish" {% if request.args.get('language') == 'Swedish' %}selected{% endif %}>Swedish</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-section">
+                        <label>Minimum Rating</label>
+                        <select name="min_rating" class="filter-select">
+                            <option value="">Any Rating</option>
+                            <option value="4" {% if request.args.get('min_rating') == '4' %}selected{% endif %}>4 Stars & Up</option>
+                            <option value="3" {% if request.args.get('min_rating') == '3' %}selected{% endif %}>3 Stars & Up</option>
+                            <option value="2" {% if request.args.get('min_rating') == '2' %}selected{% endif %}>2 Stars & Up</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-section">
+                        <label>Availability</label>
+                        <div class="checkbox-group">
+                            <label>
+                                <input type="checkbox" name="status" value="Available" {% if request.args.get('status') == 'Available' %}checked{% endif %}> 
+                                Available Only
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <a href="{{ url_for('main_page') }}" class="btn-reset">Reset</a>
+                        <button type="submit" class="btn-apply">Apply</button>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-search-submit">Search</button>
+        </div>
+    </form>
+</div>
+
+<main class="results-panel full-width">
+    <h2 class="section-title">{{ view_title }}</h2>
+    
+    <div class="books-grid">
+        {% for book in books %}
+        <div class="book-card">
+            <div class="book-info">
+                <h3 class="book-title">{{ book.title }}</h3>
+                <p class="author">by {{ book.authors }}</p>
+                
+                <p class="genre-text">{{ book.genres }}</p>
+                
+                <div class="meta-tags">
+                    <span class="status-badge {% if book.available_copies > 0 %}available{% else %}on-loan{% endif %}">
+                        {% if book.available_copies > 0 %}Available{% else %}On Loan{% endif %}
+                    </span>
+                    <span class="rating-badge">
+                        <i class="fa-solid fa-star"></i> {{ book.average_rating }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="book-actions">
+                <button class="btn-details">Details</button>
+                <button class="btn-hold">Hold</button>
+            </div>
+        </div>
+        {% else %}
+        <div class="no-results">
+            <p>No books found matching your criteria.</p>
+            <a href="{{ url_for('main_page') }}">Clear all filters</a>
+        </div>
+        {% endfor %}
+    </div>
+</main>
+
+<script>
+    function toggleFilterMenu() {
+        const menu = document.getElementById('filterMenu');
+        menu.classList.toggle('active');
+    }
+
+    document.addEventListener('click', function(event) {
+        const menu = document.getElementById('filterMenu');
+        const btn = document.querySelector('.btn-filter-toggle');
+        
+        if (!menu.contains(event.target) && !btn.contains(event.target)) {
+            menu.classList.remove('active');
+        }
+    });
+</script>
+
+{% endblock %}

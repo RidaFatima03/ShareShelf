@@ -356,4 +356,9 @@ VALUES
 ('Logout', '2025-11-10 02:10:00', 'Admin Robert White logged out.', 7);
 
 
-
+UPDATE Book b
+SET average_rating = (
+    SELECT COALESCE(AVG(rating), 0)
+    FROM Review r
+    WHERE r.book_id = b.book_id
+);

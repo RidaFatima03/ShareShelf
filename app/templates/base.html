@@ -34,7 +34,7 @@
                         <small>{{ session.get('user_type', 'Reader') }}</small>
                     </div>
                     <hr>
-                    <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <a href="{{ url_for('auth.logout') }}" class="logout-btn">
                         <i class="fa-solid fa-right-from-bracket"></i> Logout
                     </a>
                 </div>
@@ -45,7 +45,7 @@
     <div class="sidebar" id="sidebar">
         <ul class="nav-links">
             <li>
-                <a href="{{ url_for('main_page') }}">
+                <a href="{{ url_for('main.main_page') }}">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <span class="link-text">Library Search</span>
                 </a>
@@ -81,13 +81,13 @@
 
             {% if session.get('user_type') == 'Admin' %}
                 <li>
-                    <a href="{{ url_for('system_logs') }}">
+                    <a href="{{ url_for('admin.system_logs') }}">
                         <i class="fa-solid fa-file-lines"></i>
                         <span class="link-text">System Logs</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ url_for('user_activity') }}">
+                    <a href="{{ url_for('admin.user_activity') }}">
                         <i class="fa-regular fa-clock"></i>
                         <span class="link-text">User Activity</span>
                     </a>

@@ -19,7 +19,7 @@
             <h1 class="login-title">Login</h1>
             <p class="welcome-message">Welcome! Please enter your details to sign in.</p>
             
-            <form class="login-form" action="{{ url_for('login') }}" method="post">
+            <form class="login-form" action="{{ url_for('auth.login') }}" method="post">
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         {% for category, msg in messages %}
@@ -59,14 +59,14 @@
             </form>
 
             <!-- Forgot Password Link -->
-            <a href="{{ url_for('reset_password') }}" class="forgot-password">Forgot Password?</a>
+            <a href="{{ url_for('auth.reset_password') }}" class="forgot-password">Forgot Password?</a>
 
             <!-- Register Link -->
 
 
             <p class="register-text">
                 Don't have an account?
-                <a href="{{ url_for('register') }}" class="register-link">Register</a>
+                <a href="{{ url_for('auth.register') }}" class="register-link">Register</a>
             </p>
 
         </div>

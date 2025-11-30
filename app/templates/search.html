@@ -8,7 +8,7 @@
 <div class="search-header-container">
     <h1 class="page-title">Library Search</h1>
     
-    <form action="{{ url_for('main_page') }}" method="GET" class="search-form">
+    <form action="{{ url_for('main.main_page') }}" method="GET" class="search-form">
         
         <div class="search-controls">
             <div class="search-bar-wrapper">
@@ -67,7 +67,7 @@
                     </div>
                     
                     <div class="filter-actions">
-                        <a href="{{ url_for('main_page') }}" class="btn-reset">Reset</a>
+                        <a href="{{ url_for('main.main_page') }}" class="btn-reset">Reset</a>
                         <button type="submit" class="btn-apply">Apply</button>
                     </div>
                 </div>

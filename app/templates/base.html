@@ -31,7 +31,7 @@
                 <div class="profile-dropdown" id="profileDropdown">
                     <div class="user-info">
                         <p class="user-name">{{ session.get('username', 'User') }}</p>
-                        <small>Reader</small>
+                        <small>{{ session.get('user_type', 'Reader') }}</small>
                     </div>
                     <hr>
                     <a href="{{ url_for('logout') }}" class="logout-btn">
@@ -50,30 +50,49 @@
                     <span class="link-text">Library Search</span>
                 </a>
             </li>
-            <li>
-                <a href="#">
-                    <i class="fa-solid fa-book"></i>
-                    <span class="link-text">My Checkouts</span>
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <i class="fa-solid fa-receipt"></i>
-                    <span class="link-text">My Fines</span>
-                </a>
-            </li>
-            <li>
-                <a href="#">
-                    <i class="fa-regular fa-clock"></i>
-                    <span class="link-text">My Requests</span>
-                </a>
-            </li>
+
+            {% if session.get('user_type') in ['Reader'] %}
+                <li>
+                    <a href="#">
+                        <i class="fa-solid fa-book"></i>
+                        <span class="link-text">My Checkouts</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="fa-solid fa-receipt"></i>
+                        <span class="link-text">My Fines</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="fa-regular fa-clock"></i>
+                        <span class="link-text">My Requests</span>
+                    </a>
+                </li>
+            {% endif %}
+
             <li>
                 <a href="#">
                     <i class="fa-regular fa-user"></i>
                     <span class="link-text">Personal Info</span>
                 </a>
             </li>
+
+            {% if session.get('user_type') == 'Admin' %}
+                <li>
+                    <a href="{{ url_for('main_page') }}">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <span class="link-text">System Logs</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('main_page') }}">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <span class="link-text">User Activity</span>
+                    </a>
+                </li>
+            {% endif %}
         </ul>
     </div>
 

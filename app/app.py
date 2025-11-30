@@ -46,6 +46,8 @@ def login():
             session['loggedin'] = True
             session['userid'] = user['user_id']
             session['username'] = user['user_first_name']
+            session['user_type'] = user['user_type']   # 'Reader', 'Librarian', or 'Admin'
+
             flash('Logged in successfully!', 'success')
             return redirect(url_for('main_page'))
         else:
@@ -180,12 +182,20 @@ def reset_password(token):
     # GET: show the reset form
     return render_template('reset_password.html', token=token)
 
-
-
 @app.route('/main', methods=['GET'])
 def main_page():
     if 'loggedin' not in session:
         return redirect(url_for('login'))
+
+    role = session.get('user_type')
+
+    if role == 'Reader':
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute("SELECT is_approved FROM Reader WHERE reader_id = %s", (session['userid'],))
+        r = cursor.fetchone()
+        if not r or not r['is_approved']:
+            return "Your reader account is awaiting approval.", 403
+
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     
     search_query = request.args.get('search_query')
@@ -248,7 +258,7 @@ def main_page():
         books = cursor.fetchall()
         view_title = f"Search Results ({len(books)} Books)"
 
-    return render_template('dashboard.html', books=books, view_title=view_title)
+    return render_template('search.html', books=books, view_title=view_title)
 
 @app.route('/logout')
 def logout():

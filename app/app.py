@@ -45,8 +45,13 @@ def login():
         if user:              
             session['loggedin'] = True
             session['userid'] = user['user_id']
-            session['username'] = user['user_first_name']
+            if user['user_middle_name'].strip() == '':
+                session['username'] = user['user_first_name'] + ' ' + user['user_last_name']
+            else:
+                session['username'] = user['user_first_name'] + ' ' + user['user_middle_name'] + ' ' + user['user_last_name']
             session['user_type'] = user['user_type']   # 'Reader', 'Librarian', or 'Admin'
+
+            user_log_activity(session['userid'], 'Login', f"{session['user_type']} {session['username']} logged in.")
 
             flash('Logged in successfully!', 'success')
             return redirect(url_for('main_page'))
@@ -402,8 +407,20 @@ def user_activity():
 
 @app.route('/logout')
 def logout():
+    user_log_activity(session['userid'], 'Logout', f"{session['user_type']} {session['username']} logged out.")
     session.clear()
     return redirect(url_for('login'))
+
+def user_log_activity(user_id, action_type, details):
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute(
+        '''
+        INSERT INTO user_activity_log (action_type, details, user_id)
+        VALUES (%s, %s, %s)
+        ''',
+        (action_type, details, user_id)
+    )
+    mysql.connection.commit()
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))

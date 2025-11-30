@@ -2,10 +2,20 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
+import smtplib, ssl
+from email.message import EmailMessage
 
 app = Flask(__name__) 
 
 app.secret_key = 'abcdefgh'
+
+# ---- EMAIL SMTP CONFIG ----
+app.config['SMTP_HOST'] = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
+app.config['SMTP_PORT'] = int(os.environ.get('SMTP_PORT', 587))
+app.config['SMTP_USER'] = os.environ.get('SMTP_USER')          # your email / SMTP username
+app.config['SMTP_PASS'] = os.environ.get('SMTP_PASS')          # SMTP password / app password
+app.config['SMTP_FROM'] = os.environ.get('SMTP_FROM', app.config['SMTP_USER'])
+# ---------------------------
   
 app.config['MYSQL_HOST'] = 'db'
 app.config['MYSQL_USER'] = 'root'
@@ -20,7 +30,6 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    message = ''
     if request.method == 'POST' and 'email' in request.form and 'password' in request.form:
         email = request.form['email']
         password = request.form['password']
@@ -37,16 +46,141 @@ def login():
             session['loggedin'] = True
             session['userid'] = user['user_id']
             session['username'] = user['user_first_name']
-            message = 'Logged in successfully!'
+            flash('Logged in successfully!', 'success')
             return redirect(url_for('main_page'))
         else:
-            message = 'Incorrect email or password!'
-            
-    return render_template('login.html', message=message)
+            flash('Incorrect email or password!', 'danger')
+            return redirect(url_for('login'))
+
+    return render_template('login.html')
 
 @app.route('/register', methods =['GET', 'POST'])
 def register():
     return render_template('register.html')
+
+@app.route('/forgot_password')
+def forgot_password():
+    return render_template('forgot_password.html')
+
+@app.route('/send_reset_link', methods=['POST'])
+def send_reset_link():
+    email = request.form.get('email')
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    # 1) Check if email exists and get user_id
+    cursor.execute("SELECT user_id FROM User WHERE user_email = %s", (email,))
+    row = cursor.fetchone()
+
+    if row:
+        user_id = row['user_id']
+
+        # 2) Generate token in DB using SHA2(UUID(), 256)
+        cursor.execute("SELECT SHA2(UUID(), 256) AS token")
+        token_row = cursor.fetchone()
+        token = token_row['token']
+
+        # 3) Insert into PasswordResetToken with 30 min expiry
+        cursor.execute("""
+            INSERT INTO PasswordResetToken (token_id, user_id, expires_at, used)
+            VALUES (%s, %s, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 30 MINUTE), 0)
+        """, (token, user_id))
+
+        mysql.connection.commit()
+
+        # 4) Build reset URL and send it by email
+        reset_url = url_for('reset_password', token=token, _external=True)
+        print("Password reset link:", reset_url)  # keep for debugging
+
+        try:
+            send_reset_email(email, reset_url)
+        except Exception as e:
+            # optional: log error, but don't reveal details to user
+            print("Error sending reset email:", e)
+
+    # Security: always show same message
+    flash("If that email exists, we'll send a reset link.", "info")
+    return redirect(url_for('login'))
+
+def send_reset_email(to_email, reset_url):
+    msg = EmailMessage()
+    msg['Subject'] = 'Password reset instructions'
+    msg['From'] = app.config['SMTP_FROM']
+    msg['To'] = to_email
+
+    msg.set_content(f"""\
+    Hi,
+
+    We received a request to reset the password for your account.
+
+    Click the link below to reset your password (valid for 30 minutes):
+
+    {reset_url}
+
+    If you did not request this, you can ignore this email.
+
+    Thanks.
+    """)
+
+    context = ssl.create_default_context()
+
+    with smtplib.SMTP(app.config['SMTP_HOST'], app.config['SMTP_PORT']) as server:
+        server.starttls(context=context)
+        server.login(app.config['SMTP_USER'], app.config['SMTP_PASS'])
+        server.send_message(msg)
+
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    # Check if token exists, not expired, and not used
+    cursor.execute("""
+        SELECT pr.user_id, u.user_email
+        FROM PasswordResetToken pr
+        JOIN User u ON u.user_id = pr.user_id
+        WHERE pr.token_id = %s
+          AND pr.expires_at > CURRENT_TIMESTAMP
+          AND pr.used = 0
+    """, (token,))
+    row = cursor.fetchone()
+
+    if not row:
+        return "Invalid or expired reset link.", 400
+
+    user_id = row['user_id']
+
+    if request.method == 'POST':
+        new_password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+
+        if not new_password or new_password != confirm_password:
+            flash("Passwords do not match.", "danger")
+            return render_template('reset_password.html', token=token)
+
+        # Update User.user_password using same SHA2 logic as login
+        cursor.execute("""
+            UPDATE User
+            SET user_password = SHA2(%s, 256)
+            WHERE user_id = %s
+        """, (new_password, user_id))
+
+        # Mark token as used (make sure your table has this column)
+        cursor.execute("""
+            UPDATE PasswordResetToken
+            SET used = 1
+            WHERE token_id = %s
+        """, (token,))
+
+        mysql.connection.commit()
+
+        flash("Your password has been reset. You can now log in.", "success")
+        return redirect(url_for('login'))
+
+    # GET: show the reset form
+    return render_template('reset_password.html', token=token)
+
+
 
 @app.route('/main', methods=['GET'])
 def main_page():

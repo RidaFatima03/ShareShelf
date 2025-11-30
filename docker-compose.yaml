@@ -11,6 +11,19 @@ services:
     command: python app.py
     depends_on:            
       - db
+    environment:
+      # DB config for Flask (if you want via env, optional since you also hardcode in app.py)
+      MYSQL_HOST: db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+      MYSQL_DB: shareshelfdb
+
+      # SMTP for sending emails
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: ${SMTP_FROM}
 
   db:
     image: mysql:5.7

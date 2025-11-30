@@ -12,6 +12,7 @@ INSERT INTO User (
 ('Robert', 'F.', 'Wilson', '5551212121', 'robert.wilson@example.com', SHA2('password6', 256), 'ACTIVE', '2023-06-15 09:00:00', 'Librarian'),
 
 ('Alice', 'G.', 'Taylor', '5553434343', 'alice.taylor@example.com', SHA2('password7', 256), 'ACTIVE', '2023-05-10 15:00:00', 'Admin'),
+('Melisa', '', 'Tanrikulu', '5369498281', 'melisatanrikulu07@gmail.com', SHA2('passwordMelisa99', 256), 'ACTIVE', '2023-05-15 12:30:00', 'Admin'),
 ('David', 'H.', 'Anderson', '5555656565', 'david.anderson@example.com', SHA2('password8', 256), 'ACTIVE', '2023-05-15 12:30:00', 'Admin');
 
 INSERT INTO Reader (reader_id, is_approved)

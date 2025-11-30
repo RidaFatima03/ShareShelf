@@ -81,14 +81,14 @@
 
             {% if session.get('user_type') == 'Admin' %}
                 <li>
-                    <a href="{{ url_for('main_page') }}">
-                        <i class="fa-solid fa-gauge-high"></i>
+                    <a href="{{ url_for('system_logs') }}">
+                        <i class="fa-solid fa-file-lines"></i>
                         <span class="link-text">System Logs</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ url_for('main_page') }}">
-                        <i class="fa-solid fa-gauge-high"></i>
+                    <a href="{{ url_for('user_activity') }}">
+                        <i class="fa-regular fa-clock"></i>
                         <span class="link-text">User Activity</span>
                     </a>
                 </li>

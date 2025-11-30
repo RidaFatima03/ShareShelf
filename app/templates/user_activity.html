@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="activity-page">
+
+    <h1 class="page-title">User Activity</h1>
+
+    <!-- Filters -->
+    <form method="get" class="activity-filters">
+        <div class="filter-row">
+
+            <!-- Action Type -->
+            <div class="filter-group">
+                <label>Action Type</label>
+                <select name="action_type">
+                    <option value="">All</option>
+                    {% for a in action_types %}
+                    <option value="{{ a }}" {% if a == selected_action %}selected{% endif %}>
+                        {{ a }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Date Range -->
+            <div class="filter-group">
+                <label>Action Date Range</label>
+                <div class="date-range">
+                    <input type="date" name="start_date" value="{{ start_date }}">
+                    <span>–</span>
+                    <input type="date" name="end_date" value="{{ end_date }}">
+                </div>
+            </div>
+
+            <!-- User -->
+            <div class="filter-group">
+                <label>User</label>
+                <input type="text" name="user_query" placeholder="Search by user ID…" value="{{ user_query }}">
+            </div>
+
+            <!-- Buttons -->
+            <div class="filter-actions">
+                <button class="btn btn-primary" type="submit">
+                    <i class="fa-solid fa-filter"></i> Apply Filters
+                </button>
+
+                <a href="{{ url_for('user_activity') }}" class="btn btn-secondary">
+                    Clear Filters
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Table -->
+    <div class="activity-table-wrapper">
+        <table class="activity-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>User ID</th>
+                    <th>Activity Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if logs %}
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.action_date }}</td>
+                        <td>{{ log.user_id }}</td>
+                        <td>{{ log.action_type }}</td>
+                        <td>{{ log.details }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="no-data">No activity found.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <p class="logs-footer">Recent activities, sorted by date.</p>
+    </div>
+
+</div>
+{% endblock %}

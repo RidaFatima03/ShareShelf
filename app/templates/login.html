@@ -1,7 +1,12 @@
 <form action="{{ url_for('login') }}" method="post">
-    {% if message is defined and message %}
-        <div class="alert alert-warning">{{ message }}</div>
-    {% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, msg in messages %}
+            <div class="alert alert-{{ category }}">{{ msg }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     
     <div class="form-group">
         <label for="email">Email:</label>
@@ -13,6 +18,7 @@
         <input type="password" class="form-control" id="password" name="password" placeholder="Enter password">
     </div>    
     
+    <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
     <button type="submit" class="btn btn-primary">Login</button>
 </form>
 

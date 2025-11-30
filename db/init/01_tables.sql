@@ -255,9 +255,10 @@ CREATE TABLE Request (
 );
 
 CREATE TABLE PasswordResetToken (
-  token_id CHAR(64) PRIMARY KEY,
+  token_id VARCHAR(256) PRIMARY KEY,
   user_id INT NOT NULL,
   expires_at DATETIME NOT NULL,
+  used TINYINT(1) DEFAULT 0,
   FOREIGN KEY (user_id) REFERENCES User(user_id)
 );
 

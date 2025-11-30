@@ -1,0 +1,474 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.auth-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 80px 20px 40px;
+    background-color: #ffffff;
+}
+
+.container {
+    width: 100%;
+    max-width: 500px;
+    position: relative;
+    padding-top: 100px;
+}
+
+/* Logo Text */
+.logo-text {
+    font-size: 52px;
+    font-weight: 600;
+    color: #5c4033;
+    letter-spacing: -0.5px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-image {
+    height: 70px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* Login Card */
+.login-card {
+    background-color: #f5f1eb;
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-top: 0;
+}
+
+.login-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #5c4033;
+    margin-bottom: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.welcome-message {
+    font-size: 14px;
+    color: #666666;
+    margin-bottom: 32px;
+    line-height: 1.5;
+}
+
+/* Form Styles */
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333333;
+    margin-bottom: 8px;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 16px;
+    width: 18px;
+    height: 18px;
+    color: #999999;
+    z-index: 1;
+    display: inline-block;
+}
+
+/* Email Icon */
+.email-icon {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23999999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z'%3E%3C/path%3E%3Cpolyline points='22,6 12,13 2,6'%3E%3C/polyline%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Lock Icon */
+.lock-icon {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23999999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='11' width='18' height='11' rx='2' ry='2'%3E%3C/rect%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'%3E%3C/path%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 14px 16px 14px 48px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #333333;
+    background-color: #ffffff;
+    transition: border-color 0.2s;
+}
+
+/* Password inputs with eye icon need extra right padding */
+.change-password-form .form-group input {
+    padding-right: 48px;
+}
+
+/* Name fields without icons need normal padding */
+.name-field input {
+    padding-left: 16px;
+}
+
+/* Eye Icon for password visibility toggle */
+.eye-icon {
+    position: absolute;
+    right: 16px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.eye-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.eye-icon:hover svg {
+    stroke: #666666;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #8b6f47;
+}
+
+.form-group input::placeholder {
+    color: #999999;
+}
+
+/* Forgot Password Link */
+.forgot-password {
+    display: block;
+    text-align: right;
+    font-size: 14px;
+    color: #8b6f47;
+    text-decoration: none;
+    margin-bottom: 24px;
+    transition: color 0.2s;
+}
+
+.forgot-password:hover {
+    color: #6b5638;
+    text-decoration: underline;
+}
+
+/* Login Button */
+.login-button {
+    width: 100%;
+    padding: 14px 24px;
+    background-color: #8b6f47;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+    margin-bottom: 24px;
+}
+
+.login-button:hover {
+    background-color: #6b5638;
+}
+
+.login-button:active {
+    transform: scale(0.98);
+}
+
+.arrow-icon {
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'%3E%3C/line%3E%3Cpolyline points='12 5 19 12 12 19'%3E%3C/polyline%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Register Link */
+.register-text {
+    text-align: center;
+    font-size: 14px;
+    color: #666666;
+}
+
+.register-link {
+    color: #8b6f47;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.register-link:hover {
+    color: #6b5638;
+    text-decoration: underline;
+}
+
+/* Register Card */
+.register-card {
+    background-color: #f5f1eb;
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-top: 0;
+}
+
+.register-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #5c4033;
+    margin-bottom: 32px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Register Form */
+.register-form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Name Fields Row */
+.name-fields-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.name-field {
+    margin-bottom: 0;
+}
+
+/* Register Button */
+.register-button {
+    width: 100%;
+    padding: 14px 24px;
+    background-color: #8b6f47;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+    margin-bottom: 24px;
+}
+
+.register-button:hover {
+    background-color: #6b5638;
+}
+
+.register-button:active {
+    transform: scale(0.98);
+}
+
+/* Login Link */
+.login-text {
+    text-align: center;
+    font-size: 14px;
+    color: #666666;
+}
+
+.login-link {
+    color: #8b6f47;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.login-link:hover {
+    color: #6b5638;
+    text-decoration: underline;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Reset Password Card */
+.reset-card {
+    background-color: #f5f1eb;
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-top: 0;
+}
+
+.reset-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #5c4033;
+    margin-bottom: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.reset-instructions {
+    font-size: 14px;
+    color: #666666;
+    margin-bottom: 32px;
+    line-height: 1.5;
+}
+
+/* Reset Form */
+.reset-form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Reset Button */
+.reset-button {
+    width: 100%;
+    padding: 14px 24px;
+    background-color: #8b6f47;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+    margin-top: 8px;
+}
+
+.reset-button:hover {
+    background-color: #6b5638;
+}
+
+.reset-button:active {
+    transform: scale(0.98);
+}
+
+/* Change Password Card */
+.change-password-card {
+    background-color: #f5f1eb;
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-top: 0;
+}
+
+.change-password-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #5c4033;
+    margin-bottom: 32px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Change Password Form */
+.change-password-form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Change Password Button */
+.change-password-button {
+    width: 100%;
+    padding: 14px 24px;
+    background-color: #8b6f47;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+    margin-top: 8px;
+}
+
+.change-password-button:hover {
+    background-color: #6b5638;
+}
+
+.change-password-button:active {
+    transform: scale(0.98);
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .login-card,
+    .register-card,
+    .reset-card,
+    .change-password-card {
+        padding: 32px 24px;
+    }
+
+    .logo-text {
+        font-size: 40px;
+    }
+
+    .auth-body {
+        padding: 60px 16px 32px;
+    }
+
+    .container {
+        padding-top: 80px;
+    }
+
+    .name-fields-row {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .name-field {
+        margin-bottom: 0;
+    }
+}

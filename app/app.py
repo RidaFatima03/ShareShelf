@@ -65,9 +65,9 @@ def login():
 def register():
     return render_template('register.html')
 
-@app.route('/forgot_password')
-def forgot_password():
-    return render_template('forgot_password.html')
+@app.route('/reset_password')
+def reset_password():
+    return render_template('reset_password.html')
 
 @app.route('/send_reset_link', methods=['POST'])
 def send_reset_link():
@@ -96,7 +96,7 @@ def send_reset_link():
         mysql.connection.commit()
 
         # 4) Build reset URL and send it by email
-        reset_url = url_for('reset_password', token=token, _external=True)
+        reset_url = url_for('change_password', token=token, _external=True)
         print("Password reset link:", reset_url)  # keep for debugging
 
         try:
@@ -137,8 +137,8 @@ def send_reset_email(to_email, reset_url):
         server.send_message(msg)
 
 
-@app.route('/reset_password/<token>', methods=['GET', 'POST'])
-def reset_password(token):
+@app.route('/change_password/<token>', methods=['GET', 'POST'])
+def change_password(token):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
 
     # Check if token exists, not expired, and not used
@@ -163,7 +163,7 @@ def reset_password(token):
 
         if not new_password or new_password != confirm_password:
             flash("Passwords do not match.", "danger")
-            return render_template('reset_password.html', token=token)
+            return render_template('change_password.html', token=token)
 
         # Update User.user_password using same SHA2 logic as login
         cursor.execute("""
@@ -185,7 +185,7 @@ def reset_password(token):
         return redirect(url_for('login'))
 
     # GET: show the reset form
-    return render_template('reset_password.html', token=token)
+    return render_template('change_password.html', token=token)
 
 @app.route('/main', methods=['GET'])
 def main_page():

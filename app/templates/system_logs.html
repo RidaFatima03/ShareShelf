@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="logs-page">
+
+    <h1 class="page-title">System Logs</h1>
+
+    <!-- Filters bar -->
+    <form method="get" class="logs-filters">
+        <div class="filter-row">
+
+            <!-- Source -->
+            <div class="filter-group">
+                <label for="source">Source</label>
+                <select name="source" id="source">
+                    <option value="">All</option>
+                    {% for src in sources %}
+                        <option value="{{ src }}" {% if src == selected_source %}selected{% endif %}>
+                            {{ src }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Log Level -->
+            <div class="filter-group">
+                <label for="log_level">Log Level</label>
+                <select name="log_level" id="log_level">
+                    <option value="">All</option>
+                    {% for lvl in log_levels %}
+                        <option value="{{ lvl }}" {% if lvl == selected_level %}selected{% endif %}>
+                            {{ lvl }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Date Range -->
+            <div class="filter-group">
+                <label>Date Range</label>
+                <div class="date-range">
+                    <input type="date" name="start_date" value="{{ start_date }}">
+                    <span>–</span>
+                    <input type="date" name="end_date" value="{{ end_date }}">
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="filter-actions">
+                <button type="submit" class="btn-search-submit">
+                    <i class="fa-solid fa-filter"></i> Apply Filters
+                </button>
+                
+                <button type="button" class="btn-filter-toggle" 
+                        onclick="window.location.href='{{ url_for('system_logs') }}'">
+                    Clear Filters
+                </button>
+
+
+            </div>
+
+        </div>
+    </form>
+
+    <!-- Logs table -->
+    <div class="logs-table-wrapper">
+        <table class="logs-table">
+            <thead>
+                <tr>
+                    <th>Log Date</th>
+                    <th>Source</th>
+                    <th>Log Level</th>
+                    <th>Log Node</th>
+                    <th>Log Message</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if logs %}
+                    {% for log in logs %}
+                        <tr>
+                            <td>{{ log.log_date }}</td>
+                            <td>{{ log.source }}</td>
+                            <td>
+                                <span class="badge badge-{{ log.log_level | lower }}">
+                                    {{ log.log_level }}
+                                </span>
+                            </td>
+                            <td>{{ log.log_node }}</td>
+                            <td>{{ log.log_message }}</td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="no-logs">No logs found for the selected filters.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+        <p class="logs-footer">Recent system logs, sorted by date.</p>
+    </div>
+
+</div>
+{% endblock %}

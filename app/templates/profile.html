@@ -1,0 +1,31 @@
+<html>
+    <head>
+        <title>User Profile</title>
+
+        <body>
+            <div style="position: relative; margin-bottom: 20px;">
+            <h1 style="text-align: center; margin: 0;">Personal Information</h1>
+            </div>
+            <br><br>
+
+            <div style="display: flex; gap: 20px; justify-content: left;">
+            <div style="flex: 1; min-width: 300px;">
+                <h4 style="text-align: left;">Personal Details</h4>
+                <p>Name:{{username}}</p>
+                <p>Email: {{ myaccount.user_email }}</p>
+                <p>Phone Number: {{ myaccount.user_phone_number }}</p>
+                <p>Status: {{ myaccount.status }}</p>
+            </div>
+            </div>
+            <div style="display: flex; gap: 20px; justify-content: right;">
+                <div style="flex: 1; min-width: 300px;">
+                <h4 style="text-align: left;">Total Fine Balance</h4>
+                <p>${{fine.amount}}</p>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center; gap: 20px; margin-top: 30px;">
+                <a href="{{ url_for('updateprofile') }}" class="btn">Edit Profile</a>
+            </div>
+        </body>
+    </head>
+</html>

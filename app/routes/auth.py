@@ -66,9 +66,38 @@ def login():
 
 @auth_bp.route('/register', methods=['GET', 'POST'], endpoint='register')
 def register():
-    # You can add POST logic later; for now it just shows the form
-    return render_template('register.html')
+    message = ''
+    if request.method == 'POST' :
+        user_first_name = request.form['user_first_name']
+        user_middle_name = request.form['user_middle_name']
+        user_last_name = request.form['user_last_name']
+        user_password = request.form['puser_password']
+        user_phone_number = request.form['user_phone_number']
+        user_email = request.form['user_email']
+    
+  
+        if not user_first_name or not user_middle_name or not user_last_name or not user_password or not user_phone_number or not user_email:
+            message = 'Please fill out the form!'
+            return render_template('register.html', message=message)
 
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+        cursor.execute('SELECT * FROM User WHERE user_email = %s', (user_email,))
+        user_email_exists = cursor.fetchone()
+
+        if user_email_exists:
+            message = 'Email already used! Please use a different one.'
+            return render_template('register.html', message=message)
+
+        
+        cursor.execute('INSERT INTO User (user_first_name, user_middle_name, user_last_name, user_phone_number, user_email, user_password) ' \
+        '     VALUES (% s, %s, %s, %s, %s, %s)',
+             (user_first_name, user_middle_name, user_last_name, user_phone_number, user_email, user_password))
+        mysql.connection.commit()
+        message = 'User successfully created!'
+        return render_template('login.html', message = message)
+
+    return render_template('register.html', message = message)
 
 @auth_bp.route('/reset_password', endpoint='reset_password')
 def reset_password():

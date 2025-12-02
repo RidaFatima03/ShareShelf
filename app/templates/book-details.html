@@ -1,0 +1,145 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <div class="book-details-content">
+        
+        <div class="book-details-header">
+            <h1 class="page-title">Book Details</h1>
+            <a href="javascript:history.back()" class="back-link">← Go back</a>
+        </div>
+ 
+        <div class="book-details-tabs">
+            <button class="details-tab active" data-tab="overview">Overview</button>
+            <button class="details-tab" data-tab="copies">Copies</button>
+        </div>
+
+        <section class="book-details-card" data-section="overview">
+            <div class="book-details-card__header">
+                <h2 class="book-details-title">{{ book.title }}</h2>
+                <a class="reviews-btn" href="{{ url_for('main.reviews', book_id=book.book_id) }}">View Book Reviews</a>
+            </div>
+
+            <div class="book-metadata-grid">
+                <div class="metadata-block">
+                    <span class="meta-label">Author(s)</span>
+                    <span class="meta-value tag">{{ book.authors }}</span>
+                </div>
+                <div class="metadata-block">
+                    <span class="meta-label">Genre(s)</span>
+                    <div class="genre-tags">
+                        <span class="tag">{{ book.genres }}</span>
+                    </div>
+                </div>
+                <div class="metadata-block">
+                    <span class="meta-label">Publication Date</span>
+                    <span class="meta-value bold">{{ book.publication_date }}</span>
+                </div>
+                <div class="metadata-block">
+                    <span class="meta-label">Publisher</span>
+                    <span class="meta-value bold">{{ book.publisher }}</span>
+                </div>
+                <div class="metadata-block">
+                    <span class="meta-label">ISBN</span>
+                    <span class="meta-value bold">{{ book.isbn }}</span>
+                </div>
+                <div class="metadata-block">
+                    <span class="meta-label">Language</span>
+                    <span class="meta-value bold">{{ book.language }}</span>
+                </div>
+                <div class="metadata-block">
+                    <span class="meta-label">Physical Description</span>
+                    <span class="meta-value bold">{{ book.physical_description }}</span>
+                </div>
+            </div>
+
+            <div class="book-summary">
+                <h3 class="summary-title">Summary</h3>
+                <p>{{ book.summary }}</p>
+            </div>
+        </section>
+
+        <section class="book-stats-card" data-section="overview">
+            <h3 class="section-title">Availability & Reviews Summary</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">Average Rating</span>
+                    <div class="stat-value">
+                        <i class="fa-solid fa-star" style="color: #f0b90b;"></i> {{ book.average_rating }}
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Available Copies</span>
+                    <span class="stat-value">{{ available_count }} copies</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="book-copies-card hidden" data-section="copies">
+            <div class="copies-table-wrapper">
+                <table class="copies-table">
+                    <thead>
+                        <tr>
+                            <th>Barcode</th>
+                            <th>Type</th>
+                            <th>Call Number</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for copy in copies %}
+                        <tr>
+                            <td>{{ copy.item_barcode }}</td>
+                            <td>{{ copy.material_type }}</td>
+                            <td>{{ copy.call_number }}</td>
+                            <td>{{ copy.direction }}, {{ copy.collection }}, {{ copy.shelf_row }}</td>
+                            <td>
+                                <span class="copy-status {{ copy.status|lower }}">{{ copy.status }}</span>
+                            </td>
+                            <td class="copy-actions">
+                                {% if copy.status == 'Available' %}
+                                    <button class="borrow-btn">Borrow</button>
+                                {% else %}
+                                    <button class="hold-btn">Hold</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6">No copies found for this book.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        const tabButtons = document.querySelectorAll('.details-tab');
+        const detailSections = document.querySelectorAll('[data-section]');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const target = button.getAttribute('data-tab');
+                
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                detailSections.forEach(section => {
+                    if (section.getAttribute('data-section') === target) {
+                        section.classList.remove('hidden');
+                    } else {
+                        section.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+
+{% endblock %}

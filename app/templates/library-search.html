@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShareShelf - Library Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-body">
+    <header class="dashboard-header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5c4033" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+            <a href="{{ url_for('main.main_page') }}" class="header-logo-text">
+                <img src="{{ url_for('static', filename='library_system_logo.png') }}" alt="ShareShelf Logo" class="header-logo-image">
+                ShareShelf
+            </a>
+        </div>
+        <div class="header-right">
+            <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
+        </div>
+    </header>
+
+    <div class="dashboard-container filters-layout">
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('main.library-search') }}" class="nav-item active">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <span>Library Search</span>
+                </a>
+                
+                {% if session.get('user_type') in ['Reader'] %}
+                <a href="{{ url_for('main.my_checkouts') }}" class="nav-item">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+                    </svg>
+                    <span>My Checkouts</span>
+                </a>
+                <a href="{{ url_for('main.my_fines') }}" class="nav-item">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    <span>My Fines</span>
+                </a>
+                <a href="{{ url_for('main.my_requests') }}" class="nav-item">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>My Requests</span>
+                </a>
+                {% endif %}
+                
+                <a href="{{ url_for('main.notifications') }}" class="nav-item">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span>Notifications</span>
+                </a>
+                <a href="{{ url_for('profile.userprofile') }}" class="nav-item">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Personal Info</span>
+                </a>
+            </nav>
+        </aside>
+
+        <aside class="filters-column">
+            <h2 class="filters-column-title">Search Filters</h2>
+            
+            <form action="{{ url_for('main.library-search') }}" method="GET">
+                
+                <div class="filter-group">
+                    <h3 class="filter-group-title">Book Details</h3>
+                    <div class="filter-input-group">
+                        <label class="filter-label">Book Title</label>
+                        <input type="text" name="search_query" class="filter-input" 
+                               placeholder="e.g., The Great Gatsby" 
+                               value="{{ request.args.get('search_query', '') }}">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h3 class="filter-group-title">Categories</h3>
+                    <div class="filter-input-group">
+                        <label class="filter-label">Genre</label>
+                        <select name="genre" class="filter-select">
+                            <option value="">All Genres</option>
+                            <option value="Science Fiction" {% if request.args.get('genre') == 'Science Fiction' %}selected{% endif %}>Science Fiction</option>
+                            <option value="Fantasy" {% if request.args.get('genre') == 'Fantasy' %}selected{% endif %}>Fantasy</option>
+                            <option value="Mystery" {% if request.args.get('genre') == 'Mystery' %}selected{% endif %}>Mystery</option>
+                            <option value="Classic Literature" {% if request.args.get('genre') == 'Classic Literature' %}selected{% endif %}>Classic Literature</option>
+                            <option value="Historical Fiction" {% if request.args.get('genre') == 'Historical Fiction' %}selected{% endif %}>Historical Fiction</option>
+                        </select>
+                    </div>
+                    <div class="filter-input-group">
+                        <label class="filter-label">Language</label>
+                        <select name="language" class="filter-select">
+                            <option value="">All Languages</option>
+                            <option value="English" {% if request.args.get('language') == 'English' %}selected{% endif %}>English</option>
+                            <option value="Swedish" {% if request.args.get('language') == 'Swedish' %}selected{% endif %}>Swedish</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h3 class="filter-group-title">Availability</h3>
+                    <div class="filter-checkbox-group">
+                        <label class="filter-checkbox-label">
+                            <input type="checkbox" name="status" value="Available" class="filter-checkbox availability-filter" {% if request.args.get('status') == 'Available' %}checked{% endif %}>
+                            <span>Available Only</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <h3 class="filter-group-title">Average Rating</h3>
+                    <div class="filter-input-group">
+                        <label class="filter-label">Minimum Rating</label>
+                        <select name="min_rating" class="filter-select">
+                            <option value="">Any Rating</option>
+                            <option value="4" {% if request.args.get('min_rating') == '4' %}selected{% endif %}>4 Stars & Up</option>
+                            <option value="3" {% if request.args.get('min_rating') == '3' %}selected{% endif %}>3 Stars & Up</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-buttons">
+                    <button type="submit" class="apply-filters-btn">Apply Filters</button>
+                    <a href="{{ url_for('main.library-search') }}" class="clear-filters-btn" style="display: block; text-align: center; text-decoration: none;">Clear Filters</a>
+                </div>
+            </form>
+        </aside>
+
+        <main class="main-content filters-results">
+            <h1 class="page-title">{{ view_title }}</h1>
+            
+            <div class="books-list" id="booksList">
+                {% for book in books %}
+                <div class="book-result-card">
+                    <div class="book-info">
+                        <h3 class="book-result-title">{{ book.title }}</h3>
+                        <p class="book-result-author">Author: {{ book.authors }}</p>
+                        <p class="book-result-genre">Genre: {{ book.genres }}</p>
+                        
+                        <div class="book-result-meta">
+                            <div class="availability-row">
+                                {% if book.available_copies > 0 %}
+                                    <span class="book-result-status available">Available</span>
+                                {% else %}
+                                    <span class="book-result-status on-loan">On Loan</span>
+                                {% endif %}
+                            </div>
+                            <span class="book-result-rating">
+                                <i class="fa-solid fa-star" style="color: #f0b90b;"></i> {{ book.average_rating }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="book-actions">
+                        <a href="{{ url_for('main.book_details', book_id=book.book_id) }}" class="view-details-btn" style="text-decoration: none; text-align: center;">Details</a>
+                        <button class="hold-btn">Hold</button>
+                    </div>
+                </div>
+                {% else %}
+                <div class="search-empty">
+                    No books found matching your criteria.
+                </div>
+                {% endfor %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Toggle sidebar
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('sidebar-closed');
+            document.querySelector('.filters-layout').classList.toggle('sidebar-closed');
+        });
+    </script>
+</body>
+</html>

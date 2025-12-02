@@ -71,7 +71,7 @@ def register():
         user_first_name = request.form['user_first_name']
         user_middle_name = request.form['user_middle_name']
         user_last_name = request.form['user_last_name']
-        user_password = request.form['puser_password']
+        user_password = request.form['user_password']
         user_phone_number = request.form['user_phone_number']
         user_email = request.form['user_email']
     

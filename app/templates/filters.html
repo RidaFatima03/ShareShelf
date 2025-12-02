@@ -1,0 +1,173 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Force the filters column to sit fixed next to the main sidebar */
+        .filters-column {
+            position: fixed !important;
+            left: 250px !important; /* Starts right after the 250px sidebar */
+            top: 60px !important;
+            height: calc(100vh - 60px) !important;
+            width: 300px !important;
+            z-index: 900;
+            border-right: 1px solid #e0e0e0;
+            background: #fff;
+            overflow-y: auto;
+        }
+
+        /* Push the results grid to the right to make space for filters */
+        .results-wrapper {
+            margin-left: 320px; /* 300px for filter width + 20px gap */
+            width: calc(100% - 320px);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1000px) {
+            .filters-column {
+                position: static !important;
+                width: 100% !important;
+                height: auto !important;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+            .results-wrapper {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+    </style>
+
+    <aside class="filters-column">
+        <h2 class="filters-column-title">Search Filters</h2>
+        
+        <form action="{{ url_for('main.library_search') }}" method="GET">
+            
+            <div class="filter-group">
+                <h3 class="filter-group-title">Keywords</h3>
+                <div class="filter-input-group">
+                    <label class="filter-label">Search Title, Author, ISBN</label>
+                    <input type="text" name="search_query" class="filter-input" 
+                           placeholder="e.g., Harry Potter"
+                           value="{{ request.args.get('search_query', '') }}">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h3 class="filter-group-title">Categories</h3>
+                <div class="filter-input-group">
+                    <label class="filter-label">Genre</label>
+                    <select name="genre" class="filter-select">
+                        <option value="">All Genres</option>
+                        <option value="Science Fiction" {% if request.args.get('genre') == 'Science Fiction' %}selected{% endif %}>Science Fiction</option>
+                        <option value="Fantasy" {% if request.args.get('genre') == 'Fantasy' %}selected{% endif %}>Fantasy</option>
+                        <option value="Mystery" {% if request.args.get('genre') == 'Mystery' %}selected{% endif %}>Mystery</option>
+                        <option value="Classic Literature" {% if request.args.get('genre') == 'Classic Literature' %}selected{% endif %}>Classic Literature</option>
+                        <option value="Historical Fiction" {% if request.args.get('genre') == 'Historical Fiction' %}selected{% endif %}>Historical Fiction</option>
+                    </select>
+                </div>
+                <div class="filter-input-group">
+                    <label class="filter-label">Language</label>
+                    <select name="language" class="filter-select">
+                        <option value="">All Languages</option>
+                        <option value="English" {% if request.args.get('language') == 'English' %}selected{% endif %}>English</option>
+                        <option value="Swedish" {% if request.args.get('language') == 'Swedish' %}selected{% endif %}>Swedish</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h3 class="filter-group-title">Availability</h3>
+                <div class="filter-checkbox-group">
+                    <label class="filter-checkbox-label">
+                        <input type="checkbox" name="status" value="Available" class="filter-checkbox availability-filter"
+                               {% if request.args.get('status') == 'Available' %}checked{% endif %}>
+                        <span>Available Only</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <h3 class="filter-group-title">Rating</h3>
+                <div class="filter-input-group">
+                    <label class="filter-label">Minimum Rating</label>
+                    <select name="min_rating" class="filter-select">
+                        <option value="">Any Rating</option>
+                        <option value="4" {% if request.args.get('min_rating') == '4' %}selected{% endif %}>4+ Stars</option>
+                        <option value="3" {% if request.args.get('min_rating') == '3' %}selected{% endif %}>3+ Stars</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-buttons">
+                <button type="submit" class="apply-filters-btn">Apply Filters</button>
+                <a href="{{ url_for('main.library_search') }}" class="clear-filters-btn" style="display: block; text-align: center; text-decoration: none;">Clear Filters</a>
+            </div>
+        </form>
+    </aside>
+
+    <div class="results-wrapper">
+        <h1 class="page-title">{{ view_title }}</h1>
+        
+        <div class="books-grid" id="booksGrid">
+            {% for book in books %}
+            <div class="book-result-card">
+                <div class="book-info">
+                    <h3 class="book-result-title">{{ book.title }}</h3>
+                    <p class="book-result-author">Author: {{ book.authors }}</p>
+                    <p class="book-result-genre">Genre: {{ book.genres }}</p>
+                    
+                    <div class="book-result-meta">
+                        <div class="availability-row">
+                            <span class="availability-label">Availability:</span>
+                            {% if book.available_copies > 0 %}
+                                <span class="book-result-status available">Available</span>
+                            {% else %}
+                                <span class="book-result-status on-loan">On Loan</span>
+                            {% endif %}
+                        </div>
+                        <span class="book-result-rating">
+                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i> {{ book.average_rating }}
+                        </span>
+                    </div>
+                </div>
+                <div class="book-actions">
+                    <a href="{{ url_for('main.book_details', book_id=book.book_id) }}" class="view-details-btn" style="text-decoration:none; text-align:center;">Details</a>
+                    <button class="hold-btn">Hold</button>
+                </div>
+            </div>
+            {% else %}
+            <div class="search-empty">
+                No books found matching your criteria.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        // Rating slider update logic if you switch back to slider
+        const ratingSlider = document.querySelector('.rating-slider');
+        const ratingValue = document.querySelector('.rating-value');
+        if (ratingSlider && ratingValue) {
+            ratingSlider.addEventListener('input', function() {
+                ratingValue.textContent = this.value;
+            });
+        }
+
+        // Availability Checkbox Logic
+        const availabilityFilters = document.querySelectorAll('.availability-filter');
+        if (availabilityFilters.length) {
+            availabilityFilters.forEach(filter => {
+                filter.addEventListener('change', () => {
+                    if (filter.checked) {
+                        availabilityFilters.forEach(other => {
+                            if (other !== filter) other.checked = false;
+                        });
+                    }
+                });
+            });
+        }
+    </script>
+{% endblock %}

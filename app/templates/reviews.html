@@ -1,0 +1,88 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <div class="reviews-page">
+        
+        <div class="book-details-header">
+            <h1 class="page-title">Reviews for {{ book.title }}</h1>
+            <a href="javascript:history.back()" class="back-link">← Go back</a>
+        </div>
+
+        <section class="reviews-grid">
+            <article class="review-card">
+                <div class="review-header">
+                    <div class="review-avatar">A</div>
+                    <div>
+                        <h3 class="reviewer-name">Alice Smith</h3>
+                        <div class="review-stars">
+                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
+                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
+                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
+                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
+                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
+                        </div>
+                    </div>
+                </div>
+                <p class="review-text">An absolutely captivating read! The plot twists kept me on the edge of my seat.</p>
+                <span class="review-date">2023-10-26</span>
+            </article>
+
+            <article class="review-card">
+                <div class="review-header">
+                    <div class="review-avatar">B</div>
+                    <div>
+                        <h3 class="reviewer-name">Bob Johnson</h3>
+                        <div class="review-stars">
+                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
+                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
+                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
+                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
+                            <i class="fa-regular fa-star" style="color: #f0b90b;"></i>
+                        </div>
+                    </div>
+                </div>
+                <p class="review-text">Great book! The ending was a bit predictable for me, but the character development was excellent.</p>
+                <span class="review-date">2023-11-15</span>
+            </article>
+        </section>
+
+        <section class="review-form-card">
+            <h2 class="section-title">Add Your Review</h2>
+            <form class="review-form">
+                <label class="rating-label">Rating</label>
+                <div class="star-input" id="starInput">
+                    <span data-value="1">☆</span>
+                    <span data-value="2">☆</span>
+                    <span data-value="3">☆</span>
+                    <span data-value="4">☆</span>
+                    <span data-value="5">☆</span>
+                </div>
+                
+                <label class="rating-label" for="reviewComment">Comment</label>
+                <textarea id="reviewComment" placeholder="Share your thoughts on this book..."></textarea>
+                
+                <button type="button" class="submit-review-btn">Submit Review</button>
+            </form>
+        </section>
+    </div>
+
+    <script>
+        // Star Rating Logic
+        const starInput = document.getElementById('starInput');
+        if (starInput) {
+            starInput.addEventListener('click', function(event) {
+                if (event.target.dataset.value) {
+                    const value = Number(event.target.dataset.value);
+                    [...starInput.children].forEach(span => {
+                        span.textContent = Number(span.dataset.value) <= value ? '★' : '☆';
+                        span.style.color = Number(span.dataset.value) <= value ? '#f0b90b' : '#d0c1ac';
+                    });
+                }
+            });
+        }
+    </script>
+{% endblock %}

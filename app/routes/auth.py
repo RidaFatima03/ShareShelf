@@ -18,7 +18,7 @@ def get_cursor():
 
 @auth_bp.route('/', endpoint='index')
 def index():
-    return redirect(url_for('login'))
+    return redirect(url_for('auth.login'))
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'], endpoint='login')
@@ -59,7 +59,7 @@ def login():
             return redirect(url_for('main.main_page'))
         else:
             flash('Incorrect email or password!', 'danger')
-            return redirect(url_for('login'))
+            return redirect(url_for('auth.login'))
 
     return render_template('login.html')
 

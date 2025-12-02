@@ -1,10 +1,11 @@
-# app.py
+# app/app.py
 import os
 from flask import Flask
 from extensions import mysql
 from routes.auth import auth_bp
 from routes.main import main_bp
 from routes.admin import admin_bp
+from routes.profile import profile_bp  # <--- NEW IMPORT
 
 def create_app():
     app = Flask(__name__)
@@ -14,8 +15,8 @@ def create_app():
     # ---- EMAIL SMTP CONFIG ----
     app.config['SMTP_HOST'] = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
     app.config['SMTP_PORT'] = int(os.environ.get('SMTP_PORT', 587))
-    app.config['SMTP_USER'] = os.environ.get('SMTP_USER')          # your email / SMTP username
-    app.config['SMTP_PASS'] = os.environ.get('SMTP_PASS')          # SMTP password / app password
+    app.config['SMTP_USER'] = os.environ.get('SMTP_USER')
+    app.config['SMTP_PASS'] = os.environ.get('SMTP_PASS')
     app.config['SMTP_FROM'] = os.environ.get('SMTP_FROM', app.config['SMTP_USER'])
     # ---------------------------
 
@@ -32,6 +33,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(profile_bp)  # <--- NEW REGISTRATION
 
     return app
 

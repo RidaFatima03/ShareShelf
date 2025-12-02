@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShareShelf - Notifications</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dashboard-body">
+    <header class="dashboard-header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5c4033" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+            <a href="home.html" class="header-logo-text">
+                <img src="library_system_logo.png" alt="ShareShelf Logo" class="header-logo-image">
+                ShareShelf
+            </a>
+        </div>
+        <div class="header-right">
+            <a href="login.html" class="logout-link">Logout</a>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="filters.html" class="nav-item">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <span>Library Search</span>
+                </a>
+                <a href="my-checkouts.html" class="nav-item">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+                    </svg>
+                    <span>My Checkouts</span>
+                </a>
+                <a href="my-fines.html" class="nav-item">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    <span>My Fines</span>
+                </a>
+                <a href="my-requests.html" class="nav-item">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>My Requests</span>
+                </a>
+                <a href="notifications.html" class="nav-item active">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span>Notifications</span>
+                </a>
+                <a href="personal-information.html" class="nav-item">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Personal Info</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content notifications-page">
+            <section class="notifications-card">
+                <h2 class="section-title">Unread Notifications</h2>
+                <div class="notification-item unread">
+                    <div class="notification-meta">October 28, 2025</div>
+                    <h3 class="notification-title">New Book Added</h3>
+                    <p class="notification-text">New book "The Silent Library" by Jane Austen has been added to the catalog.</p>
+                    <span class="notification-badge">New</span>
+                </div>
+                <div class="notification-item unread">
+                    <div class="notification-meta">October 27, 2025</div>
+                    <h3 class="notification-title">Hold Available</h3>
+                    <p class="notification-text">Your hold for "Mystery of the Old Scroll" is now available for pickup. Please collect it within 3 days.</p>
+                    <span class="notification-badge">New</span>
+                </div>
+                <div class="notification-item unread">
+                    <div class="notification-meta">October 26, 2025</div>
+                    <h3 class="notification-title">New Borrow Request</h3>
+                    <p class="notification-text">A new borrow request for "Data Structures Illustrated" has been submitted by John Doe.</p>
+                    <span class="notification-badge">New</span>
+                </div>
+                <div class="notification-item unread">
+                    <div class="notification-meta">October 25, 2025</div>
+                    <h3 class="notification-title">Overdue Fine</h3>
+                    <p class="notification-text">Your fine balance of $5.00 for "Late Return Policy" is overdue. Please settle it soon.</p>
+                    <span class="notification-badge">New</span>
+                </div>
+            </section>
+
+            <section class="notifications-card">
+                <h2 class="section-title">Previous Notifications</h2>
+                <div class="notification-item read">
+                    <div class="notification-meta">October 24, 2025</div>
+                    <h3 class="notification-title">Checkout Renewed</h3>
+                    <p class="notification-text">Your checkout for "Algorithms for Beginners" has been renewed.</p>
+                    <span class="notification-badge read">Read</span>
+                </div>
+                <div class="notification-item read">
+                    <div class="notification-meta">October 23, 2025</div>
+                    <h3 class="notification-title">Borrow Request Approved</h3>
+                    <p class="notification-text">The librarian has approved your borrow request for "Introduction to React".</p>
+                    <span class="notification-badge read">Read</span>
+                </div>
+                <div class="notification-item read">
+                    <div class="notification-meta">October 22, 2025</div>
+                    <h3 class="notification-title">System Maintenance</h3>
+                    <p class="notification-text">The system will undergo maintenance on November 1st from 2:00 AM to 4:00 AM.</p>
+                    <span class="notification-badge read">Read</span>
+                </div>
+                <div class="notification-item read">
+                    <div class="notification-meta">October 21, 2025</div>
+                    <h3 class="notification-title">New User Registered</h3>
+                    <p class="notification-text">A new user, Alice Smith, has registered for an account.</p>
+                    <span class="notification-badge read">Read</span>
+                </div>
+                <div class="notification-item read">
+                    <div class="notification-meta">October 20, 2025</div>
+                    <h3 class="notification-title">Borrow Request Rejected</h3>
+                    <p class="notification-text">Your borrow request for "Advanced Database Systems" was rejected due to unavailability.</p>
+                    <span class="notification-badge read">Read</span>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.querySelector('.main-content');
+
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('sidebar-closed');
+            mainContent.classList.toggle('main-content-expanded');
+        });
+
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
+                    sidebar.classList.add('sidebar-closed');
+                    mainContent.classList.remove('main-content-expanded');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

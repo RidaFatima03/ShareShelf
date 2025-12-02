@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShareShelf - My Requests</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dashboard-body">
+    <header class="dashboard-header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5c4033" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+            <a href="home.html" class="header-logo-text">
+                <img src="library_system_logo.png" alt="ShareShelf Logo" class="header-logo-image">
+                ShareShelf
+            </a>
+        </div>
+        <div class="header-right">
+            <a href="login.html" class="logout-link">Logout</a>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="filters.html" class="nav-item">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <span>Library Search</span>
+                </a>
+                <a href="my-checkouts.html" class="nav-item">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+                    </svg>
+                    <span>My Checkouts</span>
+                </a>
+                <a href="my-fines.html" class="nav-item">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    <span>My Fines</span>
+                </a>
+                <a href="my-requests.html" class="nav-item active">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>My Requests</span>
+                </a>
+                <a href="notifications.html" class="nav-item">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span>Notifications</span>
+                </a>
+                <a href="personal-information.html" class="nav-item">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>Personal Info</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content requests-page">
+            <div class="request-tabs">
+                <button class="request-tab-pill active" data-tab="holds">Holds</button>
+                <button class="request-tab-pill" data-tab="borrows">Borrows</button>
+                <button class="request-tab-pill" data-tab="new">New Books</button>
+            </div>
+
+            <section class="requests-card" data-tab-panel="holds">
+                <div class="table-wrapper">
+                    <table class="requests-table">
+                        <thead>
+                            <tr>
+                                <th>Book Title</th>
+                                <th>Author</th>
+                                <th>Request Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>The Alchemist</td>
+                                <td>Paulo Coelho</td>
+                                <td>2025-10-26</td>
+                                <td><span class="request-status pending">Pending</span></td>
+                                <td><button class="action-button primary">Cancel</button></td>
+                                <td><button class="action-button primary">View Details</button></td>
+                            </tr>
+                            <tr>
+                                <td>Sapiens: A Brief History of Humankind</td>
+                                <td>Yuval Noah Harari</td>
+                                <td>2025-10-20</td>
+                                <td><span class="request-status approved">Approved</span></td>
+                                <td class="no-action">No actions available</td>
+                                <td><button class="action-button primary">View Details</button></td>
+                            </tr>
+                            <tr>
+                                <td>Educated</td>
+                                <td>Tara Westover</td>
+                                <td>2025-10-15</td>
+                                <td><span class="request-status pending">Pending</span></td>
+                                <td><button class="action-button primary">Cancel</button></td>
+                                <td><button class="action-button primary">View Details</button></td>
+                            </tr>
+                            <tr>
+                                <td>Atomic Habits</td>
+                                <td>James Clear</td>
+                                <td>2025-09-30</td>
+                                <td><span class="request-status approved">Approved</span></td>
+                                <td class="no-action">No actions available</td>
+                                <td><button class="action-button primary">View Details</button></td>
+                            </tr>
+                            <tr>
+                                <td>The Midnight Library</td>
+                                <td>Matt Haig</td>
+                                <td>2025-09-25</td>
+                                <td><span class="request-status pending">Pending</span></td>
+                                <td><button class="action-button primary">Cancel</button></td>
+                                <td><button class="action-button primary">View Details</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="requests-card hidden" data-tab-panel="borrows">
+                <div class="table-wrapper">
+                    <table class="requests-table">
+                        <thead>
+                            <tr>
+                                <th>Book Title</th>
+                                <th>Author</th>
+                                <th>Request Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Measure What Matters</td>
+                                <td>John Doerr</td>
+                                <td>2025-09-18</td>
+                                <td><span class="request-status approved">Approved</span></td>
+                                <td class="no-action">No actions available</td>
+                                <td><button class="action-button primary">View Details</button></td>
+                            </tr>
+                            <tr>
+                                <td>Invisible Women</td>
+                                <td>Caroline Criado Perez</td>
+                                <td>2025-09-10</td>
+                                <td><span class="request-status pending">Pending</span></td>
+                                <td><button class="action-button primary">Cancel</button></td>
+                                <td><button class="action-button primary">View Details</button></td>
+                            </tr>
+                            <tr>
+                                <td>The Night Circus</td>
+                                <td>Erin Morgenstern</td>
+                                <td>2025-08-28</td>
+                                <td><span class="request-status approved">Approved</span></td>
+                                <td class="no-action">No actions available</td>
+                                <td><button class="action-button primary">View Details</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="requests-card hidden" data-tab-panel="new">
+                <div class="table-wrapper">
+                    <table class="requests-table">
+                        <thead>
+                            <tr>
+                                <th>Book Title</th>
+                                <th>Author</th>
+                                <th>Date Requested</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>The Creative Act</td>
+                                <td>Rick Rubin</td>
+                                <td>2025-09-12</td>
+                                <td><span class="request-status pending">Pending</span></td>
+                                <td><button class="action-button primary">Cancel</button></td>
+                                <td><button class="action-button primary">View Details</button></td>
+                            </tr>
+                            <tr>
+                                <td>Build</td>
+                                <td>Tony Fadell</td>
+                                <td>2025-08-30</td>
+                                <td><span class="request-status approved">Approved</span></td>
+                                <td class="no-action">No actions available</td>
+                                <td><button class="action-button primary">View Details</button></td>
+                            </tr>
+                            <tr>
+                                <td>Tomorrow, and Tomorrow, and Tomorrow</td>
+                                <td>Gabrielle Zevin</td>
+                                <td>2025-08-22</td>
+                                <td><span class="request-status pending">Pending</span></td>
+                                <td><button class="action-button primary">Cancel</button></td>
+                                <td><button class="action-button primary">View Details</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.querySelector('.main-content');
+
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('sidebar-closed');
+            mainContent.classList.toggle('main-content-expanded');
+        });
+
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
+                    sidebar.classList.add('sidebar-closed');
+                    mainContent.classList.remove('main-content-expanded');
+                }
+            }
+        });
+
+        // Tab logic
+        const tabButtons = document.querySelectorAll('.request-tab-pill');
+        const panels = document.querySelectorAll('[data-tab-panel]');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const target = button.getAttribute('data-tab');
+                tabButtons.forEach(btn => btn.classList.toggle('active', btn === button));
+                panels.forEach(panel => {
+                    panel.classList.toggle('hidden', panel.getAttribute('data-tab-panel') !== target);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

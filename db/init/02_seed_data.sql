@@ -22,7 +22,7 @@ VALUES
 (3, TRUE),
 (4, FALSE);
 
-INSERT INTO Librarian (librarian_id)
+INSERT INTO Librarian (librarian_id) 
 VALUES
 (5),
 (6);

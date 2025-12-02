@@ -5,6 +5,64 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <style>
+        .review-card.hidden {
+            display: none !important;
+        }
+        
+        .pagination-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            margin-bottom: 40px;
+            padding: 15px;
+            background-color: #faf8f5;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .page-btn {
+            padding: 8px 16px;
+            background-color: #fff;
+            border: 1px solid #d8c7b2;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #5c4033;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background-color: #f5e6d3;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #eee;
+            border-color: #ccc;
+        }
+
+        .total-count {
+            font-weight: 600;
+            color: #5c4033;
+            font-size: 14px;
+        }
+
+        .page-info {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+    </style>
+
     <div class="reviews-page">
         
         <div class="book-details-header">
@@ -12,77 +70,149 @@
             <a href="javascript:history.back()" class="back-link">← Go back</a>
         </div>
 
-        <section class="reviews-grid">
-            <article class="review-card">
-                <div class="review-header">
-                    <div class="review-avatar">A</div>
-                    <div>
-                        <h3 class="reviewer-name">Alice Smith</h3>
-                        <div class="review-stars">
-                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
-                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
-                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
-                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
-                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
-                        </div>
-                    </div>
-                </div>
-                <p class="review-text">An absolutely captivating read! The plot twists kept me on the edge of my seat.</p>
-                <span class="review-date">2023-10-26</span>
-            </article>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}" style="padding: 15px; margin-bottom: 20px; border-radius: 8px; background-color: #fff3cd; color: #856404;">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
 
-            <article class="review-card">
-                <div class="review-header">
-                    <div class="review-avatar">B</div>
-                    <div>
-                        <h3 class="reviewer-name">Bob Johnson</h3>
-                        <div class="review-stars">
-                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
-                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
-                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
-                            <i class="fa-solid fa-star" style="color: #f0b90b;"></i>
-                            <i class="fa-regular fa-star" style="color: #f0b90b;"></i>
+        <section class="reviews-grid" id="reviewsContainer">
+            {% if reviews %}
+                {% for review in reviews %}
+                <article class="review-card">
+                    <div class="review-header">
+                        <div class="review-avatar">{{ review.user_first_name[0] }}</div>
+                        <div>
+                            <h3 class="reviewer-name">{{ review.user_first_name }} {{ review.user_last_name }}</h3>
+                            <div class="review-stars" data-rating="{{ review.rating }}"></div>
                         </div>
                     </div>
+                    <p class="review-text">{{ review.review_text }}</p>
+                    <span class="review-date">{{ review.created_date }}</span>
+                </article>
+                {% endfor %}
+            {% else %}
+                <div style="text-align:center; padding:40px; background:#f9f9f9; border-radius:10px;">
+                    <p style="color: #666; font-style: italic;">No reviews yet. Be the first to write one!</p>
                 </div>
-                <p class="review-text">Great book! The ending was a bit predictable for me, but the character development was excellent.</p>
-                <span class="review-date">2023-11-15</span>
-            </article>
+            {% endif %}
         </section>
+
+        <div class="pagination-wrapper">
+            <span class="total-count">Total Reviews: {{ reviews|length }}</span>
+            
+            <div class="pagination-controls">
+                <button class="page-btn" id="prevBtn" onclick="changePage(-1)">Previous</button>
+                <span class="page-info" id="pageIndicator">Page 1</span>
+                <button class="page-btn" id="nextBtn" onclick="changePage(1)">Next</button>
+            </div>
+        </div>
 
         <section class="review-form-card">
             <h2 class="section-title">Add Your Review</h2>
-            <form class="review-form">
-                <label class="rating-label">Rating</label>
-                <div class="star-input" id="starInput">
-                    <span data-value="1">☆</span>
-                    <span data-value="2">☆</span>
-                    <span data-value="3">☆</span>
-                    <span data-value="4">☆</span>
-                    <span data-value="5">☆</span>
+            
+            {% if not has_reviewed %}
+                <form class="review-form" method="POST" action="{{ url_for('main.reviews', book_id=book.book_id) }}">
+                    <input type="hidden" name="rating" id="ratingInput" value="0" required>
+
+                    <label class="rating-label">Rating</label>
+                    <div class="star-input" id="starInput">
+                        <i class="fa-regular fa-star" data-value="1"></i>
+                        <i class="fa-regular fa-star" data-value="2"></i>
+                        <i class="fa-regular fa-star" data-value="3"></i>
+                        <i class="fa-regular fa-star" data-value="4"></i>
+                        <i class="fa-regular fa-star" data-value="5"></i>
+                    </div>
+                    
+                    <label class="rating-label" for="reviewComment">Comment</label>
+                    <textarea name="comment" id="reviewComment" placeholder="Share your thoughts on this book..." required></textarea>
+                    
+                    <button type="submit" class="submit-review-btn">Submit Review</button>
+                </form>
+            {% else %}
+                <div style="padding: 20px; background-color: #e3f2fd; color: #0277bd; border-radius: 8px; text-align: center;">
+                    <i class="fa-solid fa-circle-check"></i> You have already reviewed this book.
                 </div>
-                
-                <label class="rating-label" for="reviewComment">Comment</label>
-                <textarea id="reviewComment" placeholder="Share your thoughts on this book..."></textarea>
-                
-                <button type="button" class="submit-review-btn">Submit Review</button>
-            </form>
+            {% endif %}
         </section>
     </div>
 
     <script>
-        // Star Rating Logic
-        const starInput = document.getElementById('starInput');
-        if (starInput) {
-            starInput.addEventListener('click', function(event) {
-                if (event.target.dataset.value) {
-                    const value = Number(event.target.dataset.value);
-                    [...starInput.children].forEach(span => {
-                        span.textContent = Number(span.dataset.value) <= value ? '★' : '☆';
-                        span.style.color = Number(span.dataset.value) <= value ? '#f0b90b' : '#d0c1ac';
-                    });
+        // --- PAGINATION LOGIC ---
+        const itemsPerPage = 2; 
+        let currentPage = 1;
+        
+        const allReviews = document.querySelectorAll('.review-card');
+        const totalReviews = allReviews.length;
+        const totalPages = Math.ceil(totalReviews / itemsPerPage) || 1;
+
+        function showPage(page) {
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+
+            allReviews.forEach((review, index) => {
+                if (index >= start && index < end) {
+                    review.classList.remove('hidden');
+                } else {
+                    review.classList.add('hidden');
                 }
+            });
+
+            document.getElementById('pageIndicator').textContent = `Page ${page} of ${totalPages}`;
+            
+            document.getElementById('prevBtn').disabled = (page === 1);
+            document.getElementById('nextBtn').disabled = (page === totalPages);
+        }
+
+        function changePage(direction) {
+            const newPage = currentPage + direction;
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                showPage(currentPage);
+            }
+        }
+
+        showPage(1);
+
+        const starDisplays = document.querySelectorAll('.review-stars');
+        starDisplays.forEach(display => {
+            const rating = parseInt(display.getAttribute('data-rating'));
+            display.innerHTML = ''; 
+            for(let i=1; i<=5; i++) {
+                if(i <= rating) {
+                    display.innerHTML += '<i class="fa-solid fa-star" style="color: #f0b90b;"></i>';
+                } else {
+                    display.innerHTML += '<i class="fa-regular fa-star" style="color: #e0e0e0;"></i>';
+                }
+            }
+        });
+
+        const starInput = document.getElementById('starInput');
+        const ratingHiddenInput = document.getElementById('ratingInput');
+        
+        if (starInput) {
+            const stars = starInput.querySelectorAll('i');
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const value = this.getAttribute('data-value');
+                    ratingHiddenInput.value = value;
+                    stars.forEach(s => {
+                        if (s.getAttribute('data-value') <= value) {
+                            s.classList.remove('fa-regular');
+                            s.classList.add('fa-solid');
+                            s.style.color = '#f0b90b';
+                        } else {
+                            s.classList.remove('fa-solid');
+                            s.classList.add('fa-regular');
+                            s.style.color = '#ccc';
+                        }
+                    });
+                });
             });
         }
     </script>
-{% endblock %}
+{% endblock %} 

@@ -24,7 +24,6 @@
             width: calc(100% - 320px);
         }
 
-        /* Responsive adjustments */
         @media (max-width: 1000px) {
             .filters-column {
                 position: static !important;
@@ -147,7 +146,6 @@
     </div>
 
     <script>
-        // Rating slider update logic if you switch back to slider
         const ratingSlider = document.querySelector('.rating-slider');
         const ratingValue = document.querySelector('.rating-value');
         if (ratingSlider && ratingValue) {
@@ -156,7 +154,6 @@
             });
         }
 
-        // Availability Checkbox Logic
         const availabilityFilters = document.querySelectorAll('.availability-filter');
         if (availabilityFilters.length) {
             availabilityFilters.forEach(filter => {

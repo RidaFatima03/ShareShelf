@@ -78,7 +78,7 @@
             <section class="checkouts-card">
                 <div class="section-header">
                     <h2 class="section-title">Current Checkouts</h2>
-                    <span class="count-badge">5</span>
+                    <span class="count-badge">{{ current_checkouts|length }}</span>
                 </div>
                 <div class="table-wrapper">
                     <table class="checkouts-table">
@@ -92,41 +92,23 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>The Enigma of the Crimson Crypt</td>
-                                <td>Eleanor Vance</td>
-                                <td>2025-07-28</td>
-                                <td>0</td>
-                                <td><button class="renew-btn">Renew</button></td>
-                            </tr>
-                            <tr>
-                                <td>Echoes of Starlight</td>
-                                <td>Anya Sharma</td>
-                                <td>2025-08-05</td>
-                                <td>1</td>
-                                <td><button class="renew-btn">Renew</button></td>
-                            </tr>
-                            <tr>
-                                <td>The Silent Observer</td>
-                                <td>Marcus Thorne</td>
-                                <td>2025-08-12</td>
-                                <td>0</td>
-                                <td><button class="renew-btn">Renew</button></td>
-                            </tr>
-                            <tr>
-                                <td>Whispers in the Old Library</td>
-                                <td>Clara Beaumont</td>
-                                <td>2025-08-19</td>
-                                <td>0</td>
-                                <td><button class="renew-btn">Renew</button></td>
-                            </tr>
-                            <tr>
-                                <td>Beneath the Azure Waves</td>
-                                <td>Leo Maxwell</td>
-                                <td>2025-08-26</td>
-                                <td>2</td>
-                                <td><button class="renew-btn">Renew</button></td>
-                            </tr>
+                            {% if current_checkouts %}
+                                {% for loan in current_checkouts %}
+                                <tr>
+                                    <td>{{ loan.title }}</td>
+                                    <td>{{ loan.authors }}</td>
+                                    <td>{{ loan.due_date }}</td>
+                                    <td>{{ loan.renew_count }}</td>
+                                    <td>
+                                        <button class="renew-btn">Renew</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" style="text-align:center; padding: 20px; color: #666;">You have no active checkouts.</td>
+                                </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
@@ -135,7 +117,7 @@
             <section class="checkouts-card">
                 <div class="section-header">
                     <h2 class="section-title">Checkout History</h2>
-                    <span class="count-badge">6</span>
+                    <span class="count-badge">{{ history|length }}</span>
                 </div>
                 <div class="table-wrapper">
                     <table class="checkouts-table">
@@ -148,42 +130,20 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>The Midnight Garden</td>
-                                <td>Seraphina Green</td>
-                                <td>2024-03-10</td>
-                                <td>2024-03-24</td>
-                            </tr>
-                            <tr>
-                                <td>Chronicles of the Forgotten City</td>
-                                <td>Julian Thorne</td>
-                                <td>2024-02-15</td>
-                                <td>2024-02-29</td>
-                            </tr>
-                            <tr>
-                                <td>The Alchemist's Secret</td>
-                                <td>Elara Vance</td>
-                                <td>2023-11-01</td>
-                                <td>2023-11-15</td>
-                            </tr>
-                            <tr>
-                                <td>Journey to the Crystal Peaks</td>
-                                <td>Kaelen Rivers</td>
-                                <td>2023-09-20</td>
-                                <td>2023-10-04</td>
-                            </tr>
-                            <tr>
-                                <td>The Last Scroll</td>
-                                <td>Amelia Chen</td>
-                                <td>2023-07-05</td>
-                                <td>2023-07-19</td>
-                            </tr>
-                            <tr>
-                                <td>Secrets of the Stellar Map</td>
-                                <td>Arthur Pendleton</td>
-                                <td>2023-06-01</td>
-                                <td>2023-06-15</td>
-                            </tr>
+                            {% if history %}
+                                {% for record in history %}
+                                <tr>
+                                    <td>{{ record.title }}</td>
+                                    <td>{{ record.authors }}</td>
+                                    <td>{{ record.checkout_date }}</td>
+                                    <td>{{ record.returned_date }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" style="text-align:center; padding: 20px; color: #666;">No checkout history found.</td>
+                                </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>

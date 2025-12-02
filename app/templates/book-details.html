@@ -4,13 +4,31 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <div style="max-width: 1000px; margin: 20px 0;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}" 
+                   style="padding: 15px; border-radius: 8px; margin-bottom: 20px; 
+                   {% if category == 'danger' or category == 'warning' %} 
+                       background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
+                   {% elif category == 'success' %}
+                       background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb;
+                   {% endif %}">
+                <i class="fa-solid fa-circle-info"></i> {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+    </div>
+
     <div class="book-details-content">
         
         <div class="book-details-header">
             <h1 class="page-title">Book Details</h1>
             <a href="javascript:history.back()" class="back-link">← Go back</a>
         </div>
- 
+
         <div class="book-details-tabs">
             <button class="details-tab active" data-tab="overview">Overview</button>
             <button class="details-tab" data-tab="copies">Copies</button>
@@ -98,13 +116,21 @@
                             <td>{{ copy.call_number }}</td>
                             <td>{{ copy.direction }}, {{ copy.collection }}, {{ copy.shelf_row }}</td>
                             <td>
-                                <span class="copy-status {{ copy.status|lower }}">{{ copy.status }}</span>
+                                <span class="copy-status {{ copy.status|lower|replace(' ', '-') }}">
+                                    {{ copy.status }}
+                                </span>
                             </td>
                             <td class="copy-actions">
                                 {% if copy.status == 'Available' %}
-                                    <button class="borrow-btn">Borrow</button>
+                                    <form action="{{ url_for('main.borrow_book', copy_id=copy.item_barcode) }}" method="POST">
+                                        <button type="submit" class="borrow-btn">Borrow</button>
+                                    </form>
+                                {% elif copy.status == 'On Loan' %}
+                                    <form action="{{ url_for('main.hold_book', book_id=book.book_id) }}" method="POST">
+                                        <button type="submit" class="hold-btn">Hold</button>
+                                    </form>
                                 {% else %}
-                                    <button class="hold-btn">Hold</button>
+                                    <button class="hold-btn" disabled>Unavailable</button>
                                 {% endif %}
                             </td>
                         </tr>
@@ -124,21 +150,38 @@
         const tabButtons = document.querySelectorAll('.details-tab');
         const detailSections = document.querySelectorAll('[data-section]');
 
+        function switchTab(target) {
+            tabButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-tab') === target);
+            });
+
+            detailSections.forEach(section => {
+                if (section.getAttribute('data-section') === target) {
+                    section.classList.remove('hidden');
+                } else {
+                    section.classList.add('hidden');
+                }
+            });
+            
+            const statsCard = document.querySelector('.book-stats-card');
+            if(statsCard) {
+                if(target === 'overview') statsCard.classList.remove('hidden');
+                else statsCard.classList.add('hidden');
+            }
+        }
+
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
-                const target = button.getAttribute('data-tab');
-                
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-
-                detailSections.forEach(section => {
-                    if (section.getAttribute('data-section') === target) {
-                        section.classList.remove('hidden');
-                    } else {
-                        section.classList.add('hidden');
-                    }
-                });
+                switchTab(button.getAttribute('data-tab'));
             });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tab = urlParams.get('tab');
+            if (tab === 'copies') {
+                switchTab('copies');
+            }
         });
     </script>
 

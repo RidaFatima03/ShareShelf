@@ -84,4 +84,4 @@ def main_page():
         books = cursor.fetchall()
         view_title = f"Search Results ({len(books)} Books)"
 
-    return render_template('search.html', books=books, view_title=view_title)
+    return render_template('home.html', books=books, view_title=view_title)

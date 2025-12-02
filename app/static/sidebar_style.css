@@ -711,13 +711,6 @@ body {
     width: 100% !important;
 }
 
-.page-title {
-    font-size: 32px;
-    font-weight: 700;
-    color: #333333;
-    margin-bottom: 24px;
-}
-
 /* Search Section */
 .search-section {
     display: flex;
@@ -1021,65 +1014,6 @@ body {
     background-color: rgba(139, 111, 71, 0.25);
     color: #5c4033;
     border-color: rgba(92, 64, 51, 0.3);
-}
-
-/* Books Grid */
-.books-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-}
-
-.book-card {
-    background-color: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    cursor: pointer;
-    transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
-}
-
-.book-card:hover {
-    border-color: #d8c7b2;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
-}
-
-.book-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #333333;
-    margin-bottom: 8px;
-}
-
-.book-author {
-    font-size: 14px;
-    color: #666666;
-    margin-bottom: 12px;
-}
-
-.book-status {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.book-status.available {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-}
-
-.book-status.on-loan {
-    background-color: #fff3e0;
-    color: #e65100;
-}
-
-.book-status.on-hold {
-    background-color: #e3f2fd;
-    color: #1565c0;
 }
 
 /* Books List */

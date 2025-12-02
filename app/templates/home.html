@@ -1,0 +1,31 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<h1 class="page-title">{{ view_title }}</h1>
+
+<!-- Books Grid -->
+<div class="books-grid" id="booksGrid">
+    {% for book in books %}
+        <div class="book-card" data-detail-link="book-details.html">
+            <h3 class="book-title">{{ book.title }}</h3>
+            <span class="rating-badge">
+                <i class="fa-solid fa-star"></i> {{ book.average_rating }}
+            </span>
+            <p class="book-author">Author: {{ book.authors }}</p>
+            <p class="genre-text">{{ book.genres }}</p> 
+            {% if book.available_copies > 0 %}
+                <span class="book-status available">Available</span>
+            {% else %}
+                <span class="book-status on-loan">On Loan</span>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+
+{% endblock %}

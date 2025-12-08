@@ -1,0 +1,40 @@
+<html>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>Library Policies</h1>
+
+        {% if role == 'Librarian' or role == 'Admin' %}
+            <form action="{{ url_for('policy.add_policy') }}" method="GET" style="margin: 0;">
+                <button type="submit">Add New Policy</button>
+            </form>
+        {% endif %}
+    </div>
+
+
+    {% for p in data %}
+        <div>
+            <h3>{{ p.name }}</h3>
+            <p>Loan period: {{ p.loan_period_days }} days</p>
+            <p>Renewals allowed: {{ p.renewals_allowed }}</p>
+            <p>Fine per day: {{ p.fine_per_day }}</p>
+            <p>Max concurrent loans: {{ p.max_concurrent_loans }}</p>
+            <p>Reservation limit: {{ p.holds_limit_reservation }}</p>
+        </div>
+
+        {% if role == 'Librarian' or role == 'Admin' %}
+            <div style="display: flex; gap: 10px;">
+                <form action="{{ url_for('policy.edit_policy', id=p.policy_id) }}" method="GET">
+                    <button type="submit">Edit Policy</button>
+                </form>
+
+                <form action="{{ url_for('policy.delete_policy', id=p.policy_id) }}" 
+                    method="POST" 
+                    onsubmit="return confirm('Policy will be deleted permanently. Proceed?');"
+                    style="display:inline;">
+                    <button type="submit">Delete</button>
+                </form>
+            </div>
+        {% endif %}
+
+        <hr>
+    {% endfor %}
+</html>

@@ -1,0 +1,34 @@
+<html>
+    <h2>Add New Policy</h2>
+
+<form action="" method="POST">
+    <label>Name:</label>
+    <input type="text" name="name" required><br>
+
+    <label>Loan Period (days):</label>
+    <input type="number" name="loan_period_days" required><br>
+
+    <label>Renewals Allowed:</label>
+    <input type="number" name="renewals_allowed" required><br>
+
+    <label>Fine per Day (RM):</label>
+    <input type="number" step="0.01" name="fine_per_day" required><br>
+
+    <label>Max Concurrent Loans:</label>
+    <input type="number" name="max_concurrent_loans" required><br>
+
+    <label>Reservation Limit:</label>
+    <input type="number" name="holds_limit_reservation" required><br>
+
+    <label>Applies To:</label>
+    <select name="applies_to_role">
+        <option value="Reader">Reader</option>
+        <option value="Librarian">Librarian</option>
+        <option value="Admin">Admin</option>
+    </select><br><br>
+
+    <button type="submit">Save</button>
+    <a href="{{ url_for('policy.policy') }}">Cancel</a>
+</form>
+
+</html>

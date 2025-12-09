@@ -50,6 +50,12 @@
                     <span>My Checkouts</span>
                 </a>
                 
+                <a href="{{ url_for('main.my_holds') }}" 
+                   class="nav-item {% if request.endpoint == 'main.my_holds' %}active{% endif %}">
+                    <i class="fa-solid fa-clock-rotate-left nav-icon"></i>
+                    <span>My Holds</span>
+                </a>
+                
                 <a href="{{ url_for('main.my_fines') }}" 
                    class="nav-item {% if request.endpoint == 'main.my_fines' %}active{% endif %}">
                     <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -68,6 +74,22 @@
                     <span>My Requests</span>
                 </a>
                 {% endif %}
+
+                <a href="{{ url_for('main.my_books') }}" 
+                class="nav-item {% if request.endpoint == 'main.my_books' %}active{% endif %}">
+                    <i class="fa-solid fa-book-open nav-icon"></i>
+                    <span>My Books</span>
+                </a>
+
+                <a href="{{ url_for('main.exchange_market') }}" class="nav-item {% if request.endpoint == 'main.exchange_market' %}active{% endif %}">
+                    <i class="fa-solid fa-handshake nav-icon"></i>
+                    <span>Exchange Market</span>
+                </a>
+
+                <a href="{{ url_for('main.exchange_requests') }}" class="nav-item {% if request.endpoint == 'main.exchange_requests' %}active{% endif %}">
+                    <i class="fa-solid fa-inbox nav-icon"></i>
+                    <span>Exchange Requests</span>
+                </a>
                 
                 <a href="{{ url_for('main.notifications') }}" 
                    class="nav-item {% if request.endpoint == 'main.notifications' %}active{% endif %}">
@@ -76,6 +98,12 @@
                         <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                     </svg>
                     <span>Notifications</span>
+                    
+                    {% if unread_notifications_count > 0 %}
+                        <span style="background-color: #d32f2f; color: white; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 10px; margin-left: auto;">
+                            {{ unread_notifications_count }}
+                        </span>
+                    {% endif %}
                 </a>
                 
                 <a href="{{ url_for('profile.userprofile') }}" 

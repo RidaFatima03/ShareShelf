@@ -1,135 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShareShelf - Personal Info</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
+{% extends "sidebar.html" %}
+
+{% block content %}
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body class="dashboard-body">
-    <header class="dashboard-header">
-        <div class="header-left">
-            <button class="menu-toggle" id="menuToggle">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5c4033" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-            </button>
-            <a href="{{ url_for('main.main_page') }}" class="header-logo-text">
-                <img src="{{ url_for('static', filename='library_system_logo.png') }}" alt="ShareShelf Logo" class="header-logo-image">
-                ShareShelf
-            </a>
-        </div>
-        <div class="header-right">
-            <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
-        </div>
-    </header>
-
-    <div class="dashboard-container">
-        <aside class="sidebar" id="sidebar">
-            <nav class="sidebar-nav">
-                <a href="{{ url_for('main.library-search') }}" class="nav-item">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.35-4.35"></path>
-                    </svg>
-                    <span>Library Search</span>
-                </a>
-                
-                {% if session.get('user_type') in ['Reader'] %}
-                <a href="{{ url_for('main.my_checkouts') }}" class="nav-item">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
-                    </svg>
-                    <span>My Checkouts</span>
-                </a>
-                <a href="{{ url_for('main.my_fines') }}" class="nav-item">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="1" x2="12" y2="23"></line>
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                    </svg>
-                    <span>My Fines</span>
-                </a>
-                <a href="{{ url_for('main.my_requests') }}" class="nav-item">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                    <span>My Requests</span>
-                </a>
-                {% endif %}
-                
-                <a href="{{ url_for('main.notifications') }}" class="nav-item">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                    </svg>
-                    <span>Notifications</span>
-                </a>
-                <a href="{{ url_for('profile.userprofile') }}" class="nav-item active">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    <span>Personal Info</span>
-                </a>
-            </nav>
-        </aside>
-
-        <main class="main-content">
-            <h1 class="page-title">Update Your Information</h1>
+    <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
+    
+    <div class="update-info-content" style="max-width: 1000px; margin: 0 auto;"> <h1 class="page-title">Update Your Information</h1>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}" style="padding: 15px; margin-bottom: 20px; border-radius: 8px; 
+                   background-color: {% if category=='success' %}#d4edda{% else %}#f8d7da{% endif %}; 
+                   color: {% if category=='success' %}#155724{% else %}#721c24{% endif %}; 
+                   border: 1px solid {% if category=='success' %}#c3e6cb{% else %}#f5c6cb{% endif %};">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        
+        <form action="{{ url_for('profile.updateprofile') }}" method="POST">
             
-            <form action="{{ url_for('profile.updateprofile') }}" method="POST" class="update-info-content">
+            <div class="info-section">
+                <div class="section-header">
+                    <h2 class="section-title">Personal Details</h2>
+                    <p class="section-description">Update your contact information.</p>
+                </div>
                 
-                <div class="info-section">
-                    <div class="section-header">
-                        <h2 class="section-title">Personal Details</h2>
-                        <p class="section-description">Update your contact information.</p>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-column">
-                            <div class="form-group">
-                                <label for="firstName">First Name</label>
-                                <input type="text" id="firstName" name="firstname" value="{{ user.user_first_name }}" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="middleName">Middle Name</label>
-                                <input type="text" id="middleName" name="middlename" value="{{ user.user_middle_name }}">
-                            </div>
-                            <div class="form-group">
-                                <label for="lastName">Last Name</label>
-                                <input type="text" id="lastName" name="lastname" value="{{ user.user_last_name }}" required>
-                            </div>
+                <div class="form-row">
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" name="firstname" value="{{ user.user_first_name }}" required>
                         </div>
-                        <div class="form-column">
-                            <div class="form-group">
-                                <label for="phone">Phone Number</label>
-                                <input type="tel" id="phone" name="phone" value="{{ user.user_phone_number }}" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="email">Email Address</label>
-                                <input type="email" id="email" name="email" value="{{ user.user_email }}" required>
-                            </div>
+                        <div class="form-group">
+                            <label for="middleName">Middle Name</label>
+                            <input type="text" id="middleName" name="middlename" value="{{ user.user_middle_name }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" name="lastname" value="{{ user.user_last_name }}" required>
+                        </div>
+                    </div>
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" value="{{ user.user_phone_number }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" value="{{ user.user_email }}" required>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="info-section">
-                    <div class="section-header">
-                        <h2 class="section-title">Password Management</h2>
-                        <p class="section-description">Change your password for enhanced security.</p>
-                    </div>
-                    
-                    <div class="password-form-layout">
-                        <div class="form-row">
-                            <div class="form-column">
-                                <div class="form-group">
-                                    <label for="currentPassword">Current Password</label>
-                                    <div class="input-wrapper">
-                                        <span class="input-icon lock-icon"></span>
+            <div class="info-section">
+                <div class="section-header">
+                    <h2 class="section-title">Password Management</h2>
+                    <p class="section-description">Change your password for enhanced security.</p>
+                </div>
+                
+                <div class="password-form-layout">
+                    <div class="form-row">
+                        <div class="form-column">
+                            <div class="form-group">
+                                <label for="currentPassword">Current Password</label>
+                                <div class="input-wrapper">
+                                    <span class="input-icon lock-icon"></span>
                                     <input type="password" id="currentPassword" name="currentpassword" placeholder="Enter current password">
                                     <span class="eye-icon" id="toggleCurrentPassword">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -137,76 +75,55 @@
                                             <circle cx="12" cy="12" r="3"></circle>
                                         </svg>
                                     </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-column">
-                                <div class="form-group">
-                                    <label for="newPassword">New Password</label>
-                                    <div class="input-wrapper">
-                                        <span class="input-icon lock-icon"></span>
-                                        <input type="password" id="newPassword" name="newpassword" placeholder="Enter new password">
-                                        <span class="eye-icon" id="toggleNewPassword">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                                <circle cx="12" cy="12" r="3"></circle>
-                                            </svg>
-                                        </span>
-                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="form-row">
-                            <div class="form-column">
-                                <div class="form-group">
-                                    <label for="confirmNewPassword">Confirm New Password</label>
-                                    <div class="input-wrapper">
-                                        <span class="input-icon lock-icon"></span>
-                                        <input type="password" id="confirmNewPassword" name="confirmpassword" placeholder="Confirm new password">
-                                        <span class="eye-icon" id="toggleConfirmNewPassword">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                                <circle cx="12" cy="12" r="3"></circle>
-                                            </svg>
-                                        </span>
-                                    </div>
+                        <div class="form-column">
+                            <div class="form-group">
+                                <label for="newPassword">New Password</label>
+                                <div class="input-wrapper">
+                                    <span class="input-icon lock-icon"></span>
+                                    <input type="password" id="newPassword" name="newpassword" placeholder="Enter new password">
+                                    <span class="eye-icon" id="toggleNewPassword">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                    </span>
                                 </div>
                             </div>
-                            <div class="form-column">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-column">
+                            <div class="form-group">
+                                <label for="confirmNewPassword">Confirm New Password</label>
+                                <div class="input-wrapper">
+                                    <span class="input-icon lock-icon"></span>
+                                    <input type="password" id="confirmNewPassword" name="confirmpassword" placeholder="Confirm new password">
+                                    <span class="eye-icon" id="toggleConfirmNewPassword">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                    </span>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="form-column">
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="action-buttons">
-                    <a href="{{ url_for('profile.userprofile') }}" class="cancel-button">Cancel</a>
-                    <button type="submit" class="save-button">Save Changes</button>
-                </div>
-            </form>
-        </main>
+            <div class="action-buttons">
+                <a href="{{ url_for('profile.userprofile') }}" class="cancel-button">Cancel</a>
+                <button type="submit" class="save-button">Save Changes</button>
+            </div>
+        </form>
     </div>
 
     <script>
-        // Toggle sidebar
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.querySelector('.main-content');
-
-        menuToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('sidebar-closed');
-            mainContent.classList.toggle('main-content-expanded');
-        });
-
-        // Close sidebar on mobile when clicking outside
-        document.addEventListener('click', function(event) {
-            if (window.innerWidth <= 768) {
-                if (!sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
-                    sidebar.classList.add('sidebar-closed');
-                    mainContent.classList.remove('main-content-expanded');
-                }
-            }
-        });
-
         function setupToggle(toggleId, inputId) {
             const toggle = document.getElementById(toggleId);
             if (!toggle) return;
@@ -227,5 +144,4 @@
         setupToggle('toggleNewPassword', 'newPassword');
         setupToggle('toggleConfirmNewPassword', 'confirmNewPassword');
     </script>
-</body>
-</html>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fff; margin: 5% auto; padding: 25px; width: 600px; border-radius: 8px; max-height: 80vh; overflow-y: auto; }
+        .close-btn { float: right; font-size: 24px; cursor: pointer; color: #666; }
+    </style>
+
+    <div class="exchange-requests-page">
+        <div class="main-content" style="margin-left: 0; width: 100%; padding: 0;">
+            <h1 class="page-title">Incoming Exchange Requests</h1>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }}" style="padding: 10px; margin-bottom: 20px; border-radius: 5px; background-color: #d4edda; color: #155724;">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <div class="table-wrapper">
+                <table class="requests-table">
+                    <thead>
+                        <tr>
+                            <th>Your Book (Requested)</th>
+                            <th>Requester</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if requests %}
+                            {% for req in requests %}
+                            <tr>
+                                <td><strong>{{ req.my_book_title }}</strong></td>
+                                <td>
+                                    {{ req.requester_name }}<br>
+                                    <a href="{{ url_for('main.reader_reviews', reader_id=req.reader_id) }}" style="font-size:12px; color:#5c4033; text-decoration: underline;">View Reputation</a>
+                                </td>
+                                <td>{{ req.request_date }}</td>
+                                <td>
+                                    <form action="{{ url_for('main.reject_exchange', request_id=req.request_id) }}" method="POST" style="display:inline;">
+                                        <button type="submit" class="action-button danger" style="font-size: 13px; padding: 6px 12px;">Reject</button>
+                                    </form>
+                                    <button class="action-button primary" style="font-size: 13px; padding: 6px 12px;" onclick="openSelectionModal('{{ req.request_id }}', '{{ req.reader_id }}')">View & Select Book</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="4" style="text-align:center; padding: 30px; color: #777;">No pending exchange requests.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="selectionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="document.getElementById('selectionModal').style.display='none'">&times;</span>
+            <h2>Select a book to exchange</h2>
+            <div id="requesterBooksContainer"><p>Loading...</p></div>
+        </div>
+    </div>
+
+    <script>
+        function openSelectionModal(requestId, requesterId) {
+            document.getElementById('selectionModal').style.display = 'block';
+            const container = document.getElementById('requesterBooksContainer');
+            container.innerHTML = '<p>Loading...</p>';
+            
+            fetch(`/api/get-user-exchange-books/${requesterId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if(data.length === 0) {
+                        container.innerHTML = "<p>This user has no available books to exchange.</p>";
+                        return;
+                    }
+                    let html = '<table class="requests-table" style="width:100%;"><thead><tr><th>Book Title</th><th>Action</th></tr></thead><tbody>';
+                    data.forEach(book => {
+                        html += `<tr><td>${book.title}</td><td><form action="/accept-exchange/${requestId}" method="POST"><input type="hidden" name="selected_book_barcode" value="${book.barcode}"><button type="submit" class="action-button primary">Select</button></form></td></tr>`;
+                    });
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                });
+        }
+    </script>
+{% endblock %}

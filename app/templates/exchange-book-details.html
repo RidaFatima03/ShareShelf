@@ -1,0 +1,67 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <div class="book-details-content">
+        <div class="book-details-header">
+            <h1 class="page-title">Exchange Book Details</h1>
+            <a href="javascript:history.back()" class="back-link">← Go back</a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}" style="padding: 10px; margin-bottom: 20px; border-radius: 5px; 
+                   background-color: {% if category=='success' %}#d4edda{% else %}#f8d7da{% endif %}; 
+                   color: {% if category=='success' %}#155724{% else %}#721c24{% endif %};">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <section class="book-details-card">
+            <div class="book-details-card__header">
+                <h2 class="book-details-title">{{ book.title }}</h2>
+                <a class="reviews-btn" href="{{ url_for('main.reader_reviews', reader_id=book.owner_id) }}">
+                    <i class="fa-solid fa-users-viewfinder"></i> View Owner Reviews
+                </a>
+            </div>
+
+            <div class="book-metadata-grid">
+                <div class="metadata-block">
+                    <span class="meta-label">Author</span>
+                    <span class="meta-value bold">{{ book.authors }}</span>
+                </div>
+                <div class="metadata-block">
+                    <span class="meta-label">Current Owner</span>
+                    <span class="meta-value tag" style="background-color: #e3f2fd; color: #0d47a1;">
+                        <i class="fa-solid fa-user" style="margin-right: 5px;"></i> {{ book.owner_name }}
+                    </span>
+                </div>
+                <div class="metadata-block">
+                    <span class="meta-label">Publisher</span>
+                    <span class="meta-value">{{ book.publisher }}</span>
+                </div>
+                <div class="metadata-block">
+                    <span class="meta-label">Pages</span>
+                    <span class="meta-value">{{ book.page_number }}</span>
+                </div>
+            </div>
+
+            <div class="book-summary" style="margin-top: 20px;">
+                <h3 class="summary-title">Summary</h3>
+                <p>{{ book.summary }}</p>
+            </div>
+
+            <div style="margin-top: 30px; text-align: right; border-top: 1px solid #eee; padding-top: 20px;">
+                <form action="{{ url_for('main.request_exchange', barcode=book.item_barcode) }}" method="POST">
+                    <button type="submit" class="action-button primary" style="font-size: 16px; padding: 12px 24px;">Request Exchange</button>
+                </form>
+            </div>
+        </section>
+    </div>
+{% endblock %}

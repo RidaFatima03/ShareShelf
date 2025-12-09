@@ -2552,3 +2552,27 @@ body {
     }
 }
 
+/* My Books */
+.my-books-page {
+    max-width: 1000px;
+    margin: 0 auto;  
+}
+
+.my-books-page .table-wrapper {
+    background-color: #ffffff;
+    border: 1px solid rgba(92, 64, 51, 0.12);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Exchange Market Layout */
+.exchange-market-page {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* Center Exchange Requests Page */
+.exchange-requests-page {
+    max-width: 1000px;
+}

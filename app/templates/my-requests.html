@@ -6,54 +6,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <div class="requests-page">
+        <h1 class="page-title">My Requests</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}" style="padding: 10px; margin-bottom: 20px; border-radius: 5px; background-color: #d4edda; color: #155724;">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
 
         <div class="request-tabs">
-            <button class="request-tab-pill active" data-tab="holds">Holds</button>
-            <button class="request-tab-pill" data-tab="borrows">Borrows</button>
-            <button class="request-tab-pill" data-tab="new">New Books</button>
+            <button class="request-tab-pill active" data-tab="borrows">Borrows</button>
+            <button class="request-tab-pill" data-tab="donations">Donations</button>
+            <button class="request-tab-pill" data-tab="book_requests">Book Requests</button>
         </div>
 
-        <section class="requests-card" data-tab-panel="holds">
-            <div class="table-wrapper">
-                <table class="requests-table">
-                    <thead>
-                        <tr>
-                            <th>Book Title</th>
-                            <th>Author</th>
-                            <th>Request Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if holds %}
-                            {% for req in holds %}
-                            <tr>
-                                <td>{{ req.item_title }}</td>
-                                <td>{{ req.item_author }}</td>
-                                <td>{{ req.request_date }}</td>
-                                <td>
-                                    <span class="request-status {{ req.status|lower }}">{{ req.status }}</span>
-                                </td>
-                                <td>
-                                    {% if req.status == 'Pending' %}
-                                        <button class="action-button primary">Cancel</button>
-                                    {% else %}
-                                        <span class="no-action">N/A</span>
-                                    {% endif %}
-                                    <a href="{{ url_for('main.book_details', book_id=req.request_id) }}" class="action-button secondary" style="text-decoration: none;">View</a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr><td colspan="5" style="text-align:center; padding: 20px; color: #888;">No active holds found.</td></tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="requests-card hidden" data-tab-panel="borrows">
+        <section class="requests-card" data-tab-panel="borrows">
             <div class="table-wrapper">
                 <table class="requests-table">
                     <thead>
@@ -72,12 +41,12 @@
                                 <td>{{ req.item_title }}</td>
                                 <td>{{ req.item_author }}</td>
                                 <td>{{ req.request_date }}</td>
-                                <td>
-                                    <span class="request-status {{ req.status|lower }}">{{ req.status }}</span>
-                                </td>
+                                <td><span class="request-status {{ req.status|lower }}">{{ req.status }}</span></td>
                                 <td>
                                     {% if req.status == 'Pending' %}
-                                        <button class="action-button primary">Cancel</button>
+                                        <form action="{{ url_for('main.cancel_request', request_id=req.request_id) }}" method="POST">
+                                            <button type="submit" class="action-button primary">Cancel</button>
+                                        </form>
                                     {% else %}
                                         <span class="no-action">N/A</span>
                                     {% endif %}
@@ -92,7 +61,7 @@
             </div>
         </section>
 
-        <section class="requests-card hidden" data-tab-panel="new">
+        <section class="requests-card hidden" data-tab-panel="donations">
             <div class="table-wrapper">
                 <table class="requests-table">
                     <thead>
@@ -105,18 +74,59 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% if new_books %}
-                            {% for req in new_books %}
+                        {% if donations %}
+                            {% for don in donations %}
+                            <tr>
+                                <td>{{ don.item_title }}</td>
+                                <td>{{ don.item_author }}</td>
+                                <td>{{ don.request_date }}</td>
+                                
+                                <td><span class="request-status {{ don.status|lower }}">{{ don.status }}</span></td>
+                                
+                                <td>
+                                    {% if don.status == 'Pending' %}
+                                        <form action="{{ url_for('main.cancel_request', request_id=don.request_id) }}" method="POST">
+                                            <button type="submit" class="action-button primary">Cancel</button>
+                                        </form>
+                                    {% else %}
+                                        <span class="no-action">Processed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="5" style="text-align:center; padding: 20px; color: #888;">No pending donation requests.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="requests-card hidden" data-tab-panel="book_requests">
+            <div class="table-wrapper">
+                <table class="requests-table">
+                    <thead>
+                        <tr>
+                            <th>Book Title</th>
+                            <th>Author</th>
+                            <th>Request Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if book_requests %}
+                            {% for req in book_requests %}
                             <tr>
                                 <td>{{ req.item_title }}</td>
                                 <td>{{ req.item_author }}</td>
                                 <td>{{ req.request_date }}</td>
-                                <td>
-                                    <span class="request-status {{ req.status|lower }}">{{ req.status }}</span>
-                                </td>
+                                <td><span class="request-status {{ req.status|lower }}">{{ req.status }}</span></td>
                                 <td>
                                     {% if req.status == 'Pending' %}
-                                        <button class="action-button primary">Cancel</button>
+                                        <form action="{{ url_for('main.cancel_request', request_id=req.request_id) }}" method="POST">
+                                            <button type="submit" class="action-button primary">Cancel</button>
+                                        </form>
                                     {% else %}
                                         <span class="no-action">N/A</span>
                                     {% endif %}
@@ -124,7 +134,7 @@
                             </tr>
                             {% endfor %}
                         {% else %}
-                            <tr><td colspan="5" style="text-align:center; padding: 20px; color: #888;">No new material requests.</td></tr>
+                            <tr><td colspan="5" style="text-align:center; padding: 20px; color: #888;">No new book requests.</td></tr>
                         {% endif %}
                     </tbody>
                 </table>

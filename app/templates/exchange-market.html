@@ -1,0 +1,57 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <div class="exchange-market-page">
+        <h1 class="page-title">Exchange Market</h1>
+        <p style="color:#666; margin-bottom:20px;">Browse books available for exchange from other readers.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}" style="padding: 10px; margin-bottom: 20px; border-radius: 5px; 
+                   background-color: {% if category=='success' %}#d4edda{% else %}#f8d7da{% endif %}; 
+                   color: {% if category=='success' %}#155724{% else %}#721c24{% endif %};">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="books-list">
+            {% if books %}
+                {% for book in books %}
+                <div class="book-result-card">
+                    <div class="book-info">
+                        <h3 class="book-result-title">{{ book.title }}</h3>
+                        <p class="book-result-author">Author: {{ book.authors }}</p>
+                        <p style="font-size: 13px; color: #5c4033; margin-top: 5px;">
+                            <i class="fa-solid fa-user"></i> Owner: {{ book.owner_name }}
+                        </p>
+                        <div class="book-result-meta">
+                            <span class="book-result-status available">Available</span>
+                            <span class="book-result-rating" title="Owner Reputation">
+                                <i class="fa-solid fa-user-tag" style="margin-right: 4px; color: #666;"></i>
+                                <i class="fa-solid fa-star" style="color: #f0b90b;"></i> {{ book.owner_rating|round(1) }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="book-actions">
+                        <a href="{{ url_for('main.exchange_details', barcode=book.item_barcode) }}" class="view-details-btn" style="text-decoration:none; text-align:center;">Details</a>
+                        <form action="{{ url_for('main.request_exchange', barcode=book.item_barcode) }}" method="POST">
+                            <button type="submit" class="borrow-btn">Request</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="search-empty" style="text-align: center; padding: 40px; color: #666; background: #f9f9f9; border-radius: 8px;">
+                    No books available for exchange from other users right now.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

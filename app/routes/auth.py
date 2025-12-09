@@ -55,7 +55,6 @@ def login():
                 f"{session['user_type']} {session['username']} logged in."
             )
 
-            flash('Logged in successfully!', 'success')
             return redirect(url_for('main.main_page'))
         else:
             flash('Incorrect email or password!', 'danger')

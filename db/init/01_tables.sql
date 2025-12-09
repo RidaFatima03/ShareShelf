@@ -17,24 +17,24 @@ reader_id INT NOT NULL,
 is_approved BOOLEAN DEFAULT FALSE,
 PRIMARY KEY (reader_id),
 FOREIGN KEY (reader_id) REFERENCES User(user_id)
-	ON DELETE CASCADE
-	ON UPDATE CASCADE
+  ON DELETE CASCADE
+  ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Librarian ( 
 librarian_id INT NOT NULL, 
 PRIMARY KEY (librarian_id),
 FOREIGN KEY (librarian_id) REFERENCES User(user_id)
-	ON DELETE CASCADE
-	ON UPDATE CASCADE
+  ON DELETE CASCADE
+  ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS Admin ( 
 admin_id INT NOT NULL, 
 PRIMARY KEY (admin_id),
 FOREIGN KEY (admin_id) REFERENCES User(user_id)
-	ON DELETE CASCADE
-	ON UPDATE CASCADE
+  ON DELETE CASCADE
+  ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS user_activity_log ( 
@@ -45,7 +45,7 @@ details TEXT,
 user_id INT NOT NULL,
 PRIMARY KEY (log_id),
 FOREIGN KEY (user_id) REFERENCES User(user_id)
-	ON DELETE CASCADE
+  ON DELETE CASCADE
 );
 
 CREATE TABLE Log ( 
@@ -67,7 +67,7 @@ is_read BOOLEAN DEFAULT FALSE,
 user_id INT NOT NULL,
 PRIMARY KEY (notification_id),
 FOREIGN KEY (user_id) REFERENCES User(user_id)
-	ON DELETE CASCADE
+  ON DELETE CASCADE
 );
 
 CREATE TABLE Policy ( 
@@ -82,7 +82,7 @@ applies_to_role ENUM('Reader', 'Librarian', 'Admin') NOT NULL,
 user_id INT,
 PRIMARY KEY (policy_id),
 FOREIGN KEY (user_id) REFERENCES User(user_id)
-	ON DELETE SET NULL
+  ON DELETE SET NULL
 );
 
 CREATE TABLE Reader_Rate ( 
@@ -95,9 +95,9 @@ rate_owner_id INT NOT NULL,
 PRIMARY KEY (rate_id),
 UNIQUE (rated_user_id, rate_owner_id),
 FOREIGN KEY (rated_user_id) REFERENCES Reader(reader_id)
-	ON DELETE CASCADE,
+  ON DELETE CASCADE,
 FOREIGN KEY (rate_owner_id) REFERENCES Reader(reader_id)
-	ON DELETE CASCADE
+  ON DELETE CASCADE
 );
 
 CREATE TABLE Location ( 
@@ -140,9 +140,9 @@ book_id INT NOT NULL,
 author_id INT NOT NULL,
 PRIMARY KEY (book_id, author_id),
 FOREIGN KEY (book_id) REFERENCES Book(book_id)
-	ON DELETE CASCADE,
+  ON DELETE CASCADE,
 FOREIGN KEY (author_id) REFERENCES Author(author_id)
-	ON DELETE CASCADE
+  ON DELETE CASCADE
 );
 
 CREATE TABLE Book_Genre (
@@ -150,27 +150,27 @@ book_id INT NOT NULL,
 genre_id INT NOT NULL,
 PRIMARY KEY (book_id, genre_id),
 FOREIGN KEY (book_id) REFERENCES Book(book_id)
-	ON DELETE CASCADE,
+  ON DELETE CASCADE,
 FOREIGN KEY (genre_id) REFERENCES Genre(genre_id)
-	ON DELETE CASCADE
+  ON DELETE CASCADE
 );
-
 
 CREATE TABLE Copy ( 
 item_barcode VARCHAR(50) NOT NULL,
 material_type VARCHAR(50) NOT NULL,
 call_number VARCHAR(50),
 acquisition_type ENUM('Purchase', 'Donation', 'Exchange', 'Other') NOT NULL,
-status ENUM('Available', 'On Loan', 'On Hold', 'Lost') DEFAULT 'Available',
+/* UPDATED: Added 'Exchanged' and 'Pending Handoff' to status */
+status ENUM('Available', 'On Loan', 'On Hold', 'Lost', 'Exchanged', 'Pending Handoff') DEFAULT 'Available',
 added_date DATETIME DEFAULT CURRENT_TIMESTAMP,
 book_id INT NOT NULL,
 location_id INT,
 owner_id INT,
 PRIMARY KEY (item_barcode),
 FOREIGN KEY (book_id) REFERENCES Book(book_id)
-	ON DELETE CASCADE,
+  ON DELETE CASCADE,
 FOREIGN KEY (location_id) REFERENCES Location(location_id)
-	ON DELETE CASCADE,
+  ON DELETE CASCADE,
 FOREIGN KEY (owner_id) REFERENCES Reader(reader_id)
 );
 
@@ -184,9 +184,9 @@ reader_id INT NOT NULL,
 copy_id VARCHAR(50) NOT NULL,
 PRIMARY KEY (checkout_id),
 FOREIGN KEY (reader_id) REFERENCES Reader(reader_id)
-	ON DELETE CASCADE,
+  ON DELETE CASCADE,
 FOREIGN KEY (copy_id) REFERENCES Copy(item_barcode)
-	ON DELETE CASCADE
+  ON DELETE CASCADE
 );
 
 CREATE TABLE Fine ( 
@@ -200,7 +200,7 @@ amount DECIMAL(10,2) NOT NULL,
 status ENUM('Unpaid', 'Paid') DEFAULT 'Unpaid',
 PRIMARY KEY (fine_id),
 FOREIGN KEY (checkout_id) REFERENCES Checkout(checkout_id)
-	ON DELETE CASCADE
+  ON DELETE CASCADE
 );
 
 CREATE TABLE Review ( 
@@ -213,9 +213,9 @@ book_id INT NOT NULL,
 PRIMARY KEY (review_id),
 UNIQUE (reader_id, book_id),
 FOREIGN KEY (reader_id) REFERENCES Reader(reader_id)
-	ON DELETE CASCADE,
+  ON DELETE CASCADE,
 FOREIGN KEY (book_id) REFERENCES Book(book_id)
-	ON DELETE CASCADE,
+  ON DELETE CASCADE,
 CHECK (rating BETWEEN 1 AND 5)
 );
 
@@ -232,13 +232,17 @@ CREATE TABLE Material (
 CREATE TABLE Request ( 
   request_id INT NOT NULL AUTO_INCREMENT,
   request_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-  request_type ENUM('Hold', 'Borrow', 'New Material'),
+  request_type ENUM('Hold', 'Borrow', 'New Material', 'Exchange', 'Donation'),
   expire_date DATETIME,
-  status ENUM('Pending', 'Approved', 'Rejected', 'Expired') DEFAULT 'Pending',
+  status ENUM('Pending', 'Approved', 'Rejected', 'Expired', 'Completed') DEFAULT 'Pending',
 
   material_id INT NULL,
   reader_id INT NOT NULL,
   book_id INT NULL,
+  exchange_book_id VARCHAR(50) NULL,
+  
+  requester_confirmed BOOLEAN DEFAULT FALSE,
+  owner_confirmed BOOLEAN DEFAULT FALSE,
 
   PRIMARY KEY (request_id),
   UNIQUE (reader_id, book_id, request_type),
@@ -246,11 +250,17 @@ CREATE TABLE Request (
   FOREIGN KEY (material_id) REFERENCES Material(material_id) ON DELETE CASCADE,
   FOREIGN KEY (reader_id)  REFERENCES Reader(reader_id)     ON DELETE CASCADE,
   FOREIGN KEY (book_id)    REFERENCES Book(book_id)         ON DELETE CASCADE,
+  FOREIGN KEY (exchange_book_id) REFERENCES Copy(item_barcode) ON DELETE SET NULL,
 
   CHECK (
-    (request_type IN ('Hold','Borrow') AND book_id IS NOT NULL AND material_id IS NULL)
+    (request_type IN ('Hold','Borrow','Exchange') AND book_id IS NOT NULL AND material_id IS NULL)
     OR
     (request_type = 'New Material' AND material_id IS NOT NULL AND book_id IS NULL)
+    OR
+    (request_type = 'Donation' AND (
+        (book_id IS NOT NULL AND material_id IS NULL) OR 
+        (book_id IS NULL AND material_id IS NOT NULL)
+    ))
   )
 );
 

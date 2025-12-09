@@ -24,12 +24,13 @@ BEGIN
         b.publication_date,
         b.language,
         b.average_rating,
-        -- FIX 1: Combine multiple genres into one string to prevent duplicate rows
         GROUP_CONCAT(DISTINCT g.genre_name SEPARATOR ', ') AS genres,
-        -- FIX 2: Rename 'author_name' to 'authors' so the HTML can read it
         GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS authors,
-        COUNT(DISTINCT c.item_barcode) AS total_copies,
-        SUM(CASE WHEN c.status = 'Available' THEN 1 ELSE 0 END) AS available_copies
+        
+        COUNT(DISTINCT CASE WHEN c.acquisition_type != 'Exchange' THEN c.item_barcode END) AS total_library_copies,
+        
+        SUM(CASE WHEN c.status = 'Available' AND c.acquisition_type != 'Exchange' THEN 1 ELSE 0 END) AS available_copies
+        
     FROM Book AS b
     JOIN Book_Author AS ba ON ba.book_id = b.book_id
     JOIN Author AS a ON a.author_id = ba.author_id
@@ -47,25 +48,28 @@ BEGIN
         AND (p_isbn     IS NULL OR b.isbn        = p_isbn)
         AND (p_genre    IS NULL OR g.genre_name  = p_genre)
         AND (p_language IS NULL OR b.language    = p_language)
+        
         AND (p_availability IS NULL OR EXISTS (
             SELECT 1 FROM Copy c2
             WHERE c2.book_id = b.book_id
               AND c2.status = p_availability
+              AND c2.acquisition_type != 'Exchange'
         ))
+        
         AND (p_acquisition IS NULL OR EXISTS (
             SELECT 1 FROM Copy c3
             WHERE c3.book_id = b.book_id
               AND c3.acquisition_type = p_acquisition
+              AND c3.acquisition_type != 'Exchange' 
         ))
+        
         AND (p_min_avg_rating IS NULL OR b.average_rating >= p_min_avg_rating)
+        
     GROUP BY 
-        b.book_id, 
-        b.title, 
-        b.isbn, 
-        b.publisher, 
-        b.publication_date, 
-        b.language,
-        b.average_rating
+        b.book_id, b.title, b.isbn, b.publisher, b.publication_date, b.language, b.average_rating
+    
+    HAVING total_library_copies > 0
+    
     ORDER BY b.average_rating DESC, b.title ASC
     LIMIT p_limit OFFSET p_offset;
 END //

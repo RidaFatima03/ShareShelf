@@ -1,143 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShareShelf - Personal Information</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
+{% extends "sidebar.html" %}
+
+{% block content %}
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body class="dashboard-body">
-    <header class="dashboard-header">
-        <div class="header-left">
-            <button class="menu-toggle" id="menuToggle">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5c4033" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-            </button>
-            <a href="{{ url_for('main.main_page') }}" class="header-logo-text">
-                <img src="{{ url_for('static', filename='library_system_logo.png') }}" alt="ShareShelf Logo" class="header-logo-image">
-                ShareShelf
-            </a>
-        </div>
-        <div class="header-right">
-            <a href="{{ url_for('auth.logout') }}" class="logout-link">Logout</a>
-        </div>
-    </header>
+    <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <div class="dashboard-container">
-        <aside class="sidebar" id="sidebar">
-            <nav class="sidebar-nav">
-                <a href="{{ url_for('main.library-search') }}" class="nav-item">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.35-4.35"></path>
-                    </svg>
-                    <span>Library Search</span>
-                </a>
-                <a href="{{ url_for('main.my_checkouts') }}" class="nav-item">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
-                    </svg>
-                    <span>My Checkouts</span>
-                </a>
-                <a href="{{ url_for('main.my_fines') }}" class="nav-item">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="1" x2="12" y2="23"></line>
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                    </svg>
-                    <span>My Fines</span>
-                </a>
-                <a href="{{ url_for('main.my_requests') }}" class="nav-item">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                    <span>My Requests</span>
-                </a>
-                <a href="{{ url_for('main.notifications') }}" class="nav-item">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                    </svg>
-                    <span>Notifications</span>
-                </a>
-                <a href="{{ url_for('profile.userprofile') }}" class="nav-item active">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    <span>Personal Info</span>
-                </a>
-            </nav>
-        </aside>
+    <div class="personal-info-layout">
+        <div class="personal-details-section">
+            <h2 class="section-title">Personal Details</h2>
+            
+            <div class="info-list">
+                <div class="info-item">
+                    <span class="info-label">Name:</span>
+                    <span class="info-value">{{ username }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">
+                        <i class="fa-regular fa-envelope" style="margin-right: 8px;"></i>
+                        Email:
+                    </span>
+                    <span class="info-value">{{ myaccount.user_email }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">
+                        <i class="fa-solid fa-phone" style="margin-right: 8px;"></i>
+                        Phone:
+                    </span>
+                    <span class="info-value">{{ myaccount.user_phone_number }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Account Status:</span>
+                    <span class="status-badge {{ myaccount.status|lower }}">{{ myaccount.status }}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Total Fine Balance:</span>
+                    <span class="info-value">${{ fine.amount }}</span>
+                </div>
 
-        <main class="main-content">
-            <div class="personal-info-layout">
-                <div class="personal-details-section">
-                    <h2 class="section-title">Personal Details</h2>
-                    
-                    <div class="info-list">
-                        <div class="info-item">
-                            <span class="info-label">Name:</span>
-                            <span class="info-value">{{ username }}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                                    <polyline points="22,6 12,13 2,6"></polyline>
-                                </svg>
-                                Email:
-                            </span>
-                            <span class="info-value">{{ myaccount.user_email }}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                                </svg>
-                                Phone:
-                            </span>
-                            <span class="info-value">{{ myaccount.user_phone_number }}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Account Status:</span>
-                            <span class="status-badge active">{{ myaccount.status }}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Total Fine Balance:</span>
-                            <span class="info-value">${{ fine.amount }}</span>
-                        </div>
-                    </div>
-                    
-                    <a href="{{ url_for('profile.updateprofile') }}" class="edit-profile-button">Edit Profile</a>
+                <div class="info-item">
+                    <span class="info-label">
+                        <i class="fa-solid fa-handshake" style="margin-right: 8px;"></i>
+                        Exchanges:
+                    </span>
+                    <span class="info-value" style="font-weight: 600; color: #5c4033;">
+                        {{ exchange_count }}
+                    </span>
                 </div>
             </div>
-        </main>
+            
+            <a href="{{ url_for('profile.updateprofile') }}" class="edit-profile-button">Edit Profile</a>
+        </div>
     </div>
-
-    <script>
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.querySelector('.main-content');
-
-        menuToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('sidebar-closed');
-            mainContent.classList.toggle('main-content-expanded');
-        });
-
-        // Close sidebar on mobile when clicking outside
-        document.addEventListener('click', function(event) {
-            if (window.innerWidth <= 768) {
-                if (!sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
-                    sidebar.classList.add('sidebar-closed');
-                    mainContent.classList.remove('main-content-expanded');
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+{% endblock %}

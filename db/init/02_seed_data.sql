@@ -41,7 +41,10 @@ INSERT INTO Author (author_name) VALUES
 ('Kristin Hannah'),
 ('George Orwell'),
 ('Gillian Flynn'),
-('Cormac McCarthy');
+('Cormac McCarthy'),
+('Rebecca Yarros'),
+('James Dashner'),
+('Rick Riordan');
 
 INSERT INTO Genre (genre_name)
 VALUES
@@ -55,36 +58,19 @@ INSERT INTO Book (
     isbn, title, publisher, publication_date, language,
     physical_description, summary, page_number
 ) VALUES
-('9780143127741', 'The Martian', 'Crown Publishing', '2014-02-11', 'English',
- 'Paperback, 5.5 x 8.2 inches',
- 'An astronaut stranded on Mars struggles to survive after being left behind by his crew.', 369),
-('9780061120084', 'To Kill a Mockingbird', 'J.B. Lippincott & Co.', '1960-07-11', 'English',
- 'Hardcover, 6 x 9 inches',
- 'A young girl witnesses racial injustice in the Deep South.', 281),
-('9780439139601', 'Harry Potter and the Goblet of Fire', 'Bloomsbury', '2000-07-08', 'English',
- 'Hardcover, illustrated',
- 'Harry competes in the dangerous Triwizard Tournament while facing the return of Lord Voldemort.', 734),
-('9780307277671', 'The Girl with the Dragon Tattoo', 'Norstedts Förlag', '2005-08-01', 'Swedish',
- 'Paperback, 5.1 x 7.8 inches',
- 'A journalist and a hacker uncover corruption and family secrets in a dark Swedish mystery.', 465),
-('9780385533225', 'Inferno', 'Doubleday', '2013-05-14', 'English',
- 'Hardcover, 6.5 x 9.5 inches',
- 'Robert Langdon races through Florence to stop a global catastrophe inspired by Dante''s Inferno.', 480),
-('9781501128035', 'The Nightingale', 'St. Martin''s Press', '2015-02-03', 'English',
- 'Paperback, 5.5 x 8.2 inches',
- 'Two sisters in Nazi-occupied France risk everything to survive and resist the German occupation.', 440),
-('9780141182575', '1984', 'Secker & Warburg', '1949-06-08', 'English',
- 'Paperback, 5 x 8 inches',
- 'A dystopian novel set in a totalitarian regime under constant surveillance.', 328),
-('9780307588371', 'Gone Girl', 'Crown Publishing', '2012-06-05', 'English',
- 'Hardcover, 6 x 9 inches',
- 'A thriller about a man suspected of causing his wife''s mysterious disappearance.', 422),
-('9780307476463', 'The Road', 'Vintage Books', '2006-09-26', 'English',
- 'Paperback, 5.2 x 8 inches',
- 'A father and son journey through a post-apocalyptic landscape of desolation and hope.', 287),
-('9780590353427', 'Harry Potter and the Sorcerer''s Stone', 'Bloomsbury', '1997-06-26', 'English',
- 'Hardcover, 5.5 x 8.5 inches',
- 'A young boy discovers he''s a wizard and attends a magical school called Hogwarts.', 309);
+('9780143127741', 'The Martian', 'Crown Publishing', '2014-02-11', 'English', 'Paperback, 5.5 x 8.2 inches', 'An astronaut stranded on Mars struggles to survive after being left behind by his crew.', 369),
+('9780061120084', 'To Kill a Mockingbird', 'J.B. Lippincott & Co.', '1960-07-11', 'English', 'Hardcover, 6 x 9 inches', 'A young girl witnesses racial injustice in the Deep South.', 281),
+('9780439139601', 'Harry Potter and the Goblet of Fire', 'Bloomsbury', '2000-07-08', 'English', 'Hardcover, illustrated', 'Harry competes in the dangerous Triwizard Tournament while facing the return of Lord Voldemort.', 734),
+('9780307277671', 'The Girl with the Dragon Tattoo', 'Norstedts Förlag', '2005-08-01', 'Swedish', 'Paperback, 5.1 x 7.8 inches', 'A journalist and a hacker uncover corruption and family secrets in a dark Swedish mystery.', 465),
+('9780385533225', 'Inferno', 'Doubleday', '2013-05-14', 'English', 'Hardcover, 6.5 x 9.5 inches', 'Robert Langdon races through Florence to stop a global catastrophe inspired by Dante''s Inferno.', 480),
+('9781501128035', 'The Nightingale', 'St. Martin''s Press', '2015-02-03', 'English', 'Paperback, 5.5 x 8.2 inches', 'Two sisters in Nazi-occupied France risk everything to survive and resist the German occupation.', 440),
+('9780141182575', '1984', 'Secker & Warburg', '1949-06-08', 'English', 'Paperback, 5 x 8 inches', 'A dystopian novel set in a totalitarian regime under constant surveillance.', 328),
+('9780307588371', 'Gone Girl', 'Crown Publishing', '2012-06-05', 'English', 'Hardcover, 6 x 9 inches', 'A thriller about a man suspected of causing his wife''s mysterious disappearance.', 422),
+('9780307476463', 'The Road', 'Vintage Books', '2006-09-26', 'English', 'Paperback, 5.2 x 8 inches', 'A father and son journey through a post-apocalyptic landscape of desolation and hope.', 287),
+('9780590353427', 'Harry Potter and the Sorcerer''s Stone', 'Bloomsbury', '1997-06-26', 'English', 'Hardcover, 5.5 x 8.5 inches', 'A young boy discovers he''s a wizard and attends a magical school called Hogwarts.', 309),
+('9781649374042', 'Fourth Wing', 'Red Tower Books', '2023-05-02', 'English', 'Hardcover, 6 x 9 inches', 'Violet Sorrengail enters the Rider Quadrant to become a dragon rider.', 500),
+('9780385737944', 'The Maze Runner', 'Delacorte Press', '2009-10-06', 'English', 'Paperback, 5.5 x 8.2 inches', 'Thomas wakes up in a lift with no memory, trapped in a massive maze.', 375),
+('9780786856299', 'Percy Jackson: The Lightning Thief', 'Disney Hyperion', '2005-06-28', 'English', 'Paperback, 5.2 x 8 inches', 'Percy Jackson discovers he is a demigod and must prevent a war between the gods.', 377);
  
 -- Book → Author
 INSERT INTO Book_Author (book_id, author_id) VALUES
@@ -99,6 +85,9 @@ INSERT INTO Book_Author (book_id, author_id) VALUES
 (8, 8),                             -- Gone Girl → Gillian Flynn
 (9, 9),                             -- The Road → Cormac McCarthy
 (10, 3),                            -- Sorcerer’s Stone → J.K. Rowling
+(11, 10),                           -- Fourth Wing -> Rebecca Yarros
+(12, 11),                           -- Maze Runner -> James Dashner
+(13, 12),                           -- Percy Jackson -> Rick Riordan
 
 -- Books with multiple authors:
 (5, 1),                             -- Inferno also credited to Andy Weir (hypothetical co-author)
@@ -123,7 +112,10 @@ INSERT INTO Book_Genre (book_id, genre_id) VALUES
 (9, 2),                             -- The Road → Science Fiction
 (9, 3),                             -- The Road → Classic Literature
 (10, 1),                            -- Sorcerer’s Stone → Fantasy
-(10, 2);  
+(10, 2),                            -- Sorcerer’s Stone → Science Fiction
+(11, 1),                            -- Fourth Wing -> Fantasy
+(12, 2),                            -- Maze Runner -> Sci Fi
+(13, 1);                            -- Percy Jackson -> Fantasy
 
 INSERT INTO Location (direction, collection, shelf_row)
 VALUES
@@ -156,6 +148,19 @@ INSERT INTO Copy (
 ('BC011', 'Book', 'SCI-MCC-ROAD', 'Purchase', 'Available', '2023-11-09 13:45:00', 9, 2),
 ('BC012', 'Book', 'FAN-ROW-HP1', 'Purchase', 'Available', '2023-11-08 10:10:00', 10, 8);
 
+-- --- EXCHANGE COPIES (User Owned) ---
+-- These show up in "My Books" for the owner and "Exchange Market" for others
+INSERT INTO Copy (
+  item_barcode, material_type, call_number, acquisition_type,
+  status, added_date, book_id, location_id, owner_id
+) VALUES
+-- JOHN (User 1) owns these new books:
+('EXCH001', 'Book', 'FAN-YAR-FW',  'Exchange', 'Available', '2025-10-20 10:15:00', 11, NULL, 1), -- Fourth Wing
+('EXCH002', 'Book', 'SCI-DAS-MR',  'Exchange', 'Available', '2025-10-29 15:45:00', 12, NULL, 1), -- Maze Runner
+
+-- JANE (User 2) owns this new book:
+('EXCH003', 'Book', 'FAN-RIO-PJ','Exchange', 'Available', '2025-10-25 14:00:00', 13, NULL, 2); -- Percy Jackson
+
 
 INSERT INTO Review (rating, review_text, reader_id, book_id)
 VALUES
@@ -168,7 +173,10 @@ VALUES
 (4, 'A chilling look at totalitarianism. Still relevant today.', 4, 7), -- 1984
 (3, 'Twists were good, but the ending didn’t satisfy me.', 2, 8), -- Gone Girl
 (4, 'Dark but hopeful. The writing style is hauntingly simple.', 1, 9), -- The Road
-(1, 'Very bad.', 2, 9); -- The Road
+(1, 'Very bad.', 2, 9), -- The Road
+(5, 'The dragons are amazing!', 1, 11), -- Fourth Wing
+(4, 'Kept me guessing until the end.', 2, 12), -- Maze Runner
+(5, 'Best childhood memories.', 3, 13); -- Percy Jackson
 
 INSERT INTO Checkout (
   checkout_date, due_date, returned_date, renew_count, reader_id, copy_id
@@ -254,48 +262,28 @@ VALUES
 ('9780385472579', 'The Things They Carried', 'Houghton Mifflin', '1990-03-28', 'Tim O’Brien'),
 ('9780307474278', 'The Lost Symbol', 'Doubleday', '2009-09-15', 'Dan Brown');
 
-INSERT INTO Request (request_type, expire_date, status, material_id, reader_id, book_id)
+INSERT INTO Request (request_type, expire_date, status, material_id, reader_id, book_id, exchange_book_id)
 VALUES
 -- Hold Requests (existing books)
-('Hold', '2025-11-20 23:59:59', 'Pending', NULL, 1, 3),   -- Reader 1 holds “Harry Potter and the Goblet of Fire”
-('Hold', '2025-11-18 23:59:59', 'Approved', NULL, 2, 7),  -- Reader 2 holds “1984”
-('Hold', '2025-11-25 23:59:59', 'Pending', NULL, 3, 1),   -- Reader 3 holds “The Martian”
+('Hold', '2025-11-20 23:59:59', 'Pending', NULL, 1, 3, NULL),
+('Hold', '2025-11-18 23:59:59', 'Approved', NULL, 2, 7, NULL),
+('Hold', '2025-11-25 23:59:59', 'Pending', NULL, 3, 1, NULL),
 
 -- Borrow Requests (existing books)
-('Borrow', '2025-11-30 23:59:59', 'Approved', NULL, 1, 2), -- Reader 1 borrows “To Kill a Mockingbird”
-('Borrow', '2025-11-28 23:59:59', 'Pending', NULL, 4, 6),  -- Reader 4 borrows “The Nightingale”
+('Borrow', '2025-11-30 23:59:59', 'Approved', NULL, 1, 2, NULL),
+('Borrow', '2025-11-28 23:59:59', 'Pending', NULL, 4, 6, NULL),
 
 -- New Material Requests
-('New Material', NULL, 'Pending', 1, 2, NULL),  -- Reader 2 requests “Becoming”
-('New Material', NULL, 'Approved', 2, 3, NULL), -- Reader 3 requests “Dune”
-('New Material', NULL, 'Rejected', 3, 1, NULL), -- Reader 1 requests “The Alchemist”
-('New Material', NULL, 'Pending', 4, 4, NULL),  -- Reader 4 requests “The Things They Carried”
-('New Material', NULL, 'Approved', 5, 3, NULL); -- Reader 3 requests “The Lost Symbol”
+('New Material', NULL, 'Pending', 1, 2, NULL, NULL),
+('New Material', NULL, 'Approved', 2, 3, NULL, NULL),
+('New Material', NULL, 'Rejected', 3, 1, NULL, NULL),
+('New Material', NULL, 'Pending', 4, 4, NULL, NULL),
+('New Material', NULL, 'Approved', 5, 3, NULL, NULL),
 
--- Exchangeable copies owned by readers
-INSERT INTO Copy (
-  item_barcode, material_type, call_number, acquisition_type,
-  status, added_date, book_id, location_id, owner_id
-) VALUES
-('BC020', 'Book', 'FIC-WEI-TM',  'Exchange', 'Available', '2025-10-20 10:15:00', 1, 1, 2),  -- owner: reader 2
-('BC021', 'Book', 'FIC-ROW-HP4', 'Exchange', 'Available', '2025-10-22 09:30:00', 3, 8, 4),  -- owner: reader 4
-('BC022', 'Book', 'CLA-ORW-1984','Exchange', 'Available', '2025-10-25 14:00:00', 7, 3, 1),  -- owner: reader 1
-('BC023', 'Book', 'HIS-HAN-NI',  'Exchange', 'Available', '2025-10-27 11:00:00', 6, 5, 3),  -- owner: reader 3
-('BC024', 'Book', 'THR-FLY-GG',  'Exchange', 'Available', '2025-10-29 15:45:00', 8, 4, 2);  -- owner: reader 2
-
-INSERT INTO Exchange (item_barcode, exchange_date) VALUES
-('BC020', '2025-11-01 09:00:00'),
-('BC021', '2025-11-03 14:15:00'),
-('BC022', '2025-11-04 16:30:00'),
-('BC023', '2025-11-05 13:00:00'),
-('BC024', '2025-11-07 10:45:00');
-
-INSERT INTO Exchange_Borrower (exchange_id, borrowed_user_id) VALUES
-(1, 1),  -- reader 1 borrows BC020 (owner was reader 2)
-(2, 3),  -- reader 3 borrows BC021 (owner was reader 4)
-(3, 4),  -- reader 4 borrows BC022 (owner was reader 1)
-(4, 2),  -- reader 2 borrows BC023 (owner was reader 3)
-(5, 1);  -- reader 1 borrows BC024 (owner was reader 2)
+-- **EXCHANGE REQUESTS**
+-- 1. Jane (Reader 2) requests John's "Fourth Wing" (Book 11). 
+--    This will show up as an "Incoming Request" when you log in as John.
+('Exchange', NULL, 'Pending', NULL, 2, 11, NULL); 
 
 INSERT INTO Log (log_date, source, log_level, log_node, log_message)
 VALUES

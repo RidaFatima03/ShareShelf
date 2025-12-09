@@ -1,0 +1,64 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <div class="holds-page">
+        <h1 class="page-title">My Holds</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}" style="padding: 10px; margin-bottom: 20px; border-radius: 5px; 
+                   background-color: {% if category=='success' %}#d4edda{% else %}#f8d7da{% endif %}; 
+                   color: {% if category=='success' %}#155724{% else %}#721c24{% endif %};">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <section class="holds-card">
+            <div class="table-wrapper">
+                <table class="requests-table">
+                    <thead>
+                        <tr>
+                            <th>Book Title</th>
+                            <th>Author</th>
+                            <th>Request Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if holds %}
+                            {% for req in holds %}
+                            <tr>
+                                <td>{{ req.item_title }}</td>
+                                <td>{{ req.item_author }}</td>
+                                <td>{{ req.request_date }}</td>
+                                <td>
+                                    <span class="request-status {{ req.status|lower }}">{{ req.status }}</span>
+                                </td>
+                                <td>
+                                    {% if req.status == 'Pending' %}
+                                        <form action="{{ url_for('main.cancel_hold', request_id=req.request_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this hold?');">
+                                            <button type="submit" class="action-button danger">Cancel</button>
+                                        </form>
+                                    {% else %}
+                                        <span class="no-action">N/A</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="5" style="text-align:center; padding: 20px; color: #888;">You have no active book holds.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+{% endblock %}

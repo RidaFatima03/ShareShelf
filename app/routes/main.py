@@ -8,17 +8,6 @@ main_bp = Blueprint('main', __name__)
 def get_cursor():
     return mysql.connection.cursor(MySQLdb.cursors.DictCursor)
 
-@main_bp.context_processor
-def inject_notification_count():
-    if 'loggedin' in session:
-        user_id = session['userid']
-        cursor = get_cursor()
-        cursor.execute("SELECT COUNT(*) as count FROM Notification WHERE user_id = %s AND is_read = FALSE", (user_id,))
-        result = cursor.fetchone()
-        count = result['count'] if result else 0
-        return dict(unread_notifications_count=count)
-    return dict(unread_notifications_count=0)
-
 @main_bp.route('/main', methods=['GET'], endpoint='main_page')
 def main_page():
     if 'loggedin' not in session: return redirect(url_for('auth.login'))

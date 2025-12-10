@@ -217,23 +217,23 @@ INSERT INTO Checkout (
 -- Reader 4 checks out BC012 (still out)
 ('2025-11-08 10:10:00', '2025-11-22 23:59:59', NULL, 0, 4, 'BC012');
 
-INSERT INTO Notification (subject, details, is_read, user_id)
+INSERT INTO Notification (notification_date, subject, details, is_read, user_id)
 VALUES
 -- Reader notifications
-('Book Due Soon', 'Your book "The Martian" is due in 2 days. Please return or renew to avoid fines.', FALSE, 1),
-('Overdue Notice', 'Your book "The Road" is now overdue. A fine will be applied to your account.', FALSE, 1),
-('Reservation Ready', 'The book "1984" you reserved is now available for pickup.', TRUE, 2),
-('Checkout Confirmation', 'You have successfully checked out "To Kill a Mockingbird". Due date: 2025-11-20.', TRUE, 2),
-('Review Response', 'Your review for "Harry Potter and the Goblet of Fire" has been liked by the librarian.', FALSE, 3),
+('2025-11-12 10:40:00', 'Book Due Soon', 'Your book "The Martian" is due in 2 days. Please return or renew to avoid fines.', FALSE, 1),
+('2025-11-14 10:30:00', 'Overdue Notice', 'Your book "The Road" is now overdue. A fine will be applied to your account.', FALSE, 1),
+('2025-11-14 10:50:00', 'Reservation Ready', 'The book "1984" you reserved is now available for pickup.', TRUE, 2),
+('2025-11-15 10:30:00', 'Checkout Confirmation', 'You have successfully checked out "To Kill a Mockingbird". Due date: 2025-11-20.', TRUE, 2),
+('2025-11-13 10:20:00', 'Review Response', 'Your review for "Harry Potter and the Goblet of Fire" has been liked by the librarian.', FALSE, 3),
 
 -- Librarian notifications
-('New Book Added', 'You successfully added "The Nightingale" to the catalog.', TRUE, 5),
-('Overdue Report', 'A new overdue report is ready for review.', FALSE, 5),
+('2025-11-13 10:20:00', 'New Book Added', 'You successfully added "The Nightingale" to the catalog.', TRUE, 5),
+('2025-11-13 10:50:00', 'Overdue Report', 'A new overdue report is ready for review.', FALSE, 5),
 
 -- Admin notifications
-('System Backup Completed', 'Database backup was successfully completed at 2025-11-12 02:00:00.', TRUE, 7),
-('User Account Approved', 'Reader Jane Smith has been approved and can now borrow books.', TRUE, 7),
-('Policy Update', 'Loan period for Readers has been updated to 21 days.', FALSE, 8);
+('2025-11-13 10:20:00', 'System Backup Completed', 'Database backup was successfully completed at 2025-11-12 02:00:00.', TRUE, 7),
+('2025-11-14 10:20:00', 'User Account Approved', 'Reader Jane Smith has been approved and can now borrow books.', TRUE, 7),
+('2025-11-15 10:20:00', 'Policy Update', 'Loan period for Readers has been updated to 21 days.', FALSE, 8);
 
 INSERT INTO Fine (checkout_id, fine_reason, payment_method, date_paid, amount, status)
 VALUES

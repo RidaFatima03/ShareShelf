@@ -1,6 +1,7 @@
 # app/app.py
 import os
-from flask import Flask
+from flask import Flask, session
+import MySQLdb.cursors  
 from extensions import mysql
 from routes.auth import auth_bp
 from routes.main import main_bp
@@ -28,6 +29,7 @@ def create_app():
     # ----------------------
 
     mysql.init_app(app)
+    
 
     # Register blueprints
     app.register_blueprint(auth_bp)
@@ -37,8 +39,22 @@ def create_app():
 
     return app
 
-
 app = create_app()
+
+@app.context_processor
+def inject_notification_count_global():
+    if 'loggedin' in session:
+        user_id = session['userid']
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(
+            "SELECT COUNT(*) AS count FROM Notification WHERE user_id = %s AND is_read = FALSE",
+            (user_id,)
+        )
+        result = cursor.fetchone()
+        count = result['count'] if result else 0
+        return dict(unread_notifications_count=count)
+
+    return dict(unread_notifications_count=0)
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))

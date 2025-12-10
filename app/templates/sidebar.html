@@ -6,7 +6,10 @@
     <title>ShareShelf</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='manage.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
 </head>
 <body class="dashboard-body">
     <header class="dashboard-header">
@@ -73,7 +76,6 @@
                     </svg>
                     <span>My Requests</span>
                 </a>
-                {% endif %}
 
                 <a href="{{ url_for('main.my_books') }}" 
                 class="nav-item {% if request.endpoint == 'main.my_books' %}active{% endif %}">
@@ -90,6 +92,17 @@
                     <i class="fa-solid fa-inbox nav-icon"></i>
                     <span>Exchange Requests</span>
                 </a>
+                {% endif %}
+
+                {% if session.get('user_type') in ['Librarian'] %}
+                <a href="{{ url_for('librarian.authors') }}" 
+                   class="nav-item {% if request.endpoint == 'librarian.authors' %}active{% endif %}">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                    </svg>
+                    <span>Manage Authors</span>
+                {% endif %}
                 
                 <a href="{{ url_for('main.notifications') }}" 
                    class="nav-item {% if request.endpoint == 'main.notifications' %}active{% endif %}">
@@ -127,6 +140,20 @@
         </aside>
 
         <main class="main-content">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="custom-alert custom-alert-{{ category|lower }}">
+                    {{ message }}
+                    <button type="button" class="custom-alert-close" onclick="this.parentElement.remove()">×</button>
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+            {% endwith %}
+
+
             {% block content %}
             {% endblock %}
         </main>
@@ -156,5 +183,20 @@
             }
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+        document.querySelectorAll(".custom-alert").forEach(el => {
+        el.style.transition = "opacity 0.4s";
+        el.style.opacity = "0";
+        setTimeout(() => el.remove(), 400);
+        });
+    }, 3000);
+    });
+    </script>
+
+
 </body>
 </html>

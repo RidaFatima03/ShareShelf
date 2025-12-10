@@ -1,0 +1,236 @@
+.manage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-delete {
+    background-color: #dc3545 !important; /* normal red */
+    border: none !important;
+    cursor: pointer !important;
+    width: 32px;
+    height: 32px;
+    border-radius: 20%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.btn-delete:hover {
+    background-color: #b02a37 !important; /* darker red */
+}
+
+.btn-edit {
+    background-color: #f0ad4e;
+    border: none !important;
+    cursor: pointer !important;
+    width: 32px;
+    height: 32px;
+    border-radius: 20%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease-in-out;
+    color: white;
+    margin-right: 5px;
+}
+
+.btn-edit:hover {
+    background-color: #ec971f;
+}
+
+.trash-can{
+    color:white !important;
+    font-size:18px;
+    padding: 3px 0px 0px 0px;
+}
+
+
+.btn-new {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    margin-bottom: 24px;
+    cursor: pointer;
+}
+
+.btn-save {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    cursor: pointer;
+}
+
+.btn-apply {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    cursor: pointer;
+    margin-top: 27px;
+}
+
+.btn-cancel {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    cursor: pointer;
+    background-color: #e0e0e0;
+    color: #333333;
+}
+
+.btn-cancel:hover {
+    background-color: #cacaca;
+}
+
+.pop-up-header {
+    margin-bottom: 0px;
+}
+
+.manage-btns {
+    display: flex;
+    align-items: center;
+}
+
+/* Modal container */
+.custom-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+.custom-modal.show {
+    display: flex;
+}
+
+/* Modal background */
+.custom-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+}
+
+/* Modal window */
+.custom-modal-dialog {
+    position: relative;
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px 20px;
+    min-width: 500px;
+    max-width: 600px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 1001;
+}
+
+/* Header */
+.custom-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.custom-modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+/* Footer */
+.custom-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.logs-table,
+.activity-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(92, 64, 51, 0.12);
+}
+
+.logs-table thead,
+.activity-table thead {
+    background-color: #f8efe6;
+}
+
+.logs-table th,
+.logs-table td,
+.activity-table th,
+.activity-table td {
+    padding: 14px;
+    text-align: left;
+    border-bottom: 1px solid #f0ebe4;
+}
+
+.logs-table th,
+.activity-table th {
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #8b6f47;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.logs-table tbody tr:last-child td,
+.activity-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Pagination styling */
+/* FORCE pagination to behave */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+/* kill bullets + make horizontal */
+.pagination {
+    list-style: none !important;
+    padding-left: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    gap: 6px;
+}
+
+/* also kill bullets on li in case something else sets them */
+.pagination li {
+    list-style: none !important;
+}
+
+/* base look for links */
+.pagination .page-link {
+    display: inline-block;
+    color: #8b4513;
+    border-radius: 999px;
+    border: 1px solid #d9c2a3;
+    padding: 4px 12px;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+/* hover */
+.pagination .page-link:hover {
+    background-color: #f5e7d6;
+    color: #6e3510;
+}
+
+/* active page */
+.pagination .page-item.active .page-link {
+    background-color: #8b4513;
+    border-color: #8b4513;
+    color: #fff;
+}
+
+/* disabled prev/next */
+.pagination .page-item.disabled .page-link {
+    color: #b0b0b0;
+    background-color: #fafafa;
+    border-color: #e0e0e0;
+    pointer-events: none;
+}
+
+.filter-input-manage {
+    margin-top: 10px;
+}

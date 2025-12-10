@@ -1,0 +1,230 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+<div>
+    
+    <div class="manage-header">
+        <h1 class="page-title">Genres</h1>
+
+        <button type="button" id="openAddGenreModal" class="logout-link btn-new">
+            Add New Genre
+        </button>
+    </div>
+    
+    <div class="table-wrapper">
+        
+        <table class="activity-table">
+
+            <!-- Search form -->
+             <form method="get" action="{{ url_for('librarian.genres') }}">
+                <thead>
+                    <tr>
+                        <th>
+                            ID<br>
+                            <input type="text"
+                                    name="search_id"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Search ID..."
+                                    value="{{ search_id }}">
+                        </th>
+                        <th>
+                            Genre Name<br>
+                            <input type="text"
+                                    name="search_name"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Search genres..."
+                                    value="{{ search_name }}">
+                        </th>
+                        <th>
+                            <button type="submit" class="logout-link btn-apply">Apply</button>
+                        </th>
+                    </tr>
+                </thead>
+            </form>
+            
+                
+            <tbody>
+                {% if genres %}
+                    {% for g in genres %}
+                        <tr>
+                            <td>{{ g.genre_id }}</td>
+                            <td>{{ g.genre_name }}</td>
+                            <td>
+                                <div class="manage-btns">
+                                    <button type="button"
+                                    class="btn-edit"
+                                    data-genre-id="{{ g.genre_id }}"
+                                    data-genre-name="{{ g.genre_name }}">
+                                    <i class="bi bi-pencil-fill"></i>
+                                    </button>
+
+                                    <form method="POST"
+                                        action="{{ url_for('librarian.delete_genre', genre_id=g.genre_id) }}"
+                                        onsubmit="return confirm('Delete this genre?');"
+                                        class="d-inline">
+
+                                        <button type="submit" class="rounded-circle p-1 btn-delete">
+                                            <i class="bi bi-trash trash-can"></i>
+                                        </button>
+                                    </form>
+                                </div>
+
+                                
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-3">
+                            No genres found.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+<nav class="pagination-container mt-4">
+  <ul class="pagination">
+    <!-- Previous -->
+    <li class="page-item {% if not has_prev %}disabled{% endif %}">
+      <a class="page-link"
+        href="{% if has_prev %}{{ url_for('librarian.genres', page=page-1,
+                                            search_id=search_id, search_name=search_name) }}{% else %}#{% endif %}">
+        Previous
+        </a>
+    </li>
+
+    <!-- Page numbers -->
+    {% for p in range(1, total_pages + 1) %}
+      <li class="page-item {% if p == page %}active{% endif %}">
+        <a class="page-link"
+        href="{{ url_for('librarian.genres', page=p,
+                            search_id=search_id, search_name=search_name) }}">
+        {{ p }}
+        </a>
+      </li>
+    {% endfor %}
+
+    <!-- Next -->
+    <li class="page-item {% if not has_next %}disabled{% endif %}">
+        <a class="page-link"
+        href="{% if has_next %}{{ url_for('librarian.genres', page=page+1,
+                                            search_id=search_id, search_name=search_name) }}{% else %}#{% endif %}">
+        Next
+        </a>
+    </li>
+  </ul>
+</nav>
+
+
+</div>
+
+<!-- Add Genre Modal -->
+<div id="addGenreModal" class="custom-modal">
+  <div class="custom-modal-backdrop close-add-genre-modal"></div>
+
+  <div class="custom-modal-dialog">
+    <div class="custom-modal-header">
+      <h5 class="filters-column-title pop-up-header">Add New Genre</h5>
+      <button type="button" class="custom-modal-close close-add-genre-modal">&times;</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('librarian.genres') }}">
+      <div class="filter-input-group">
+        <label for="genre_name" class="filter-label">Genre Name:</label>
+        <input type="text" id="genre_name" name="genre_name" class="form-control filter-input" required>
+      </div>
+
+      <div class="custom-modal-footer">
+        <button type="button" class="logout-link btn-cancel close-add-genre-modal">Cancel</button>
+        <button type="submit" class="logout-link btn-save">Create Genre</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Genre Modal -->
+<div id="editGenreModal" class="custom-modal">
+  <div class="custom-modal-backdrop close-edit-genre-modal"></div>
+
+  <div class="custom-modal-dialog">
+    <div class="custom-modal-header">
+      <h5 class="filters-column-title pop-up-header">Edit Genre</h5>
+      <button type="button" class="custom-modal-close close-edit-genre-modal">&times;</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('librarian.edit_genre') }}">
+      <div class="filter-input-group">
+        <input type="hidden" id="edit_genre_id" name="genre_id">
+        <label for="edit_genre_name" class="filter-label ">Genre Name</label>
+        <input type="text"
+               id="edit_genre_name"
+               name="genre_name"
+               class="form-control filter-input"
+               required>
+      </div>
+
+      <div class="custom-modal-footer">
+        <button type="button" class="logout-link btn-cancel close-edit-genre-modal">Cancel</button>
+        <button type="submit" class="logout-link btn-save">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+  // ADD GENRE MODAL
+  const openAddBtn = document.getElementById('openAddGenreModal');
+  const addModal = document.getElementById('addGenreModal');
+  const addCloseElems = document.querySelectorAll('.close-add-genre-modal');
+
+  if (openAddBtn && addModal) {
+    openAddBtn.addEventListener('click', () => {
+      addModal.classList.add('show');
+      const input = addModal.querySelector('#genre_name');
+      if (input) setTimeout(() => input.focus(), 100);
+    });
+
+    addCloseElems.forEach(el => {
+      el.addEventListener('click', () => {
+        addModal.classList.remove('show');
+      });
+    });
+  }
+
+  // EDIT GENRE MODAL
+  const editModal = document.getElementById('editGenreModal');
+  const editButtons = document.querySelectorAll('.edit-genre-btn');
+  const editCloseElems = document.querySelectorAll('.close-edit-genre-modal');
+  const editNameInput = document.getElementById('edit_genre_name');
+  const editIdInput = document.getElementById('edit_genre_id');
+
+  if (editModal && editButtons.length > 0) {
+    editButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.genreId;
+        const name = btn.dataset.genreName;
+
+        if (editIdInput) editIdInput.value = id;
+        if (editNameInput) editNameInput.value = name;
+
+        editModal.classList.add('show');
+        if (editNameInput) setTimeout(() => editNameInput.focus(), 100);
+      });
+    });
+
+    editCloseElems.forEach(el => {
+      el.addEventListener('click', () => {
+        editModal.classList.remove('show');
+      });
+    });
+  }
+});
+
+</script>
+
+
+{% endblock %}

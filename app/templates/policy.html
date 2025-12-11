@@ -1,40 +1,53 @@
-<html>
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h1>Library Policies</h1>
+{% extends "sidebar.html" %}
 
-        {% if role == 'Librarian' or role == 'Admin' %}
-            <form action="{{ url_for('policy.add_policy') }}" method="GET" style="margin: 0;">
-                <button type="submit">Add New Policy</button>
-            </form>
-        {% endif %}
-    </div>
+{% block content %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-
-    {% for p in data %}
-        <div>
-            <h3>{{ p.name }}</h3>
-            <p>Loan period: {{ p.loan_period_days }} days</p>
-            <p>Renewals allowed: {{ p.renewals_allowed }}</p>
-            <p>Fine per day: {{ p.fine_per_day }}</p>
-            <p>Max concurrent loans: {{ p.max_concurrent_loans }}</p>
-            <p>Reservation limit: {{ p.holds_limit_reservation }}</p>
+    <div class ="policy-page">
+        <div class ="manage-header">
+            <h1 class="page-title">Library Policy</h1>
+            {% if session.get('user_type') == 'Librarian' or session.get('user_type') == 'Admin' %}
+            <a href="{{ url_for('policy.add_policy') }}" class="logout-link btn-new">
+                Add New Policy
+            </a>
+            {% endif %}
         </div>
 
-        {% if role == 'Librarian' or role == 'Admin' %}
-            <div style="display: flex; gap: 10px;">
-                <form action="{{ url_for('policy.edit_policy', id=p.policy_id) }}" method="GET">
-                    <button type="submit">Edit Policy</button>
-                </form>
+        <section class="policy-card">
+            {% if policy %}
+                {% for p in data %}
+                <div>
+                    <h3>{{ p.name }}</h3>
+                    <p>Loan period: {{ p.loan_period_days }} days</p>
+                    <p>Renewals allowed: {{ p.renewals_allowed }}</p>
+                    <p>Fine per day: {{ p.fine_per_day }}</p>
+                    <p>Max concurrent loans: {{ p.max_concurrent_loans }}</p>
+                    <p>Reservation limit: {{ p.holds_limit_reservation }}</p>
+                </div>
 
-                <form action="{{ url_for('policy.delete_policy', id=p.policy_id) }}" 
-                    method="POST" 
-                    onsubmit="return confirm('Policy will be deleted permanently. Proceed?');"
-                    style="display:inline;">
-                    <button type="submit">Delete</button>
-                </form>
-            </div>
-        {% endif %}
+                {% if session.get('user_type') == 'Librarian' or session.get('user_type') == 'Admin' %}
+                    <div style="display: flex; gap: 10px;">
+                        <form action="{{ url_for('policy.edit_policy', id=p.policy_id) }}" method="GET">
+                            <button type="submit">Edit Policy</button>
+                        </form>
 
-        <hr>
-    {% endfor %}
-</html>
+                        <form action="{{ url_for('policy.delete_policy', id=p.policy_id) }}" 
+                            method="POST" 
+                            onsubmit="return confirm('Policy will be deleted permanently. Proceed?');"
+                            style="display:inline;">
+                            <button type="submit">Delete</button>
+                        </form>
+                    </div>
+                {% endif %}
+                <hr>
+            {% endfor %}
+            {% else %}
+                <div style="text-align:center; padding:40px; color:#666;">
+                    <p>No Policy Yet.</p>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+{% endblock %}

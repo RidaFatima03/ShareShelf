@@ -15,13 +15,13 @@ def policy():
     cursor = get_cursor()
     cursor.execute("SELECT * FROM Policy")
     policies = cursor.fetchall()
-    role = session.get('role')
+    role = session.get('user_type')
 
     return render_template("policy.html", data=policies, role=role)
 
 @policy_bp.route('/policy/edit/<int:id>', methods=['GET', 'POST'])
 def edit_policy(id):
-    if session.get('role') != 'Librarian':
+    if session.get('user_type') != 'Librarian':
         return "Unauthorized", 403
 
     cursor = get_cursor()
@@ -53,7 +53,7 @@ def edit_policy(id):
 
 @policy_bp.route('/policy/add', methods=['GET', 'POST'])
 def add_policy():
-    if session.get('role') not in ['Librarian', 'Admin']:
+    if session.get('user_type') not in ['Librarian', 'Admin']:
         return "Unauthorized", 403
 
     if request.method == 'POST':
@@ -74,7 +74,7 @@ def add_policy():
         """, (name, period, renewals, fine, max_loans, holds, applies))
 
         mysql.connection.commit()
-
+        print("POST RECEIVED")
         return redirect(url_for('policy.policy'))
 
     return render_template("add-policy.html")

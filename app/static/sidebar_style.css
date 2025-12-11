@@ -2576,3 +2576,46 @@ body {
 .exchange-requests-page {
     max-width: 1000px;
 }
+
+/* Policy Page */
+.policy-page {
+    max-width: 900px;
+}
+
+.policy-card {
+    background-color: #ffffff;
+    border: 1px solid rgba(92, 64, 51, 0.12);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.policy-card .section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 20px;
+}
+
+.policy-item {
+    position: relative;
+    background-color: #fffaf3;
+    border: 1px solid rgba(92, 64, 51, 0.12);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+}
+
+.policy-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 6px;
+}
+
+.policy-text {
+    font-size: 14px;
+    color: #4c4c4c;
+    margin: 0;
+}

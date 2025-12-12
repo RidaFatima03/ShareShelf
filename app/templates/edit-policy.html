@@ -1,0 +1,54 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <div class="update-info-content" style="max-width: 1000px; margin: 0 auto;"> <h1 class="page-title">Edit Policy</h1>
+        
+        <form action="{{ url_for('policy.add_policy') }}" method="POST">
+            <div class="form-row">
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label>Policy Name</label>
+                            <input type="text" name="name" value="{{ policy.name }}" disabled><br>
+                        </div>
+                        <div class="form-group">
+                            <label>Loan Period (days)</label>
+                            <input type="number" name="loan_period_days" value="{{ policy.loan_period_days }}" required><br>
+                        </div>
+                        <div class="form-group">
+                            <label>Renewals Allowed:</label>
+                            <input type="number" name="renewals_allowed" value="{{ policy.renewals_allowed }}" required><br>
+                        </div>
+                        <div class="form-group">
+                            <label>Fine per Day (TRY):</label>
+                            <input type="number" step="0.01" name="fine_per_day" value="{{ policy.fine_per_day }}" required><br>
+                        </div>
+                        <div class="form-group">
+                            <label>Max Concurrent Loans:</label>
+                            <input type="number" name="max_concurrent_loans" value="{{ policy.max_concurrent_loans }}" required><br>
+                        </div>
+                        <div class="form-group">
+                            <label>Reservation Limit:</label>
+                            <input type="number" name="holds_limit_reservation" value="{{ policy.holds_limit_reservation }}" required><br>
+                        </div>
+                        <div class="form-group">
+                            <label>Applies To:</label>
+                            <select name="applies_to_role" class ="filter-select" value="{{ policy.applies_to_role }}">
+                                <option value="Reader">Reader</option>
+                                <option value="Librarian">Librarian</option>
+                                <option value="Admin">Admin</option>
+                            </select><br><br>
+                        </div>
+                    </div>
+            </div>
+            <div>
+                <button type="submit" class="logout-link btn-new">Save</button>
+                <a href="{{ url_for('policy.policy') }}" class="logout-link btn-new">Cancel</a>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+

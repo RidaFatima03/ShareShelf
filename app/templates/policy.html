@@ -8,36 +8,46 @@
     <div class ="policy-page">
         <div class ="manage-header">
             <h1 class="page-title">Library Policy</h1>
-            {% if session.get('user_type') == 'Librarian' or session.get('user_type') == 'Admin' %}
+            {% if session.get('user_type') == 'Librarian' %}
             <a href="{{ url_for('policy.add_policy') }}" class="logout-link btn-new">
                 Add New Policy
             </a>
             {% endif %}
         </div>
 
+        {% if session.get('user_type') == 'Reader' %}
+                <p style="color: #555; margin-bottom: 20px;">
+                    Note: As a Reader, you are subject to the library policies set by the administration.
+                    Please contact a Librarian or Admin for any policy-related inquiries.
+                </p>
+            {% endif %}
+
         <section class="policy-card">
-            {% if policy %}
+            {% if data %}
                 {% for p in data %}
                 <div>
-                    <h3>{{ p.name }}</h3>
-                    <p>Loan period: {{ p.loan_period_days }} days</p>
-                    <p>Renewals allowed: {{ p.renewals_allowed }}</p>
-                    <p>Fine per day: {{ p.fine_per_day }}</p>
-                    <p>Max concurrent loans: {{ p.max_concurrent_loans }}</p>
-                    <p>Reservation limit: {{ p.holds_limit_reservation }}</p>
+                    <h3>{{ p.name }}</h3><br>
+                    <ul style="padding-left: 20px; line-height: 1.6;">
+                        <li><strong>Loan period:</strong> Under this policy, readers can keep borrowed items for {{ p.loan_period_days }} days. Items returned late will incur the standard late fees.</li>
+                        <li><strong>Renewals allowed:</strong> Readers can renew an item up to {{ p.renewals_allowed }} time(s). Renewal requests will be denied if the item is reserved by another user.</li>
+                        <li><strong>Fine per day:</strong> A fine of {{ p.fine_per_day }} TRY per day will be charged for overdue items until they are returned.</li>
+                        <li><strong>Max concurrent loans:</strong> Under this policy, users are allowed to borrow up to {{ p.max_concurrent_loans }} item(s) at one time.</li>
+                        <li><strong>Reservation limit:</strong> Readers can place up to {{ p.holds_limit_reservation }} reservation(s) at one time. Excess reservations will not be accepted.</li>
+                    </ul>
+                    <br>
                 </div>
 
-                {% if session.get('user_type') == 'Librarian' or session.get('user_type') == 'Admin' %}
+                {% if session.get('user_type') == 'Librarian' %}
                     <div style="display: flex; gap: 10px;">
                         <form action="{{ url_for('policy.edit_policy', id=p.policy_id) }}" method="GET">
-                            <button type="submit">Edit Policy</button>
+                            <button type="submit" class="logout-link btn-new">Edit Policy</button>
                         </form>
 
                         <form action="{{ url_for('policy.delete_policy', id=p.policy_id) }}" 
                             method="POST" 
                             onsubmit="return confirm('Policy will be deleted permanently. Proceed?');"
                             style="display:inline;">
-                            <button type="submit">Delete</button>
+                            <button type="submit" class="logout-link btn-new">Delete</button>
                         </form>
                     </div>
                 {% endif %}

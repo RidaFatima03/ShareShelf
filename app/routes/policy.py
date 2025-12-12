@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session
+from flask import Blueprint, render_template, request, redirect, url_for, session,flash
 import MySQLdb.cursors
 from extensions import mysql
 
@@ -13,7 +13,12 @@ def policy():
         return redirect(url_for('auth.login'))
     
     cursor = get_cursor()
-    cursor.execute("SELECT * FROM Policy")
+    if session.get("user_type") == "Reader":
+        cursor.execute("SELECT * FROM Policy WHERE applies_to_role = 'Reader'")
+    elif session.get("user_type") == "Admin":
+        cursor.execute("SELECT * FROM Policy WHERE applies_to_role = 'Admin'")
+    else:
+        cursor.execute("SELECT * FROM Policy")
     policies = cursor.fetchall()
     role = session.get('user_type')
 
@@ -49,15 +54,24 @@ def edit_policy(id):
     cursor.execute("SELECT * FROM Policy WHERE policy_id=%s", (id,))
     policy = cursor.fetchone()
 
-    return render_template("edit_policy.html", policy=policy)
+    return render_template("edit-policy.html", policy=policy)
 
 @policy_bp.route('/policy/add', methods=['GET', 'POST'])
 def add_policy():
-    if session.get('user_type') not in ['Librarian', 'Admin']:
+    if session.get('user_type') != 'Librarian':
         return "Unauthorized", 403
 
     if request.method == 'POST':
         name = request.form['name']
+
+        cursor = get_cursor()
+        cursor.execute("SELECT * FROM Policy WHERE name = %s", [name])
+        existing = cursor.fetchone()
+
+        if existing:
+            flash("Policy name already exists!", "error")
+            return redirect(url_for('policy.add_policy'))
+        
         period = request.form['loan_period_days']
         renewals = request.form['renewals_allowed']
         fine = request.form['fine_per_day']
@@ -65,7 +79,6 @@ def add_policy():
         holds = request.form['holds_limit_reservation']
         applies = request.form['applies_to_role']
 
-        cursor = get_cursor()
         cursor.execute("""
             INSERT INTO Policy (name, loan_period_days, renewals_allowed,
                                 fine_per_day, max_concurrent_loans,
@@ -74,14 +87,15 @@ def add_policy():
         """, (name, period, renewals, fine, max_loans, holds, applies))
 
         mysql.connection.commit()
-        print("POST RECEIVED")
+
+        flash("Policy added successfully!", "success")
         return redirect(url_for('policy.policy'))
 
-    return render_template("add-policy.html")
+    return render_template('add-policy.html')
 
 @policy_bp.route('/policy/delete/<int:id>', methods=['POST'])
 def delete_policy(id):
-    if session.get('role') not in ['Librarian', 'Admin']:
+    if session.get('user_type') != 'Librarian':
         return "Unauthorized", 403
 
     cursor = get_cursor()

@@ -3,7 +3,22 @@ import MySQLdb.cursors
 from extensions import mysql
 from math import ceil
 import logging; 
+from notifications import NotificationService
 librarian_bp = Blueprint("librarian", __name__, url_prefix="/librarian")
+
+#notify users
+def notify_all_users(subject, details):
+    notification_service = NotificationService(mysql.connection)
+    cursor = get_cursor()
+    cursor.execute("SELECT user_id FROM User")
+    users = cursor.fetchall()
+
+    for user in users:
+        notification_service.add_notification(
+            user["user_id"],
+            subject,
+            details
+        )
 
 def get_cursor():
     return mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -37,6 +52,10 @@ def authors():
             )
             mysql.connection.commit()
             flash("Author created successfully.", "success")
+            notify_all_users(
+                "New Author Added",
+                f"A new author '{author_name}' has been added to the system."
+            )   
 
         return redirect(url_for("librarian.authors"))
 
@@ -112,6 +131,10 @@ def delete_author(author_id):
     cursor.execute("DELETE FROM Author WHERE author_id = %s", (author_id,))
     mysql.connection.commit()
     flash("Author deleted successfully.", "success")
+    notify_all_users(
+        "Author Removed",
+        "An author has been removed from the system."
+    )
 
     return redirect(url_for("librarian.authors"))
 
@@ -136,6 +159,10 @@ def edit_author():
     )
     mysql.connection.commit()
     flash("Author updated successfully.", "success")
+    notify_all_users(
+        "Author Updated",
+        f"Author information has been updated."
+    )
 
     return redirect(url_for("librarian.authors"))
 
@@ -161,6 +188,10 @@ def genres():
             )
             mysql.connection.commit()
             flash("Genre created successfully.", "success")
+            notify_all_users(
+                "New Genre Added",
+                f"A new genre '{genre_name}' has been added to the system."
+            )
 
         return redirect(url_for("librarian.genres"))
 

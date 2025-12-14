@@ -1099,3 +1099,19 @@ def cancel_hold(request_id):
         flash(f"An error occurred: {str(e)}", "danger")
 
     return redirect(url_for('main.my_holds'))
+
+@main_bp.route('/fines')
+def fines():
+    show_payment = request.args.get('pay')
+    success = request.args.get('success')
+    return render_template(
+        'my-fines.html',
+        show_payment=show_payment,
+        success=success
+    )
+
+
+@main_bp.route('/pay-fine', methods=['POST'])
+def pay_fine():
+    # MOCK PAYMENT — no DB yet
+    return redirect(url_for('main.fines', success=1))

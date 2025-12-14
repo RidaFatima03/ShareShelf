@@ -141,6 +141,89 @@
     color: inherit;
 }
 
+/*payment mockup */
+
+.payment-title {
+  margin-bottom: 16px;
+  font-size: 18px;
+  text-align: center;
+  color: #333;
+}
+
+.payment-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.payment-modal-content {
+    position: relative;
+    background: white;
+    width: 320px;
+    padding: 40px 20px 20px;
+    border-radius: 10px;
+}
+.payment-modal-content label {
+    display: block;
+    margin-bottom: 6px;   
+    font-weight: 500;     
+}
+
+.payment-modal-content input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+
+.payment-row {
+  display: flex;
+  gap: 12px;
+}
+
+.payment-field {
+  flex: 1;
+}
+
+.confirm-pay-btn {
+    width: 100%;
+    padding: 10px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+.close-link {
+    display: block;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.success-msg {
+    background: #d4edda;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 24px;
+    text-decoration: none;
+    color: #555;
+    font-weight: bold;
+}
+
+.close-btn:hover {
+    color: #000;
+}
+
 /* fade-in animation */
 @keyframes flashFadeIn {
     from { opacity: 0; transform: translateY(-4px); }

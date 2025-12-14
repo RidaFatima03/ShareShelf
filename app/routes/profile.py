@@ -53,6 +53,7 @@ def userprofile():
     cursor.close()
 
     return render_template('personal-information.html', username=session.get('username'), myaccount=myaccount, fine=fine, exchange_count=exchange_count)
+
 @profile_bp.route('/profile/update', methods=['GET', 'POST'], endpoint='updateprofile')
 def updateprofile():
     if 'userid' not in session: return redirect(url_for('auth.login'))

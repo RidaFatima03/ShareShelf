@@ -239,4 +239,10 @@ def user_log_activity(user_id, action_type, details):
         ''',
         (action_type, details, user_id)
     )
+    cursor.execute("""
+        UPDATE User
+        SET status = 'ACTIVE'
+        WHERE user_id = %s
+    """, (user_id,))
+
     mysql.connection.commit()

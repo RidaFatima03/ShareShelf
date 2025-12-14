@@ -25,7 +25,11 @@
                             <td>F001</td>
                             <td>Overdue Book: "The Silent Patient"</td>
                             <td>$5.00</td>
-                            <td><button class="pay-btn">Pay Now</button></td>
+                            <td><form method="get" action="{{ url_for('main.fines') }}">
+                                <input type="hidden" name="pay" value="1">
+                                <button class="pay-btn" type="submit">Pay Now</button>
+                            </td>
+                        </form>
                         </tr>
                         </tbody>
                 </table>
@@ -58,4 +62,81 @@
             </div>
         </section>
     </div>
+
+    <!-- Payment Modal -->
+    {% if success %}
+    <div class="success-msg">
+        Payment successful!
+    </div>
+    {% endif %}
+
+    {% if show_payment %}
+    <div class=" payment-modal">
+        <div class="payment-modal-content">
+
+            <a href="{{ url_for('main.fines') }}" class="close-btn">&times;</a>
+            
+            <h3 class="payment-title">Enter Card Details</h3>
+
+            <form method="post" action="{{ url_for('main.pay_fine') }}">
+                <label>Card Number</label>
+                <input 
+                    id="cardNumber"
+                    type="text" 
+                    placeholder="0000 0000 0000 0000"
+                    inputmode="numeric"
+                    maxlength="19"
+                    required>
+
+                <div class="payment-row">
+                    <div class="payment-field">
+                        <label>Expiry Date</label>
+                        <input
+                            id="expiryDate"
+                            name="expiry_date"
+                            type="text"
+                            placeholder="MM/YY"
+                            inputmode="numeric"
+                            maxlength="5"
+                            required>
+                    </div>
+
+                    <div class="payment-field">
+                        <label>CVV</label>
+                        <input
+                            id="cvv"
+                            name="cvv"
+                            type="text"
+                            placeholder="000"
+                            inputmode="numeric"
+                            maxlength="3"
+                            required>
+                    </div>
+                </div>
+                <button class="confirm-pay-btn" type="submit">Pay</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+   <script>
+    const card = document.getElementById("cardNumber");
+    if (card) {
+        card.addEventListener("input", function () {
+            let value = this.value.replace(/\D/g, "").slice(0, 16);
+            this.value = value.replace(/(.{4})/g, "$1 ").trim();
+        });
+
+        document.getElementById("expiryDate").addEventListener("input", function () {
+            let value = this.value.replace(/\D/g, "").slice(0, 4);
+            this.value = value.length >= 3
+                ? value.slice(0, 2) + "/" + value.slice(2)
+                : value;
+        });
+
+        document.getElementById("cvv").addEventListener("input", function () {
+            this.value = this.value.replace(/\D/g, "").slice(0, 3);
+        });
+    }
+    </script>
 {% endblock %}

@@ -83,14 +83,19 @@ def register():
 
         cursor.execute('SELECT * FROM User WHERE user_email = %s', (user_email,))
         user_email_exists = cursor.fetchone()
-
         if user_email_exists:
             message = 'Email already used! Please use a different one.'
+            return render_template('register.html', message=message)
+        
+        cursor.execute('SELECT * FROM User WHERE user_phone_number = %s', (user_phone_number,))
+        user_phone_exists = cursor.fetchone()
+        if user_phone_exists:
+            message = 'Phone number already used! Please use a different one.'
             return render_template('register.html', message=message)
 
         
         cursor.execute('INSERT INTO User (user_first_name, user_middle_name, user_last_name, user_phone_number, user_email, user_password) ' \
-        '     VALUES (% s, %s, %s, %s, %s, %s)',
+        '     VALUES (% s, %s, %s, %s, %s, SHA2(%s, 256))',
              (user_first_name, user_middle_name, user_last_name, user_phone_number, user_email, user_password))
         mysql.connection.commit()
         message = 'User successfully created!'

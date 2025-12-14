@@ -137,6 +137,22 @@ def user_activity():
     cursor.execute(query, params)
     logs = cursor.fetchall()
 
+    cursor.execute("""
+        UPDATE User
+        SET status = 'INACTIVE'
+        WHERE user_id IN (
+            SELECT user_id FROM (
+                SELECT u.user_id
+                FROM User u
+                LEFT JOIN user_activity_log l
+                ON u.user_id = l.user_id
+                AND l.action_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+                GROUP BY u.user_id
+                HAVING COUNT(l.action_type) = 0
+            ) AS inactive_users
+        );
+    """)
+
     return render_template(
         'user_activity.html',
         logs=logs,
@@ -146,3 +162,5 @@ def user_activity():
         start_date=start_date,
         end_date=end_date
     )
+
+

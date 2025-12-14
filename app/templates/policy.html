@@ -28,11 +28,11 @@
                 <div>
                     <h3>{{ p.name }}</h3><br>
                     <ul style="padding-left: 20px; line-height: 1.6;">
-                        <li><strong>Loan period:</strong> Under this policy, readers can keep borrowed items for {{ p.loan_period_days }} days. Items returned late will incur the standard late fees.</li>
-                        <li><strong>Renewals allowed:</strong> Readers can renew an item up to {{ p.renewals_allowed }} time(s). Renewal requests will be denied if the item is reserved by another user.</li>
-                        <li><strong>Fine per day:</strong> A fine of {{ p.fine_per_day }} TRY per day will be charged for overdue items until they are returned.</li>
+                        <li><strong>Loan period:</strong> Under this policy, {{ p.applies_to_role }} can keep borrowed items for {{ p.loan_period_days }} days. Items returned late will incur the standard late fees.</li>
+                        <li><strong>Renewals allowed:</strong> {{ p.applies_to_role }} can renew an item up to {{ p.renewals_allowed }} time(s). Renewal requests will be denied if the item is reserved by another user.</li>
+                        <li><strong>Fine per day:</strong> A fine of ${{ p.fine_per_day }} per day will be charged for overdue items until they are returned.</li>
                         <li><strong>Max concurrent loans:</strong> Under this policy, users are allowed to borrow up to {{ p.max_concurrent_loans }} item(s) at one time.</li>
-                        <li><strong>Reservation limit:</strong> Readers can place up to {{ p.holds_limit_reservation }} reservation(s) at one time. Excess reservations will not be accepted.</li>
+                        <li><strong>Reservation limit:</strong> {{ p.applies_to_role }} can place up to {{ p.holds_limit_reservation }} reservation(s) at one time. Excess reservations will not be accepted.</li>
                     </ul>
                     <br>
                 </div>

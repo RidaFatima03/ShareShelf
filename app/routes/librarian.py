@@ -3,7 +3,7 @@ import MySQLdb.cursors
 from extensions import mysql
 from math import ceil
 import logging; 
-from notifications import NotificationService
+from routes.notifications import NotificationService
 librarian_bp = Blueprint("librarian", __name__, url_prefix="/librarian")
 
 #notify users

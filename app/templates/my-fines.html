@@ -79,6 +79,12 @@
             <h3 class="payment-title">Enter Card Details</h3>
 
             <form method="post" action="{{ url_for('main.pay_fine') }}">
+                <label>Name on Card</label>
+                <input 
+                    id="cardName"
+                    type="text" 
+                    required>
+
                 <label>Card Number</label>
                 <input 
                     id="cardNumber"
@@ -109,7 +115,6 @@
                             type="text"
                             placeholder="000"
                             inputmode="numeric"
-                            maxlength="3"
                             required>
                     </div>
                 </div>

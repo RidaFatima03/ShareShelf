@@ -138,10 +138,6 @@
                 ? value.slice(0, 2) + "/" + value.slice(2)
                 : value;
         });
-
-        document.getElementById("cvv").addEventListener("input", function () {
-            this.value = this.value.replace(/\D/g, "").slice(0, 3);
-        });
     }
     </script>
 {% endblock %}

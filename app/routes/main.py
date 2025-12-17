@@ -1146,7 +1146,7 @@ def pay_fine():
 
     query = """
     UPDATE Fine
-    SET status = 'Paid', payment_method = 'Card', date_paid = NOW()
+    SET status = 'Paid', payment_method = 'Credit Card', date_paid = NOW()
     WHERE fine_id = %s
     """
     cursor.execute(query, (fine_id,))

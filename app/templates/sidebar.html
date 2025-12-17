@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,18 +12,21 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 
 </head>
+
 <body class="dashboard-body">
     <header class="dashboard-header">
         <div class="header-left">
             <button class="menu-toggle" id="menuToggle">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5c4033" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5c4033" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <line x1="3" y1="12" x2="21" y2="12"></line>
                     <line x1="3" y1="6" x2="21" y2="6"></line>
                     <line x1="3" y1="18" x2="21" y2="18"></line>
                 </svg>
             </button>
             <a href="{{ url_for('main.main_page') }}" class="header-logo-text">
-                <img src="{{ url_for('static', filename='library_system_logo.png') }}" alt="ShareShelf Logo" class="header-logo-image">
+                <img src="{{ url_for('static', filename='library_system_logo.png') }}" alt="ShareShelf Logo"
+                    class="header-logo-image">
                 ShareShelf
             </a>
         </div>
@@ -34,69 +38,75 @@
     <div class="dashboard-container">
         <aside class="sidebar" id="sidebar">
             <nav class="sidebar-nav">
-                
-                <a href="{{ url_for('main.library-search') }}" 
-                   class="nav-item {% if request.endpoint == 'main.library-search' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+                <a href="{{ url_for('main.library-search') }}"
+                    class="nav-item {% if request.endpoint == 'main.library-search' %}active{% endif %}">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
                     <span>Library Search</span>
                 </a>
-                
+
                 {% if session.get('user_type') in ['Reader'] %}
-                <a href="{{ url_for('main.my_checkouts') }}" 
-                   class="nav-item {% if request.endpoint == 'main.my_checkouts' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <a href="{{ url_for('main.my_checkouts') }}"
+                    class="nav-item {% if request.endpoint == 'main.my_checkouts' %}active{% endif %}">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
                     </svg>
                     <span>My Checkouts</span>
                 </a>
-                
-                <a href="{{ url_for('main.my_holds') }}" 
-                   class="nav-item {% if request.endpoint == 'main.my_holds' %}active{% endif %}">
+
+                <a href="{{ url_for('main.my_holds') }}"
+                    class="nav-item {% if request.endpoint == 'main.my_holds' %}active{% endif %}">
                     <i class="fa-solid fa-clock-rotate-left nav-icon"></i>
                     <span>My Holds</span>
                 </a>
-                
-                <a href="{{ url_for('main.my_fines') }}" 
-                   class="nav-item {% if request.endpoint == 'main.my_fines' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+                <a href="{{ url_for('main.my_fines') }}"
+                    class="nav-item {% if request.endpoint == 'main.my_fines' %}active{% endif %}">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="12" y1="1" x2="12" y2="23"></line>
                         <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                     </svg>
                     <span>My Fines</span>
                 </a>
-                
-                <a href="{{ url_for('main.my_requests') }}" 
-                   class="nav-item {% if request.endpoint == 'main.my_requests' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+                <a href="{{ url_for('main.my_requests') }}"
+                    class="nav-item {% if request.endpoint == 'main.my_requests' %}active{% endif %}">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
                     <span>My Requests</span>
                 </a>
 
-                <a href="{{ url_for('main.my_books') }}" 
-                class="nav-item {% if request.endpoint == 'main.my_books' %}active{% endif %}">
+                <a href="{{ url_for('main.my_books') }}"
+                    class="nav-item {% if request.endpoint == 'main.my_books' %}active{% endif %}">
                     <i class="fa-solid fa-book-open nav-icon"></i>
                     <span>My Books</span>
                 </a>
 
-                <a href="{{ url_for('main.exchange_market') }}" class="nav-item {% if request.endpoint == 'main.exchange_market' %}active{% endif %}">
+                <a href="{{ url_for('main.exchange_market') }}"
+                    class="nav-item {% if request.endpoint == 'main.exchange_market' %}active{% endif %}">
                     <i class="fa-solid fa-handshake nav-icon"></i>
                     <span>Exchange Market</span>
                 </a>
 
-                <a href="{{ url_for('main.exchange_requests') }}" class="nav-item {% if request.endpoint == 'main.exchange_requests' %}active{% endif %}">
+                <a href="{{ url_for('main.exchange_requests') }}"
+                    class="nav-item {% if request.endpoint == 'main.exchange_requests' %}active{% endif %}">
                     <i class="fa-solid fa-inbox nav-icon"></i>
                     <span>Exchange Requests</span>
                 </a>
 
-                <a href="{{ url_for('policy.policy') }}" 
-                   class="nav-item {% if request.endpoint == 'policy.policy' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <a href="{{ url_for('policy.policy') }}"
+                    class="nav-item {% if request.endpoint == 'policy.policy' %}active{% endif %}">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M4 6c0-2 1.5-3 3-3s3 1 3 3-1.5 3-3 3H4v10a2 2 0 0 0 2 2h10" />
                         <path d="M20 18c0 2-1.5 3-3 3s-3-1-3-3 1.5-3 3-3h3V5a2 2 0 0 0-2-2H9" />
                         <line x1="9" y1="9" x2="15" y2="9" />
@@ -107,89 +117,95 @@
                 {% endif %}
 
                 {% if session.get('user_type') in ['Librarian'] %}
-                <a href="{{ url_for('librarian.authors') }}" 
-                   class="nav-item {% if request.endpoint == 'librarian.authors' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <a href="{{ url_for('librarian.authors') }}"
+                    class="nav-item {% if request.endpoint == 'librarian.authors' %}active{% endif %}">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 20h9" />
                         <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
                     </svg>
                     <span>Manage Authors</span>
 
-                <a href="{{ url_for('librarian.genres') }}" 
-                   class="nav-item {% if request.endpoint == 'librarian.genres' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                    </svg>
-                    <span>Manage Genres</span>
-                
-                <a href="{{ url_for('policy.policy') }}" 
-                class="nav-item {% if request.endpoint == 'policy.policy' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                    </svg>
-                    <span>Manage Policy</span>
-                </a>
-                {% endif %}
-                
-                <a href="{{ url_for('main.notifications') }}" 
-                   class="nav-item {% if request.endpoint == 'main.notifications' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                    </svg>
-                    <span>Notifications</span>
-                    
-                    {% if unread_notifications_count > 0 %}
-                        <span style="background-color: #d32f2f; color: white; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 10px; margin-left: auto;">
-                            {{ unread_notifications_count }}
-                        </span>
-                    {% endif %}
-                </a>
-                
-                <a href="{{ url_for('profile.userprofile') }}" 
-                   class="nav-item {% if request.endpoint == 'profile.userprofile' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    <span>Personal Info</span>
-                </a>
+                    <a href="{{ url_for('librarian.genres') }}"
+                        class="nav-item {% if request.endpoint == 'librarian.genres' %}active{% endif %}">
+                        <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                        </svg>
+                        <span>Manage Genres</span>
 
-                {% if session.get('user_type') == 'Admin' %}
-                <a href="{{ url_for('policy.policy') }}" 
-                   class="nav-item {% if request.endpoint == 'policy.policy' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 6c0-2 1.5-3 3-3s3 1 3 3-1.5 3-3 3H4v10a2 2 0 0 0 2 2h10" />
-                        <path d="M20 18c0 2-1.5 3-3 3s-3-1-3-3 1.5-3 3-3h3V5a2 2 0 0 0-2-2H9" />
-                        <line x1="9" y1="9" x2="15" y2="9" />
-                        <line x1="9" y1="13" x2="17" y2="13" />
-                    </svg>
-                    <span>Policy</span>
-                </a>
-                <a href="{{ url_for('admin.system_logs') }}" class="nav-item">
-                    <span>System Logs</span>
-                </a>
-                <a href="{{ url_for('admin.user_activity') }}" class="nav-item">
-                    <span>User Activity</span>
-                </a>
-                {% endif %}
+                        <a href="{{ url_for('policy.policy') }}"
+                            class="nav-item {% if request.endpoint == 'policy.policy' %}active{% endif %}">
+                            <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 20h9" />
+                                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                            </svg>
+                            <span>Manage Policy</span>
+                        </a>
+                        {% endif %}
+
+                        <a href="{{ url_for('main.notifications') }}"
+                            class="nav-item {% if request.endpoint == 'main.notifications' %}active{% endif %}">
+                            <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                            <span>Notifications</span>
+
+                            {% if unread_notifications_count > 0 %}
+                            <span
+                                style="background-color: #d32f2f; color: white; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 10px; margin-left: auto;">
+                                {{ unread_notifications_count }}
+                            </span>
+                            {% endif %}
+                        </a>
+
+                        <a href="{{ url_for('profile.userprofile') }}"
+                            class="nav-item {% if request.endpoint == 'profile.userprofile' %}active{% endif %}">
+                            <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span>Personal Info</span>
+                        </a>
+
+                        {% if session.get('user_type') == 'Admin' %}
+                        <a href="{{ url_for('policy.policy') }}"
+                            class="nav-item {% if request.endpoint == 'policy.policy' %}active{% endif %}">
+                            <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 6c0-2 1.5-3 3-3s3 1 3 3-1.5 3-3 3H4v10a2 2 0 0 0 2 2h10" />
+                                <path d="M20 18c0 2-1.5 3-3 3s-3-1-3-3 1.5-3 3-3h3V5a2 2 0 0 0-2-2H9" />
+                                <line x1="9" y1="9" x2="15" y2="9" />
+                                <line x1="9" y1="13" x2="17" y2="13" />
+                            </svg>
+                            <span>Policy</span>
+                        </a>
+                        <a href="{{ url_for('admin.system_logs') }}" class="nav-item">
+                            <span>System Logs</span>
+                        </a>
+                        <a href="{{ url_for('admin.user_activity') }}" class="nav-item">
+                            <span>User Activity</span>
+                        </a>
+                        {% endif %}
             </nav>
         </aside>
 
         <main class="main-content">
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <div class="flash-container">
+            <div class="flash-container">
                 {% for category, message in messages %}
-                    <div class="custom-alert custom-alert-{{ category|lower }}">
+                <div class="custom-alert custom-alert-{{ category|lower }}">
                     {{ message }}
                     <button type="button" class="custom-alert-close" onclick="this.parentElement.remove()">×</button>
-                    </div>
-                {% endfor %}
                 </div>
+                {% endfor %}
+            </div>
             {% endif %}
             {% endwith %}
 
@@ -205,38 +221,39 @@
         const mainContent = document.querySelector('.main-content');
 
         if (menuToggle) {
-            menuToggle.addEventListener('click', function() {
+            menuToggle.addEventListener('click', function () {
                 sidebar.classList.toggle('sidebar-closed');
-                if(mainContent) mainContent.classList.toggle('main-content-expanded');
-                
+                if (mainContent) mainContent.classList.toggle('main-content-expanded');
+
                 const filterLayout = document.querySelector('.filters-layout');
                 if (filterLayout) filterLayout.classList.toggle('sidebar-closed');
             });
         }
 
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             if (window.innerWidth <= 768) {
                 if (!sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
                     sidebar.classList.add('sidebar-closed');
-                    if(mainContent) mainContent.classList.remove('main-content-expanded');
+                    if (mainContent) mainContent.classList.remove('main-content-expanded');
                 }
             }
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
-    document.addEventListener("DOMContentLoaded", () => {
-    setTimeout(() => {
-        document.querySelectorAll(".custom-alert").forEach(el => {
-        el.style.transition = "opacity 0.4s";
-        el.style.opacity = "0";
-        setTimeout(() => el.remove(), 400);
+        document.addEventListener("DOMContentLoaded", () => {
+            setTimeout(() => {
+                document.querySelectorAll(".custom-alert").forEach(el => {
+                    el.style.transition = "opacity 0.4s";
+                    el.style.opacity = "0";
+                    setTimeout(() => el.remove(), 400);
+                });
+            }, 3000);
         });
-    }, 3000);
-    });
     </script>
 
 
 </body>
+
 </html>

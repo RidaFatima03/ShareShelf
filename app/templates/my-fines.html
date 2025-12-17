@@ -21,17 +21,25 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>F001</td>
-                            <td>Overdue Book: "The Silent Patient"</td>
-                            <td>$5.00</td>
-                            <td><form method="get" action="{{ url_for('main.fines') }}">
-                                <input type="hidden" name="pay" value="1">
-                                <button class="pay-btn" type="submit">Pay Now</button>
-                            </td>
-                        </form>
-                        </tr>
-                        </tbody>
+                        {% if outstanding_fines %}
+                            {% for fines in outstanding_fines %}
+                            <tr>
+                                <td>{{ fines.fine_id }}</td>
+                                <td>{{ fines.fine_reason }}</td>
+                                <td>${{ "%.2f" | format(fines.amount) }}</td>
+                                <td><form method="get" action="{{ url_for('main.my_fines') }}">
+                                        <input type="hidden" name="pay" value="{{ fines.fine_id }}">
+                                        <button class="pay-btn" type="submit">Pay Now</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4">No outstanding fines.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
                 </table>
             </div>
         </section>
@@ -50,14 +58,22 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>P001</td>
-                            <td>Overdue Book Fee Payment</td>
-                            <td>$3.00</td>
-                            <td>2025-06-01</td>
-                            <td>Credit Card</td>
-                        </tr>
-                        </tbody>
+                        {% if paid_fines %}
+                            {% for fine in paid_fines %}
+                            <tr>
+                                <td>{{ fine.fine_id }}</td>
+                                <td>{{ fine.fine_reason }}</td>
+                                <td>${{ "%.2f" | format(fine.amount) }}</td>
+                                <td>{{ fine.date_paid }}</td>
+                                <td>{{ fine.payment_method }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5"> No payment history.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
                 </table>
             </div>
         </section>
@@ -74,11 +90,13 @@
     <div class=" payment-modal">
         <div class="payment-modal-content">
 
-            <a href="{{ url_for('main.fines') }}" class="close-btn">&times;</a>
+            <a href="{{ url_for('main.my_fines') }}" class="close-btn">&times;</a>
             
             <h3 class="payment-title">Enter Card Details</h3>
 
             <form method="post" action="{{ url_for('main.pay_fine') }}">
+                <input type="hidden" name="fine_id" value="{{ show_payment }}">
+
                 <label>Name on Card</label>
                 <input 
                     id="cardName"

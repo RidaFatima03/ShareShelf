@@ -122,8 +122,43 @@ def my_checkouts():
 
 @main_bp.route('/my-fines', endpoint='my_fines')
 def my_fines():
+    show_payment = request.args.get('pay')
+    success = request.args.get('success')
+    
     if 'loggedin' not in session: return redirect(url_for('auth.login'))
-    return render_template('my-fines.html')
+
+    cursor = get_cursor()
+    user_id = session['userid']
+    
+    # Outstanding fines
+    cursor.execute("""
+        SELECT f.*
+        FROM Fine f
+        JOIN Checkout c ON f.checkout_id = c.checkout_id
+        WHERE f.status != 'Paid'
+            AND c.reader_id = %s
+    """, (user_id,))
+    outstanding_fines = cursor.fetchall()
+
+    # Payment history
+    cursor.execute("""
+        SELECT f.*
+        FROM Fine f
+        JOIN Checkout c ON f.checkout_id = c.checkout_id
+        WHERE f.status = 'Paid'
+            AND c.reader_id = %s
+    """, (user_id,))
+    paid_fines = cursor.fetchall()
+
+    cursor.close()
+    
+    return render_template(
+        'my-fines.html',
+        show_payment=show_payment,
+        success=success,
+        outstanding_fines=outstanding_fines,
+        paid_fines=paid_fines
+    )
 
 @main_bp.route('/my-requests', endpoint='my_requests')
 def my_requests():
@@ -1100,18 +1135,22 @@ def cancel_hold(request_id):
 
     return redirect(url_for('main.my_holds'))
 
-@main_bp.route('/fines')
-def fines():
-    show_payment = request.args.get('pay')
-    success = request.args.get('success')
-    return render_template(
-        'my-fines.html',
-        show_payment=show_payment,
-        success=success
-    )
-
-
 @main_bp.route('/pay-fine', methods=['POST'])
 def pay_fine():
-    # MOCK PAYMENT — no DB yet
-    return redirect(url_for('main.fines', success=1))
+    fine_id = request.form.get('fine_id')
+    if not fine_id:
+        flash("No fine selected for payment.", "error")
+        return redirect(url_for('main.my_fines'))
+    
+    cursor = get_cursor()
+
+    query = """
+    UPDATE Fine
+    SET status = 'Paid', payment_method = 'Card', date_paid = NOW()
+    WHERE fine_id = %s
+    """
+    cursor.execute(query, (fine_id,))
+    mysql.connection.commit()
+    cursor.close()
+
+    return redirect(url_for('main.my_fines', success=1))

@@ -157,7 +157,7 @@
     <form method="POST" action="{{ url_for('librarian.edit_genre') }}">
       <div class="filter-input-group">
         <input type="hidden" id="edit_genre_id" name="genre_id">
-        <label for="edit_genre_name" class="filter-label ">Genre Name</label>
+        <label for="edit_genre_name" class="filter-label ">Genre Name:</label>
         <input type="text"
                id="edit_genre_name"
                name="genre_name"
@@ -197,7 +197,7 @@
 
   // EDIT GENRE MODAL
   const editModal = document.getElementById('editGenreModal');
-  const editButtons = document.querySelectorAll('.edit-genre-btn');
+  const editButtons = document.querySelectorAll('.btn-edit');
   const editCloseElems = document.querySelectorAll('.close-edit-genre-modal');
   const editNameInput = document.getElementById('edit_genre_name');
   const editIdInput = document.getElementById('edit_genre_id');

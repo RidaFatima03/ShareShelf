@@ -1,0 +1,553 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+<div>
+    
+    <div class="manage-header">
+        <h1 class="page-title">Books</h1>
+
+        <button type="button" id="openAddBookModal" class="logout-link btn-new">
+            Add New Book
+        </button>
+    </div>
+
+    <form method="get" action="{{ url_for('librarian.books') }}" class="table-filter-form">
+      <table class="activity-table">
+        <thead>
+          <tr>
+            <th>
+              ID<br>
+              <input type="text"
+                    name="search_id"
+                    class="filter-input filter-input-manage"
+                    placeholder="Search ID..."
+                    value="{{ search_id }}">
+            </th>
+
+            <th>
+              Title<br>
+              <input type="text"
+                    name="search_title"
+                    class="filter-input filter-input-manage"
+                    placeholder="Search title..."
+                    value="{{ search_title }}">
+            </th>
+
+            <th>
+              ISBN<br>
+              <input type="text"
+                    name="search_isbn"
+                    class="filter-input filter-input-manage"
+                    placeholder="Search ISBN..."
+                    value="{{ search_isbn }}">
+            </th>
+
+            <th>
+              Publisher<br>
+              <input type="text"
+                    name="search_publisher"
+                    class="filter-input filter-input-manage"
+                    placeholder="Search publisher..."
+                    value="{{ search_publisher }}">
+            </th>
+
+            <th>
+              Publication date<br>
+              <input type="date"
+                    name="search_publication_date"
+                    class="filter-input filter-input-manage"
+                    value="{{ search_publication_date }}">
+            </th>
+
+            <th>
+              Language<br>
+              <input type="text"
+                    name="search_language"
+                    class="filter-input filter-input-manage"
+                    placeholder="Search language..."
+                    value="{{ search_language }}">
+            </th>
+
+            <th>
+              Physical description<br>
+              <input type="text"
+                    name="search_physical_description"
+                    class="filter-input filter-input-manage"
+                    placeholder="Search physical description..."
+                    value="{{ search_physical_description }}">
+            </th>
+
+            <th>
+              Summary<br>
+              <input type="text"
+                    name="search_summary"
+                    class="filter-input filter-input-manage"
+                    placeholder="Search summary..."
+                    value="{{ search_summary }}">
+            </th>
+
+            <th>
+              Page #<br>
+              <input type="number"
+                    name="search_page_number"
+                    class="filter-input filter-input-manage"
+                    placeholder="Pages..."
+                    value="{{ search_page_number }}">
+            </th>
+
+            <th>
+              Genre<br>
+              <select name="search_genre" class="filter-input filter-input-manage">
+                <option value="">All</option>
+                {% for g in all_genres %}
+                  <option value="{{ g.genre_id }}"
+                    {% if search_genre == g.genre_id|string %}selected{% endif %}>
+                    {{ g.genre_name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </th>
+
+            <th>
+              Author<br>
+              <select name="search_author" class="filter-input filter-input-manage">
+                <option value="">All</option>
+                {% for a in all_authors %}
+                  <option value="{{ a.author_id }}"
+                    {% if search_author == a.author_id|string %}selected{% endif %}>
+                    {{ a.author_name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </th>
+
+            <th class="text-center">
+              <button type="submit" class="logout-link btn-apply mt-3">
+                Apply
+              </button>
+            </th>
+          </tr>
+        </thead>
+      </table>
+    </form>
+
+    <table class="activity-table">
+      <tbody>
+        {% if books %}
+          {% for b in books %}
+            <tr>
+              <td>{{ b.book_id }}</td>
+              <td>{{ b.title }}</td>
+              <td>{{ b.isbn }}</td>
+              <td>{{ b.publisher }}</td>
+              <td>{{ b.publication_date }}</td>
+              <td>{{ b.language }}</td>
+              <td>{{ b.physical_description }}</td>
+              <td>{{ b.summary }}</td>
+              <td>{{ b.page_number }}</td>
+              <td>{{ b.genres }}</td>
+              <td>{{ b.authors }}</td>
+              <td>
+                <div class="manage-btns">
+                  <button type="button"
+                          class="btn-edit"
+                          data-book-id="{{ b.book_id }}"
+                          data-title="{{ b.title }}"
+                          data-isbn="{{ b.isbn }}"
+                          data-publisher="{{ b.publisher }}"
+                          data-publication-date="{{ b.publication_date }}"
+                          data-language="{{ b.language }}"
+                          data-physical-description="{{ b.physical_description }}"
+                          data-summary="{{ b.summary }}"
+                          data-page-number="{{ b.page_number }}"
+                          data-genres="{{ b.genres|e }}"
+                          data-authors="{{ b.authors|e }}">
+                    <i class="bi bi-pencil-fill"></i>
+                  </button>
+
+                  <form method="POST"
+                        action="{{ url_for('librarian.delete_book', book_id=b.book_id) }}"
+                        onsubmit="return confirm('Delete this book?');"
+                        class="d-inline">
+                    <button type="submit" class="rounded-circle p-1 btn-delete">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="12" class="text-center text-muted py-3">
+              No books found.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    <!-- Navigation -->
+    <nav class="pagination-container mt-4">
+        <ul class="pagination">
+            <!-- Previous -->
+            <li class="page-item {% if not has_prev %}disabled{% endif %}">
+            <a class="page-link"
+                href="{% if has_prev %}{{ url_for('librarian.books', page=page-1,
+                                                    search_id=search_id,
+                                                    search_isbn=search_isbn,
+                                                    search_title=search_title,
+                                                    search_publisher=search_publisher,
+                                                    search_publication_date=search_publication_date,
+                                                    search_language=search_language,
+                                                    search_physical_description=search_physical_description,
+                                                    search_summary=search_summary,
+                                                    search_page_number=search_page_number,
+                                                    search_genre=search_genre,
+                                                    search_author=search_author) }}{% else %}#{% endif %}">
+                Previous
+                </a>
+            </li>
+
+            <!-- Page numbers -->
+            {% for p in range(1, total_pages + 1) %}
+            <li class="page-item {% if p == page %}active{% endif %}">
+                <a class="page-link"
+                href="{{ url_for('librarian.books', page=p,
+                                    search_id=search_id,
+                                    search_isbn=search_isbn,
+                                    search_title=search_title,
+                                    search_publisher=search_publisher,
+                                    search_publication_date=search_publication_date,
+                                    search_language=search_language,
+                                    search_physical_description=search_physical_description,
+                                    search_summary=search_summary,
+                                    search_page_number=search_page_number,
+                                    search_genre=search_genre,
+                                    search_author=search_author) }}">
+                {{ p }}
+                </a>
+            </li>
+            {% endfor %}
+
+            <!-- Next -->
+            <li class="page-item {% if not has_next %}disabled{% endif %}">
+                <a class="page-link"
+                href="{% if has_next %}{{ url_for('librarian.books', page=page+1,
+                                                    search_id=search_id,
+                                                    search_isbn=search_isbn,
+                                                    search_title=search_title,
+                                                    search_publisher=search_publisher,
+                                                    search_publication_date=search_publication_date,
+                                                    search_language=search_language,
+                                                    search_physical_description=search_physical_description,
+                                                    search_summary=search_summary,
+                                                    search_page_number=search_page_number,
+                                                    search_genre=search_genre,
+                                                    search_author=search_author) }}{% else %}#{% endif %}">
+                Next
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<!-- Add Book Modal -->
+<div id="addBookModal" class="custom-modal">
+  <div class="custom-modal-backdrop close-add-book-modal"></div>
+
+  <div class="custom-modal-dialog scrollable-modal">
+    <div class="custom-modal-header">
+      <h5 class="filters-column-title pop-up-header">Add New Book</h5>
+      <button type="button" class="custom-modal-close close-add-book-modal">&times;</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('librarian.books') }}">
+      <div class="filter-input-group">
+        <label for="title" class="filter-label">Title:</label>
+        <input type="text" id="title" name="title" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="isbn" class="filter-label">ISBN:</label>
+        <input type="text" id="isbn" name="isbn" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="publisher" class="filter-label">Publisher:</label>
+        <input type="text" id="publisher" name="publisher" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="publication_date" class="filter-label">Publication date:</label>
+        <input type="date" id="publication_date" name="publication_date" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="language" class="filter-label">Language:</label>
+        <input type="text" id="language" name="language" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="physical_description" class="filter-label">Physical description:</label>
+        <input type="text" id="physical_description" name="physical_description" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="summary" class="filter-label">Summary:</label>
+        <textarea id="summary"
+            name="summary"
+            class="form-control filter-input summary-textarea"
+            rows="5"
+            required></textarea>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="page_number" class="filter-label">Page number:</label>
+        <input type="number" id="page_number" name="page_number" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="genre_ids" class="filter-label">Genres:</label>
+
+        <select id="genre_ids"
+                name="genre_ids"
+                class="form-control filter-input"
+                multiple
+                size="6" required>
+          {% for g in all_genres %}
+            <option value="{{ g.genre_id }}">{{ g.genre_name }}</option>
+          {% endfor %}
+        </select>
+
+        <small class="text-muted">Hold Ctrl (Windows) / Cmd (Mac) to select multiple.</small>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="author_ids" class="filter-label">Authors:</label>
+
+        <select id="author_ids"
+                name="author_ids"
+                class="form-control filter-input"
+                multiple
+                size="6" required>
+          {% for a in all_authors %}
+            <option value="{{ a.author_id }}">{{ a.author_name }}</option>
+          {% endfor %}
+        </select>
+
+        <small class="text-muted">Hold Ctrl (Windows) / Cmd (Mac) to select multiple.</small>
+      </div>
+
+
+      <div class="custom-modal-footer">
+        <button type="button" class="logout-link btn-cancel close-add-book-modal">Cancel</button>
+        <button type="submit" class="logout-link btn-save">Create Book</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Book Modal -->
+<div id="editBookModal" class="custom-modal">
+  <div class="custom-modal-backdrop close-edit-book-modal"></div>
+
+  <div class="custom-modal-dialog scrollable-modal">
+    <div class="custom-modal-header">
+      <h5 class="filters-column-title pop-up-header">Edit Book</h5>
+      <button type="button" class="custom-modal-close close-edit-book-modal">&times;</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('librarian.edit_book') }}">
+      <input type="hidden" id="edit_book_id" name="book_id">
+
+      <div class="filter-input-group">
+        <label for="edit_title" class="filter-label">Title:</label>
+        <input type="text" id="edit_title" name="title" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="edit_isbn" class="filter-label">ISBN:</label>
+        <input type="text" id="edit_isbn" name="isbn" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="edit_publisher" class="filter-label">Publisher:</label>
+        <input type="text" id="edit_publisher" name="publisher" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="edit_publication_date" class="filter-label">Publication date:</label>
+        <input type="date" id="edit_publication_date" name="publication_date" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="edit_language" class="filter-label">Language:</label>
+        <input type="text" id="edit_language" name="language" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="edit_physical_description" class="filter-label">Physical description:</label>
+        <input type="text" id="edit_physical_description" name="physical_description" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="edit_summary" class="filter-label">Summary:</label>
+        <textarea id="edit_summary"
+          name="summary"
+          class="form-control filter-input summary-textarea"
+          rows="5"
+          required></textarea>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="edit_page_number" class="filter-label">Page number:</label>
+        <input type="number" id="edit_page_number" name="page_number" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="edit_genre_ids" class="filter-label">Genres:</label>
+
+        <select id="edit_genre_ids"
+                name="genre_ids"
+                class="form-control filter-input"
+                multiple
+                size="6"
+                required>
+          {% for g in all_genres %}
+            <option value="{{ g.genre_id }}">{{ g.genre_name }}</option>
+          {% endfor %}
+        </select>
+
+        <small class="text-muted">Hold Ctrl (Windows) / Cmd (Mac) to select multiple.</small>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="edit_author_ids" class="filter-label">Authors:</label>
+
+        <select id="edit_author_ids"
+                name="author_ids"
+                class="form-control filter-input"
+                multiple
+                size="6"
+                required>
+          {% for a in all_authors %}
+            <option value="{{ a.author_id }}">{{ a.author_name }}</option>
+          {% endfor %}
+        </select>
+
+        <small class="text-muted">Hold Ctrl (Windows) / Cmd (Mac) to select multiple.</small>
+      </div>
+
+      <div class="custom-modal-footer">
+        <button type="button" class="logout-link btn-cancel close-edit-book-modal">Cancel</button>
+        <button type="submit" class="logout-link btn-save">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+  // ADD BOOK MODAL
+  const openAddBtn = document.getElementById('openAddBookModal');
+  const addModal = document.getElementById('addBookModal');
+  const addCloseElems = document.querySelectorAll('.close-add-book-modal');
+
+  if (openAddBtn && addModal) {
+    openAddBtn.addEventListener('click', () => {
+      addModal.classList.add('show');
+      const input = addModal.querySelector('#title');
+      if (input) setTimeout(() => input.focus(), 100);
+    });
+
+    addCloseElems.forEach(el => {
+      el.addEventListener('click', () => {
+        addModal.classList.remove('show');
+      });
+    });
+  }
+
+  // EDIT BOOK MODAL
+  const editModal = document.getElementById('editBookModal');
+  const editButtons = document.querySelectorAll('.btn-edit');
+  const editCloseElems = document.querySelectorAll('.close-edit-book-modal');
+
+  const editIdInput = document.getElementById('edit_book_id');
+  const editTitleInput = document.getElementById('edit_title');
+  const editIsbnInput = document.getElementById('edit_isbn');
+  const editPublisherInput = document.getElementById('edit_publisher');
+  const editPubDateInput = document.getElementById('edit_publication_date');
+  const editLanguageInput = document.getElementById('edit_language');
+  const editPhysInput = document.getElementById('edit_physical_description');
+  const editSummaryInput = document.getElementById('edit_summary');
+  const editPageInput = document.getElementById('edit_page_number');
+  const editGenreSelect = document.getElementById('edit_genre_ids');
+  const editAuthorSelect = document.getElementById('edit_author_ids');
+
+  function setMultiSelectValues(selectEl, values) {
+    if (!selectEl) return;
+    const set = new Set(values.map(v => String(v).trim()));
+    Array.from(selectEl.options).forEach(opt => {
+      opt.selected = set.has(String(opt.value));
+    });
+  }
+
+ if (editModal && editButtons.length > 0) {
+  editButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      // fill basic fields
+      if (editIdInput) editIdInput.value = btn.dataset.bookId || '';
+      if (editTitleInput) editTitleInput.value = btn.dataset.title || '';
+      if (editIsbnInput) editIsbnInput.value = btn.dataset.isbn || '';
+      if (editPublisherInput) editPublisherInput.value = btn.dataset.publisher || '';
+      if (editLanguageInput) editLanguageInput.value = btn.dataset.language || '';
+      if (editPhysInput) editPhysInput.value = btn.dataset.physicalDescription || '';
+      if (editSummaryInput) editSummaryInput.value = btn.dataset.summary || '';
+      if (editPageInput) editPageInput.value = btn.dataset.pageNumber || '';
+
+      // publication date: make sure it's YYYY-MM-DD
+      // your data-publication-date might include time; keep only date part
+      if (editPubDateInput) {
+        const raw = btn.dataset.publicationDate || '';
+        editPubDateInput.value = raw ? raw.substring(0, 10) : '';
+      }
+
+      // genres: b.genres is a string like "Fantasy, Romance"
+      // We'll select options by matching genre_name text.
+      // (More robust approach is sending genre_ids; see note below.)
+      if (editGenreSelect) {
+        const genresStr = btn.dataset.genres || '';
+        const selectedNames = genresStr.split(',').map(s => s.trim()).filter(Boolean);
+
+        Array.from(editGenreSelect.options).forEach(opt => {
+          opt.selected = selectedNames.includes(opt.text.trim());
+        });
+      }
+
+      if (editAuthorSelect) {
+        const authorsStr = btn.dataset.authors || '';
+        const selectedNames = authorsStr.split(',').map(s => s.trim()).filter(Boolean);
+
+        Array.from(editAuthorSelect.options).forEach(opt => {
+          opt.selected = selectedNames.includes(opt.text.trim());
+        });
+      }
+      
+
+      editModal.classList.add('show');
+      if (editTitleInput) setTimeout(() => editTitleInput.focus(), 100);
+    });
+  });
+
+    editCloseElems.forEach(el => {
+      el.addEventListener('click', () => {
+        editModal.classList.remove('show');
+      });
+    });
+  }
+});
+
+</script>
+
+{% endblock %}

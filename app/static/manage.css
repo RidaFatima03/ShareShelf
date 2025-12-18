@@ -234,3 +234,32 @@
 .filter-input-manage {
     margin-top: 10px;
 }
+
+/* Make modal scrollable */
+.scrollable-modal {
+    max-height: 80vh;     /* modal will not exceed 80% of viewport height */
+    overflow-y: auto;     /* enable vertical scrolling */
+    overflow-x: hidden;   /* prevent horizontal scroll */
+    padding-right: 6px;   /* prevent scrollbar from overlapping content */
+}
+
+/* Optional: smooth scrollbar styling (nice touch) */
+.scrollable-modal::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scrollable-modal::-webkit-scrollbar-thumb {
+    background-color: #c5a27a; /* brown-ish scrollbar */
+    border-radius: 4px;
+}
+
+.scrollable-modal::-webkit-scrollbar-thumb:hover {
+    background-color: #a7845d;
+}
+
+.summary-textarea {
+    resize: vertical;          /* allow vertical resize only */
+    line-height: 1.4;
+    white-space: pre-wrap;     /* preserve line breaks */
+    min-height: 120px;
+}

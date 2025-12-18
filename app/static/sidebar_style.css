@@ -655,6 +655,15 @@ body {
     padding-top: 0;
 }
 
+/* Prevent sidebar animation on initial load */
+.preload .sidebar,
+.preload .main-content,
+.preload .filters-column,
+.preload .filters-results.main-content {
+  transition: none !important;
+}
+
+
 .nav-item {
     display: flex;
     align-items: center;

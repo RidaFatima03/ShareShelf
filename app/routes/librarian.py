@@ -583,4 +583,106 @@ def user_management():
     if check:
         return check
     
-    return render_template("user_management.html")
+    cursor = get_cursor()
+
+    # ---------- LIST + SEARCH (GET) ----------
+    page = request.args.get("page", 1, type=int)
+    per_page = 10
+
+    # make sure they are strings, not None
+    search_id = (request.args.get("search_id") or "").strip()
+    search_full_name = (request.args.get("search_full_name") or "").strip()
+    search_email = (request.args.get("search_email") or "").strip()
+    search_status = request.args.get("search_status")
+    search_user_type = request.args.get("search_user_type")
+    where = []
+    params = []
+
+    if search_id:
+        where.append("CAST(u.user_id AS CHAR) LIKE %s")
+        params.append(f"%{search_id}%")
+
+    if search_full_name:
+        where.append("CONCAT(u.user_first_name, ' ', IFNULL(u.user_middle_name, ''), ' ', u.user_last_name) LIKE %s")
+        params.append(f"%{search_full_name}%")
+
+    if search_email:
+        where.append("CAST(u.user_email AS CHAR) LIKE %s")
+        params.append(f"%{search_email}%")
+
+    if search_status:
+        where.append("u.status = %s")
+        params.append(search_status)
+
+    if search_user_type:
+        where.append("u.user_type = %s")
+        params.append(search_user_type)
+
+    where_sql = " WHERE " + " AND ".join(where) if where else ""
+    # total count (for pagination)
+    count_sql = f"""
+    SELECT COUNT(DISTINCT u.user_id) AS total
+    FROM User u
+    {where_sql}
+    """
+
+    cursor.execute(count_sql, params)
+    row = cursor.fetchone()
+    total = row["total"] if row else 0
+
+    total_pages = max(1, (total + per_page - 1) // per_page) if total else 1
+    if page < 1:
+        page = 1
+    elif page > total_pages:
+        page = total_pages
+
+    offset = (page - 1) * per_page
+    
+    # data query
+    data_sql = f"""
+        SELECT 
+            u.user_id,
+            CONCAT(u.user_first_name, ' ', IFNULL(u.user_middle_name, ''), ' ', u.user_last_name) AS user_full_name,
+            u.user_email,
+            u.status,
+            u.user_type
+        FROM User u
+        {where_sql}
+        ORDER BY u.user_id
+        LIMIT %s OFFSET %s
+    """
+
+    data_params = params + [per_page, offset]
+
+    cursor.execute(data_sql, data_params)
+    users = cursor.fetchall()
+
+    has_prev = page > 1
+    has_next = page < total_pages
+
+    return render_template(
+            "user_management.html",
+            users=users,
+            page=page,
+            total_pages=total_pages,
+            has_prev=has_prev,
+            has_next=has_next,
+            search_id=search_id,
+            search_full_name=search_full_name,
+            search_email=search_email,
+            search_status=search_status,
+            search_user_type=search_user_type
+        )
+
+@librarian_bp.route("/user_managment/delete/<int:user_id>", methods=["POST"], endpoint="delete_user")
+def delete_user(user_id):
+    check = librarian_required()
+    if check:
+        return check
+
+    cursor = get_cursor()
+    cursor.execute("DELETE FROM User WHERE user_id = %s", (user_id,))
+    mysql.connection.commit()
+    flash("User deleted successfully.", "success")
+
+    return redirect(url_for("librarian.user_management"))

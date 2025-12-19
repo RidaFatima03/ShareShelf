@@ -1,6 +1,138 @@
 {% extends "sidebar.html" %}
 
 {% block content %}
+<div>
+    
+    <div class="manage-header">
+        <h1 class="page-title">User Management System</h1>
+
+        <button type="button" id="openAddUserModal" class="logout-link btn-new">
+            Add New User
+        </button>
+    </div>
+
+    <div class="table-wrapper">
+        <form method="get" action="{{ url_for('librarian.user_management') }}">
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th>
+                            ID<br>
+                            <input type="text"
+                                    name="search_id"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Search ID..."
+                                    value="{{ search_id }}">
+                        </th>
+                        <th>
+                            User Name<br>
+                            <input type="text"
+                                    name="search_full_name"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Search full name..."
+                                    value="{{ search_full_name }}">
+                        </th>
+                        <th>
+                            User Email<br>
+                            <input type="text"
+                                    name="search_email"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Search email..."
+                                    value="{{ search_email }}">
+                        </th>
+                        <th>
+                            Status<br>
+                            <select name="search_status"
+                                    class="filter-input filter-input-manage">
+                                <option value="">All</option>
+                                <option value="Active"   {% if search_status == 'Active' %}selected{% endif %}>Active</option>
+                                <option value="Inactive" {% if search_status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                                <option value="Blocked"  {% if search_status == 'Blocked' %}selected{% endif %}>Blocked</option>
+                            </select>
+                        </th>
+                        <th>
+                            User Type<br>
+                            <select name="search_user_type"
+                                    class="filter-input filter-input-manage">
+                                <option value="">All</option>
+                                <option value="Librarian"   {% if search_user_type == 'Librarian' %}selected{% endif %}>Librarian</option>
+                                <option value="Reader" {% if search_user_type == 'Reader' %}selected{% endif %}>Reader</option>
+                                <option value="Admin"  {% if search_user_type == 'Admin' %}selected{% endif %}>Admin</option>
+                            </select>
+                        </th>
+                        <th>
+                            <button type="submit" class="logout-link btn-apply">Apply</button>
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td>{{ u.user_id }}</td>
+                        <td>{{ u.user_full_name }}</td>
+                        <td>{{ u.user_email }}</td>
+                        <td>{{ u.status }}</td>
+                        <td>{{ u.user_type }}</td>
+                        <td>
+                            <div class="manage-btns">
+                                <button type="button"
+                                class="btn-edit"
+                                data-user-id="{{ u.user_id }}"
+                                data-user-full-name="{{ u.user_full_name }}">
+                                <i class="bi bi-pencil-fill"></i>
+                                </button>
+
+                                <form method="POST"
+                                    action="{{ url_for('librarian.delete_user', user_id=u.user_id) }}"
+                                    onsubmit="return confirm('Delete this user?');"
+                                    class="d-inline">
+
+                                    <button type="submit" class="rounded-circle p-1 btn-delete">
+                                        <i class="bi bi-trash trash-can"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </form>
+    </div>
 
 
+    <nav class="pagination-container mt-4">
+        <ul class="pagination">
+            <!-- Previous -->
+            <li class="page-item {% if not has_prev %}disabled{% endif %}">
+            <a class="page-link"
+                href="{% if has_prev %}{{ url_for('librarian.authors', page=page-1,
+                                                    search_id=search_id, search_name=search_name) }}{% else %}#{% endif %}">
+                Previous
+                </a>
+            </li>
+
+            <!-- Page numbers -->
+            {% for p in range(1, total_pages + 1) %}
+            <li class="page-item {% if p == page %}active{% endif %}">
+                <a class="page-link"
+                href="{{ url_for('librarian.authors', page=p,
+                                    search_id=search_id, search_name=search_name) }}">
+                {{ p }}
+                </a>
+            </li>
+            {% endfor %}
+
+            <!-- Next -->
+            <li class="page-item {% if not has_next %}disabled{% endif %}">
+                <a class="page-link"
+                href="{% if has_next %}{{ url_for('librarian.authors', page=page+1,
+                                                    search_id=search_id, search_name=search_name) }}{% else %}#{% endif %}">
+                Next
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
 {% endblock %}

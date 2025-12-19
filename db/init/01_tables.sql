@@ -6,7 +6,7 @@ user_last_name VARCHAR(50) NOT NULL,
 user_phone_number VARCHAR(15) UNIQUE,
 user_email VARCHAR(100) UNIQUE,
 user_password VARCHAR(255) NOT NULL, 
-status VARCHAR(20),
+status ENUM('Active', 'Inactive', 'Blocked') NOT NULL,
 joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 user_type ENUM('Reader', 'Librarian', 'Admin') NOT NULL,
 PRIMARY KEY (user_id) 

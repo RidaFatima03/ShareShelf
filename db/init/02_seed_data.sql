@@ -3,17 +3,17 @@ INSERT INTO User (
     user_phone_number, user_email, user_password,
     status, joined_at, user_type
 ) VALUES
-('John', 'A.', 'Doe', '5551112222', 'john.doe@example.com', SHA2('password1', 256), 'ACTIVE', '2023-10-01 09:15:00', 'Reader'),
-('Jane', 'B.', 'Smith', '5553334444', 'jane.smith@example.com', SHA2('password2', 256), 'ACTIVE', '2023-09-20 10:30:00', 'Reader'),
-('Michael', 'C.', 'Brown', '5555556666', 'michael.brown@example.com', SHA2('password3', 256), 'ACTIVE', '2023-08-12 14:00:00', 'Reader'),
-('Sarah', 'D.', 'Miller', '5557778888', 'sarah.miller@example.com', SHA2('password4', 256), 'INACTIVE', '2023-07-01 11:45:00', 'Reader'),
+('John', 'A.', 'Doe', '5551112222', 'john.doe@example.com', SHA2('password1', 256), 'Active', '2023-10-01 09:15:00', 'Reader'),
+('Jane', 'B.', 'Smith', '5553334444', 'jane.smith@example.com', SHA2('password2', 256), 'Active', '2023-09-20 10:30:00', 'Reader'),
+('Michael', 'C.', 'Brown', '5555556666', 'michael.brown@example.com', SHA2('password3', 256), 'Active', '2023-08-12 14:00:00', 'Reader'),
+('Sarah', 'D.', 'Miller', '5557778888', 'sarah.miller@example.com', SHA2('password4', 256), 'Inactive', '2023-07-01 11:45:00', 'Reader'),
 
-('Emily', 'E.', 'Johnson', '5559990000', 'emily.johnson@example.com', SHA2('password5', 256), 'ACTIVE', '2023-06-10 13:30:00', 'Librarian'),
-('Robert', 'F.', 'Wilson', '5551212121', 'robert.wilson@example.com', SHA2('password6', 256), 'ACTIVE', '2023-06-15 09:00:00', 'Librarian'),
+('Emily', 'E.', 'Johnson', '5559990000', 'emily.johnson@example.com', SHA2('password5', 256), 'Active', '2023-06-10 13:30:00', 'Librarian'),
+('Robert', 'F.', 'Wilson', '5551212121', 'robert.wilson@example.com', SHA2('password6', 256), 'Active', '2023-06-15 09:00:00', 'Librarian'),
 
-('Alice', 'G.', 'Taylor', '5553434343', 'alice.taylor@example.com', SHA2('password7', 256), 'ACTIVE', '2023-05-10 15:00:00', 'Admin'),
-('Melisa', '', 'Tanrikulu', '5369498281', 'melisatanrikulu07@gmail.com', SHA2('passwordMelisa99', 256), 'ACTIVE', '2023-05-15 12:30:00', 'Admin'),
-('David', 'H.', 'Anderson', '5555656565', 'david.anderson@example.com', SHA2('password8', 256), 'ACTIVE', '2023-05-15 12:30:00', 'Admin');
+('Alice', 'G.', 'Taylor', '5553434343', 'alice.taylor@example.com', SHA2('password7', 256), 'Active', '2023-05-10 15:00:00', 'Admin'),
+('Melisa', '', 'Tanrikulu', '5369498281', 'melisatanrikulu07@gmail.com', SHA2('passwordMelisa99', 256), 'Active', '2023-05-15 12:30:00', 'Admin'),
+('David', 'H.', 'Anderson', '5555656565', 'david.anderson@example.com', SHA2('password8', 256), 'Active', '2023-05-15 12:30:00', 'Admin');
 
 INSERT INTO Reader (reader_id, is_approved)
 VALUES

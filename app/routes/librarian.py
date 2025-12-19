@@ -574,3 +574,13 @@ def build_like_filters(spec, args, table_alias=""):
         params.append(f"%{val}%")
     where_sql = (" WHERE " + " AND ".join(where)) if where else ""
     return where_sql, params, values
+
+
+###---------------------------- USER MANAGEMENT SYSTEM ----------------------------###
+@librarian_bp.route("/user_management", methods=["GET", "POST"], endpoint="user_management")
+def user_management():
+    check = librarian_required()
+    if check:
+        return check
+    
+    return render_template("user_management.html")

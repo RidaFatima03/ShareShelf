@@ -147,9 +147,82 @@
     </nav>
 </div>
 
+<!-- Add User Modal -->
+<div id="addUserModal" class="custom-modal">
+    <div class="custom-modal-backdrop close-add-user-modal"></div>
+
+    <div class="custom-modal-dialog scrollable-modal">
+        <div class="custom-modal-header">
+            <h5 class="filters-column-title pop-up-header">Add New User</h5>
+            <button type="button" class="custom-modal-close close-add-user-modal">&times;</button>
+        </div>
+
+        <form method="POST" action="{{ url_for('librarian.user_management') }}" id="addUserForm">
+            <div class="filter-input-group">
+                <label for="add_first_name" class="filter-label">First name:</label>
+                <input type="text" id="add_first_name" name="add_first_name" class="form-control filter-input" required>
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_middle_name" class="filter-label">Middle name:</label>
+                <input type="text" id="add_middle_name" name="add_middle_name" class="form-control filter-input">
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_last_name" class="filter-label">Last name:</label>
+                <input type="text" id="add_last_name" name="add_last_name" class="form-control filter-input" required>
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_phone_number" class="filter-label">Phone number:</label>
+                <input type="tel" id="add_phone_number" name="add_phone_number" class="form-control filter-input" placeholder="e.g. 09171234567">
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_email" class="filter-label">Email:</label>
+                <input type="email" id="add_email" name="add_email" class="form-control filter-input" required>
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_password" class="filter-label">Password:</label>
+                <input type="password" id="add_password" name="add_password" class="form-control filter-input" minlength="8" required>
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_confirm_password" class="filter-label">Confirm Password:</label>
+                <input type="password" id="add_confirm_password" name="add_confirm_password" class="form-control filter-input" minlength="8" required>
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_status" class="filter-label">Status:</label>
+                <select id="add_status" name="add_status" class="form-control filter-input" required>
+                    <option value="Active" selected>Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Blocked">Blocked</option>
+                </select>
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_user_type" class="filter-label">User Type:</label>
+                <select id="add_user_type" name="add_user_type" class="form-control filter-input" required>
+                    <option value="Reader" selected>Reader</option>
+                    <option value="Librarian">Librarian</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+
+            <div class="custom-modal-footer">
+                <button type="button" class="logout-link btn-cancel close-add-user-modal">Cancel</button>
+                <button type="submit" class="logout-link btn-save">Create User</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
 <!-- Edit User Modal -->
 <div id="editUserModal" class="custom-modal">
-  <div class="custom-modal-backdrop close-edit-user-modal"></div>
+    <div class="custom-modal-backdrop close-edit-user-modal"></div>
 
   <div class="custom-modal-dialog scrollable-modal">
     <div class="custom-modal-header">
@@ -218,25 +291,41 @@
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-  // ADD GENRE MODAL
-  const openAddBtn = document.getElementById('openAddUserModal');
-  const addModal = document.getElementById('addUserModal');
-  const addCloseElems = document.querySelectorAll('.close-add-user-modal');
+document.addEventListener('DOMContentLoaded', function () {
+    // ADD USER MODAL
+    const openAddBtn = document.getElementById('openAddUserModal');
+    const addModal = document.getElementById('addUserModal');
+    const addCloseElems = document.querySelectorAll('.close-add-user-modal');
 
-  if (openAddBtn && addModal) {
-    openAddBtn.addEventListener('click', () => {
-      addModal.classList.add('show');
-      const input = addModal.querySelector('#genre_name');
-      if (input) setTimeout(() => input.focus(), 100);
-    });
+    const addForm = document.getElementById('addUserForm');
+    const addFirstName = document.getElementById('add_first_name');
+    const addPassword = document.getElementById('add_password');
+    const addConfirmPassword = document.getElementById('add_confirm_password');
 
-    addCloseElems.forEach(el => {
-      el.addEventListener('click', () => {
-        addModal.classList.remove('show');
-      });
-    });
-  }
+    if (openAddBtn && addModal) {
+        openAddBtn.addEventListener('click', () => {
+            addModal.classList.add('show');
+            
+            if (addForm) addForm.reset();
+            if (addFirstName) setTimeout(() => addFirstName.focus(), 100);
+        });
+
+        addCloseElems.forEach(el => {
+            el.addEventListener('click', () => {
+                addModal.classList.remove('show');
+            });
+        });
+    }
+
+    if (addForm) {
+        addForm.addEventListener('submit', (e) => {
+            if (addPassword && addConfirmPassword && addPassword.value !== addConfirmPassword.value) {
+                e.preventDefault();
+                alert("Passwords do not match.");
+                addConfirmPassword.focus();
+            }
+        });
+    }
 
   // EDIT USER MODAL
   const editModal = document.getElementById('editUserModal');

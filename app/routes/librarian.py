@@ -604,6 +604,9 @@ def user_management():
         if not add_last_name:
             flash("Last name is required.", "danger")
             return redirect(url_for("librarian.user_management"))
+        if not add_phone_number:
+            flash("Phone number is required.", "danger")
+            return redirect(url_for("librarian.user_management"))
         if not add_email:
             flash("Email is required.", "danger")
             return redirect(url_for("librarian.user_management"))
@@ -770,6 +773,7 @@ def edit_user():
     middle_name = (request.form.get("middle_name") or "").strip()
     last_name = (request.form.get("last_name") or "").strip()
     phone_number = (request.form.get("phone_number") or "").strip()
+    email = (request.form.get("email") or "").strip()
     status = (request.form.get("status") or "").strip()
     user_type = (request.form.get("user_type") or "").strip()
 
@@ -784,6 +788,12 @@ def edit_user():
         return redirect(url_for("librarian.user_management"))
     if not last_name:
         flash("Last name is required.", "danger")
+        return redirect(url_for("librarian.user_management"))
+    if not phone_number:
+        flash("Phone number is required.", "danger")
+        return redirect(url_for("librarian.user_management"))
+    if not email:
+        flash("Email is required.", "danger")
         return redirect(url_for("librarian.user_management"))
     if not status:
         flash("Status is required.", "danger")
@@ -803,6 +813,17 @@ def edit_user():
             return redirect(url_for("librarian.user_management"))
 
     cursor = get_cursor()
+
+    # Duplicate checks (like your register)
+    cursor.execute("SELECT 1 FROM User WHERE user_email = %s AND user_id != %s", (email, user_id))
+    if cursor.fetchone():
+        flash("Email already used.", "danger")
+        return redirect(url_for("librarian.user_management"))
+
+    cursor.execute("SELECT 1 FROM User WHERE user_phone_number = %s AND user_id != %s", (phone_number, user_id))
+    if cursor.fetchone():
+        flash("Phone number already used.", "danger")
+        return redirect(url_for("librarian.user_management"))
 
     if should_update_password:
         cursor.execute("""

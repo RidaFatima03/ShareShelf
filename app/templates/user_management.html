@@ -89,6 +89,7 @@
                                 data-middle-name="{{ u.user_middle_name }}"
                                 data-last-name="{{ u.user_last_name }}"
                                 data-phone-number="{{ u.user_phone_number }}"
+                                data-email="{{ u.user_email }}"
                                 data-status="{{ u.status }}"
                                 data-user-type="{{ u.user_type }}">
                                 <i class="bi bi-pencil-fill"></i>
@@ -175,7 +176,7 @@
 
             <div class="filter-input-group">
                 <label for="add_phone_number" class="filter-label">Phone number:</label>
-                <input type="tel" id="add_phone_number" name="add_phone_number" class="form-control filter-input" placeholder="e.g. 09171234567">
+                <input type="tel" id="add_phone_number" name="add_phone_number" class="form-control filter-input" placeholder="e.g. 09171234567" required>
             </div>
 
             <div class="filter-input-group">
@@ -249,8 +250,23 @@
     </div>
 
     <div class="filter-input-group">
-        <label for="edit_phone_number" class="filter-label">Phone Number:</label>
-        <input type="tel" id="edit_phone_number" name="phone_number" class="form-control filter-input" placeholder="e.g. 09171234567">
+        <label for="edit_phone_number" class="filter-label">Phone number:</label>
+        <input type="tel" id="edit_phone_number" name="phone_number" class="form-control filter-input" placeholder="e.g. 09171234567" required>
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_email" class="filter-label">Email:</label>
+        <input type="text" id="edit_email" name="email" class="form-control filter-input" required>
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_password" class="filter-label">New Password:</label>
+        <input type="password" id="edit_password" name="password" class="form-control filter-input" placeholder="Leave blank to keep current password">
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_confirm_password" class="filter-label">Confirm New Password:</label>
+        <input type="password" id="edit_confirm_password" name="confirm_password" class="form-control filter-input" placeholder="Re-type new password">
     </div>
 
     <div class="filter-input-group">
@@ -270,17 +286,6 @@
             <option value="Reader">Reader</option>
         </select>
     </div>
-
-    <div class="filter-input-group">
-        <label for="edit_password" class="filter-label">New Password:</label>
-        <input type="password" id="edit_password" name="password" class="form-control filter-input" placeholder="Leave blank to keep current password">
-    </div>
-
-    <div class="filter-input-group">
-        <label for="edit_confirm_password" class="filter-label">Confirm New Password:</label>
-        <input type="password" id="edit_confirm_password" name="confirm_password" class="form-control filter-input" placeholder="Re-type new password">
-    </div>
-
 
     <div class="custom-modal-footer">
         <button type="button" class="logout-link btn-cancel close-edit-user-modal">Cancel</button>
@@ -337,6 +342,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const editMiddleNameInput = document.getElementById('edit_middle_name');
   const editLastNameInput = document.getElementById('edit_last_name');
   const editPhoneNumberInput = document.getElementById('edit_phone_number');
+  const editEmailInput = document.getElementById('edit_email');
   const editStatusInput = document.getElementById('edit_status');
   const editUserTypeInput = document.getElementById('edit_user_type');
   const editPasswordInput = document.getElementById('edit_password');
@@ -352,6 +358,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const middle_name = btn.dataset.middleName;
         const last_name = btn.dataset.lastName;
         const phone_number = btn.dataset.phoneNumber;
+        const email = btn.dataset.email;
         const status = btn.dataset.status;
         const user_type = btn.dataset.userType;
 
@@ -360,6 +367,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (editMiddleNameInput) editMiddleNameInput.value = middle_name;
         if (editLastNameInput) editLastNameInput.value = last_name;
         if (editPhoneNumberInput) editPhoneNumberInput.value = phone_number;
+        if (editEmailInput) editEmailInput.value = email;
         if (editStatusInput) editStatusInput.value = status;
         if (editUserTypeInput) editUserTypeInput.value = user_type;
         if (editPasswordInput) editPasswordInput.value = "";

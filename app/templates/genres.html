@@ -36,7 +36,8 @@
                                     value="{{ search_name }}">
                         </th>
                         <th>
-                            <button type="submit" class="logout-link btn-apply">Apply</button>
+                            <button type="submit" class="logout-link btn-apply filter-action-btn">Apply</button>
+                            <a href="{{ url_for('librarian.genres') }}" class="logout-link btn-cancel filter-action-btn">Clear</a>
                         </th>
                     </tr>
                 </thead>

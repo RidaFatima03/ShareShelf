@@ -122,9 +122,12 @@
             </th>
 
             <th class="text-center">
-              <button type="submit" class="logout-link btn-apply mt-3">
+              <button type="submit" class="logout-link btn-apply mt-3 filter-action-btn">
                 Apply
               </button>
+              <a href="{{ url_for('librarian.books') }}" class="logout-link btn-cancel mt-3 filter-action-btn">
+                Clear
+              </a>
             </th>
           </tr>
         </thead>

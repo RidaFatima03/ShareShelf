@@ -160,81 +160,6 @@ def my_fines():
         paid_fines=paid_fines
     )
 
-@main_bp.route('/my-requests', endpoint='my_requests')
-def my_requests():
-    if 'loggedin' not in session: return redirect(url_for('auth.login'))
-    user_id = session['userid']
-    cursor = get_cursor()
-
-    cursor.execute("""
-        SELECT r.request_id, r.request_date, r.status, b.title AS item_title, 
-               GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
-        FROM Request r
-        JOIN Book b ON r.book_id = b.book_id
-        LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
-        LEFT JOIN Author a ON ba.author_id = a.author_id
-        WHERE r.reader_id = %s AND r.request_type = 'Borrow'
-        GROUP BY r.request_id, b.title, r.request_date, r.status
-        ORDER BY r.request_date DESC
-    """, (user_id,))
-    borrows = cursor.fetchall()
-
-    cursor.execute("""
-        SELECT r.request_id, r.request_date, r.status, b.title AS item_title, 
-               GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
-        FROM Request r
-        JOIN Book b ON r.book_id = b.book_id
-        LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
-        LEFT JOIN Author a ON ba.author_id = a.author_id
-        WHERE r.reader_id = %s AND r.request_type = 'Donation'
-        GROUP BY r.request_id, b.title, r.request_date, r.status
-    """, (user_id,))
-    donations_books = cursor.fetchall()
-
-    cursor.execute("""
-        SELECT r.request_id, r.request_date, r.status, m.title AS item_title, m.author AS item_author
-        FROM Request r
-        JOIN Material m ON r.material_id = m.material_id
-        WHERE r.reader_id = %s AND r.request_type = 'Donation'
-    """, (user_id,))
-    donations_materials = cursor.fetchall()
-    
-    donations = list(donations_books) + list(donations_materials)
-    donations.sort(key=lambda x: x['request_date'], reverse=True)
-
-    cursor.execute("""
-        SELECT r.request_id, r.request_date, r.status, m.title AS item_title, m.author AS item_author
-        FROM Request r
-        JOIN Material m ON r.material_id = m.material_id
-        WHERE r.reader_id = %s AND r.request_type = 'New Material'
-        ORDER BY r.request_date DESC
-    """, (user_id,))
-    new_books = cursor.fetchall()
-
-    return render_template('my-requests.html', 
-                           borrows=borrows, 
-                           donations=donations, 
-                           new_books=new_books)
-
-@main_bp.route('/cancel-request/<int:request_id>', methods=['POST'], endpoint='cancel_request')
-def cancel_request(request_id):
-    if 'loggedin' not in session: return redirect(url_for('auth.login'))
-    
-    cursor = get_cursor()
-    
-    cursor.execute("SELECT status FROM Request WHERE request_id = %s AND reader_id = %s", (request_id, session['userid']))
-    req = cursor.fetchone()
-    
-    if req and req['status'] == 'Pending':
-        cursor.execute("DELETE FROM Request WHERE request_id = %s", (request_id,))
-        
-        mysql.connection.commit()
-        flash("Request cancelled successfully.", "success")
-    else:
-        flash("Cannot cancel this request (it may already be processed).", "warning")
-        
-    return redirect(url_for('main.my_requests'))
-
 @main_bp.route('/notifications', endpoint='notifications')
 def notifications():
     if 'loggedin' not in session: return redirect(url_for('auth.login'))
@@ -495,7 +420,7 @@ def add_book():
             
             mysql.connection.commit()
             flash("Donation request sent to Librarian for approval.", "success")
-            return redirect(url_for('main.my_requests')) 
+            return redirect(url_for('request.my_requests')) 
 
         elif acquisition_type == 'Exchange':
             book_id = None

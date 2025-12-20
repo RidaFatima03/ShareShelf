@@ -232,9 +232,9 @@ CREATE TABLE Material (
 CREATE TABLE Request ( 
   request_id INT NOT NULL AUTO_INCREMENT,
   request_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-  request_type ENUM('Hold', 'Borrow', 'New Material', 'Exchange', 'Donation'),
+  request_type ENUM('Hold', 'Borrow', 'Book Request', 'Exchange', 'Donation'),
   expire_date DATETIME,
-  status ENUM('Pending', 'Approved', 'Rejected', 'Expired', 'Completed') DEFAULT 'Pending',
+  status ENUM('Pending', 'Approved', 'Rejected', 'Expired', 'Completed', 'Cancelled') DEFAULT 'Pending',
 
   material_id INT NULL,
   reader_id INT NOT NULL,
@@ -255,7 +255,7 @@ CREATE TABLE Request (
   CHECK (
     (request_type IN ('Hold','Borrow','Exchange') AND book_id IS NOT NULL AND material_id IS NULL)
     OR
-    (request_type = 'New Material' AND material_id IS NOT NULL AND book_id IS NULL)
+    (request_type = 'Book Request' AND material_id IS NOT NULL AND book_id IS NULL)
     OR
     (request_type = 'Donation' AND (
         (book_id IS NOT NULL AND material_id IS NULL) OR 

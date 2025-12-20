@@ -273,12 +273,12 @@ VALUES
 ('Borrow', '2025-11-30 23:59:59', 'Approved', NULL, 1, 2, NULL),
 ('Borrow', '2025-11-28 23:59:59', 'Pending', NULL, 4, 6, NULL),
 
--- New Material Requests
-('New Material', NULL, 'Pending', 1, 2, NULL, NULL),
-('New Material', NULL, 'Approved', 2, 3, NULL, NULL),
-('New Material', NULL, 'Rejected', 3, 1, NULL, NULL),
-('New Material', NULL, 'Pending', 4, 4, NULL, NULL),
-('New Material', NULL, 'Approved', 5, 3, NULL, NULL),
+-- Book Request Requests
+('Book Request', NULL, 'Pending', 1, 2, NULL, NULL),
+('Book Request', NULL, 'Approved', 2, 3, NULL, NULL),
+('Book Request', NULL, 'Rejected', 3, 1, NULL, NULL),
+('Book Request', NULL, 'Pending', 4, 4, NULL, NULL),
+('Book Request', NULL, 'Approved', 5, 3, NULL, NULL),
 
 -- **EXCHANGE REQUESTS**
 -- 1. Jane (Reader 2) requests John's "Fourth Wing" (Book 11). 
@@ -295,7 +295,7 @@ VALUES
 ('2025-11-10 11:22:27', 'SystemMonitor', 'ERROR', 'DatabaseNode-1', 'Connection timeout detected. Reconnecting...'),
 ('2025-11-10 11:24:12', 'SystemMonitor', 'INFO', 'DatabaseNode-1', 'Database connection re-established successfully.'),
 ('2025-11-10 12:10:45', 'ExchangeModule', 'INFO', 'ExchangeService', 'Reader (ID: 1) exchanged "The Martian" (BC020) with Reader (ID: 2).'),
-('2025-11-10 13:05:33', 'RequestModule', 'INFO', 'RequestProcessor', 'Reader (ID: 4) requested new material "Dune".'),
+('2025-11-10 13:05:33', 'RequestModule', 'INFO', 'RequestProcessor', 'Reader (ID: 4) requested book "Dune".'),
 ('2025-11-10 13:20:17', 'Security', 'WARN', 'LoginGuard', 'Failed login attempt for user_email=jane.smith@email.com.'),
 ('2025-11-10 13:25:42', 'Security', 'INFO', 'LoginGuard', 'Account lockout triggered for user_email=jane.smith@email.com after 3 failed attempts.'),
 ('2025-11-10 14:01:09', 'AdminModule', 'INFO', 'BackupManager', 'System backup completed successfully. File: backup_2025_11_10.zip'),

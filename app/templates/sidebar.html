@@ -4,6 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem('sidebarClosed') === 'true') {
+                    document.documentElement.classList.add('sidebar-closed-init');
+                }
+            } catch (e) {}
+        })();
+    </script>
     <title>ShareShelf</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -75,8 +84,8 @@
                     <span>My Fines</span>
                 </a>
 
-                <a href="{{ url_for('main.my_requests') }}"
-                    class="nav-item {% if request.endpoint == 'main.my_requests' %}active{% endif %}">
+                <a href="{{ url_for('request.my_requests') }}"
+                    class="nav-item {% if request.endpoint == 'request.my_requests' %}active{% endif %}">
                     <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -255,6 +264,7 @@
 
         // Apply instantly (no transition because body has "preload")
         applySidebarState(isClosed);
+        document.documentElement.classList.remove('sidebar-closed-init');
 
         // Re-enable transitions for user interactions
         requestAnimationFrame(() => {

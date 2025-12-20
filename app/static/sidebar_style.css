@@ -663,6 +663,24 @@ body {
   transition: none !important;
 }
 
+html.sidebar-closed-init .sidebar {
+    transform: translateX(-100%);
+}
+
+html.sidebar-closed-init .main-content {
+    margin-left: 0;
+    width: 100%;
+}
+
+html.sidebar-closed-init .filters-column {
+    left: 0 !important;
+}
+
+html.sidebar-closed-init .filters-results.main-content {
+    margin-left: 300px !important;
+    width: calc(100% - 300px) !important;
+}
+
 
 .nav-item {
     display: flex;

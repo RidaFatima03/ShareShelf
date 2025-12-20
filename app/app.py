@@ -9,6 +9,7 @@ from routes.admin import admin_bp
 from routes.profile import profile_bp  # <--- NEW IMPORT
 from routes.librarian import librarian_bp
 from routes.policy import policy_bp
+from routes.request import request_bp
 
 def create_app():
     app = Flask(__name__)
@@ -40,6 +41,7 @@ def create_app():
     app.register_blueprint(profile_bp)  # <--- NEW REGISTRATION
     app.register_blueprint(librarian_bp)
     app.register_blueprint(policy_bp)
+    app.register_blueprint(request_bp)
 
     return app
 

@@ -1,3 +1,15 @@
+CREATE TABLE Policy ( 
+policy_id INT NOT NULL AUTO_INCREMENT,
+name VARCHAR(100) NOT NULL,
+loan_period_days INT NOT NULL,
+renewals_allowed INT NOT NULL,
+fine_per_day DECIMAL(10,2) NOT NULL,
+max_concurrent_loans INT NOT NULL,
+holds_limit_reservation INT NOT NULL,
+applies_to_role ENUM('Reader', 'Librarian', 'Admin') NOT NULL,
+PRIMARY KEY (policy_id)
+);
+
 CREATE TABLE IF NOT EXISTS User ( 
 user_id INT NOT NULL AUTO_INCREMENT,
 user_first_name VARCHAR(50) NOT NULL, 
@@ -9,7 +21,10 @@ user_password VARCHAR(255) NOT NULL,
 status ENUM('Active', 'Inactive', 'Blocked') NOT NULL,
 joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 user_type ENUM('Reader', 'Librarian', 'Admin') NOT NULL,
-PRIMARY KEY (user_id) 
+policy_id INT,
+PRIMARY KEY (user_id),
+FOREIGN KEY (policy_id) REFERENCES Policy(policy_id)
+  ON DELETE SET NULL
 ); 
 
 CREATE TABLE IF NOT EXISTS Reader ( 
@@ -68,21 +83,6 @@ user_id INT NOT NULL,
 PRIMARY KEY (notification_id),
 FOREIGN KEY (user_id) REFERENCES User(user_id)
   ON DELETE CASCADE
-);
-
-CREATE TABLE Policy ( 
-policy_id INT NOT NULL AUTO_INCREMENT,
-name VARCHAR(100) NOT NULL,
-loan_period_days INT NOT NULL,
-renewals_allowed INT NOT NULL,
-fine_per_day DECIMAL(10,2) NOT NULL,
-max_concurrent_loans INT NOT NULL,
-holds_limit_reservation INT NOT NULL,
-applies_to_role ENUM('Reader', 'Librarian', 'Admin') NOT NULL,
-user_id INT,
-PRIMARY KEY (policy_id),
-FOREIGN KEY (user_id) REFERENCES User(user_id)
-  ON DELETE SET NULL
 );
 
 CREATE TABLE Reader_Rate ( 

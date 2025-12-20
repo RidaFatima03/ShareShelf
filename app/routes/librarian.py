@@ -586,6 +586,10 @@ def user_management():
     
     cursor = get_cursor()
 
+    # Load all policies for dropdown
+    cursor.execute("SELECT policy_id, name FROM Policy ORDER BY name")
+    all_policies = cursor.fetchall()
+
     # ---------- CREATE (POST) ----------
     if request.method == "POST":
         add_first_name = (request.form.get("add_first_name") or "").strip()
@@ -597,6 +601,7 @@ def user_management():
         add_confirm_password = request.form.get("add_confirm_password") or ""
         add_status = (request.form.get("add_status") or "").strip()
         add_user_type = (request.form.get("add_user_type") or "").strip()
+        add_policy = (request.form.get("add_policy") or "").strip()
 
         if not add_first_name:
             flash("First name is required.", "danger")
@@ -625,6 +630,9 @@ def user_management():
         if not add_user_type:
             flash("User type is required.", "danger")
             return redirect(url_for("librarian.user_management"))
+        if not add_policy:
+            flash("Policy is required.", "danger")
+            return redirect(url_for("librarian.user_management"))
 
         # Duplicate checks (like your register)
         cursor.execute("SELECT 1 FROM User WHERE user_email = %s", (add_email,))
@@ -643,13 +651,13 @@ def user_management():
             INSERT INTO User (
                 user_first_name, user_middle_name, user_last_name,
                 user_phone_number, user_email, user_password,
-                status, user_type
+                status, user_type, policy_id
             )
-            VALUES (%s, %s, %s, %s, %s, SHA2(%s, 256), %s, %s)
+            VALUES (%s, %s, %s, %s, %s, SHA2(%s, 256), %s, %s, %s)
         """, (
             add_first_name, add_middle_name, add_last_name,
             add_phone_number, add_email, add_password,
-            add_status, add_user_type
+            add_status, add_user_type, add_policy
         ))
         mysql.connection.commit()
 
@@ -666,6 +674,7 @@ def user_management():
     search_email = (request.args.get("search_email") or "").strip()
     search_status = request.args.get("search_status")
     search_user_type = request.args.get("search_user_type")
+    search_policy = (request.args.get("search_policy") or "").strip()
     where = []
     params = []
 
@@ -689,11 +698,16 @@ def user_management():
         where.append("u.user_type = %s")
         params.append(search_user_type)
 
+    if search_policy:
+        where.append("p.policy_id = %s")
+        params.append(search_policy)
+
     where_sql = " WHERE " + " AND ".join(where) if where else ""
     # total count (for pagination)
     count_sql = f"""
     SELECT COUNT(DISTINCT u.user_id) AS total
     FROM User u
+    LEFT JOIN Policy p ON p.policy_id = u.policy_id
     {where_sql}
     """
 
@@ -719,8 +733,11 @@ def user_management():
             u.user_phone_number,
             u.user_email,
             u.status,
-            u.user_type
+            u.user_type,
+            u.policy_id,
+            p.name AS policy_name
         FROM User u
+        LEFT JOIN Policy p ON p.policy_id = u.policy_id
         {where_sql}
         ORDER BY u.user_id
         LIMIT %s OFFSET %s
@@ -745,7 +762,9 @@ def user_management():
             search_full_name=search_full_name,
             search_email=search_email,
             search_status=search_status,
-            search_user_type=search_user_type
+            search_user_type=search_user_type,
+            search_policy=search_policy,
+            all_policies=all_policies
         )
 
 @librarian_bp.route("/user_management/delete/<int:user_id>", methods=["POST"], endpoint="delete_user")
@@ -776,6 +795,7 @@ def edit_user():
     email = (request.form.get("email") or "").strip()
     status = (request.form.get("status") or "").strip()
     user_type = (request.form.get("user_type") or "").strip()
+    policy_id = (request.form.get("policy_id") or "").strip()
 
     password = request.form.get("password") or ""
     confirm_password = request.form.get("confirm_password") or ""
@@ -800,6 +820,9 @@ def edit_user():
         return redirect(url_for("librarian.user_management"))
     if not user_type:
         flash("User type is required.", "danger")
+        return redirect(url_for("librarian.user_management"))
+    if not policy_id:
+        flash("Policy is required.", "danger")
         return redirect(url_for("librarian.user_management"))
 
     # If password was provided, validate it
@@ -834,9 +857,10 @@ def edit_user():
                 user_phone_number=%s,
                 status=%s,
                 user_type=%s,
-                user_password=SHA2(%s, 256)
+                user_password=SHA2(%s, 256),
+                policy_id=%s
             WHERE user_id=%s
-        """, (first_name, middle_name, last_name, phone_number, status, user_type, password, user_id))
+        """, (first_name, middle_name, last_name, phone_number, status, user_type, password, policy_id, user_id))
     else:
         cursor.execute("""
             UPDATE User
@@ -845,9 +869,10 @@ def edit_user():
                 user_last_name=%s,
                 user_phone_number=%s,
                 status=%s,
-                user_type=%s
+                user_type=%s,
+                policy_id=%s
             WHERE user_id=%s
-        """, (first_name, middle_name, last_name, phone_number, status, user_type, user_id))
+        """, (first_name, middle_name, last_name, phone_number, status, user_type, policy_id, user_id))
 
     mysql.connection.commit()
     flash("User updated successfully.", "success")

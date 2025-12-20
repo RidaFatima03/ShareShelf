@@ -642,7 +642,10 @@ def user_management():
     data_sql = f"""
         SELECT 
             u.user_id,
-            CONCAT(u.user_first_name, ' ', IFNULL(u.user_middle_name, ''), ' ', u.user_last_name) AS user_full_name,
+            u.user_first_name,
+            u.user_middle_name,
+            u.user_last_name,
+            u.user_phone_number,
             u.user_email,
             u.status,
             u.user_type
@@ -674,7 +677,7 @@ def user_management():
             search_user_type=search_user_type
         )
 
-@librarian_bp.route("/user_managment/delete/<int:user_id>", methods=["POST"], endpoint="delete_user")
+@librarian_bp.route("/user_management/delete/<int:user_id>", methods=["POST"], endpoint="delete_user")
 def delete_user(user_id):
     check = librarian_required()
     if check:
@@ -684,5 +687,59 @@ def delete_user(user_id):
     cursor.execute("DELETE FROM User WHERE user_id = %s", (user_id,))
     mysql.connection.commit()
     flash("User deleted successfully.", "success")
+
+    return redirect(url_for("librarian.user_management"))
+
+@librarian_bp.route("/user_management/edit", methods=["POST"], endpoint="edit_user")
+def edit_user():
+    check = librarian_required()
+    if check:
+        return check
+
+    user_id = request.form.get("user_id")
+    first_name = request.form.getlist("first_name")
+    middle_name = request.form.getlist("middle_name")
+    last_name = request.form.getlist("last_name")
+    first_name = request.form.getlist("first_name")
+    phone_number = request.form.getlist("phone_number")
+    status = request.form.getlist("status")
+    user_type = request.form.getlist("user_type")
+
+    if not user_id:
+        flash("Invalid user.", "danger")
+        return redirect(url_for("librarian.user_management"))
+    if not first_name:
+        flash("First name is required.", "danger")
+        return redirect(url_for("librarian.user_management"))
+    elif not last_name:
+        flash("Last name is required.", "danger")
+        return redirect(url_for("librarian.user_management"))
+    elif not status:
+        flash("Status is required.", "danger")
+        return redirect(url_for("librarian.user_management"))
+    elif not user_type:
+        flash("User type is required.", "danger")
+        return redirect(url_for("librarian.user_management"))
+
+    cursor = get_cursor()
+
+    # Update User
+    cursor.execute(
+        """
+        UPDATE User
+        SET user_first_name=%s,
+            user_middle_name=%s,
+            user_last_name=%s,
+            user_phone_number=%s,
+            status=%s,
+            user_type=%s
+        WHERE user_id = %s
+        """,
+        (first_name, middle_name, last_name, phone_number,
+        status, user_type, user_id)
+    )
+
+    mysql.connection.commit()
+    flash("User updated successfully.", "success")
 
     return redirect(url_for("librarian.user_management"))

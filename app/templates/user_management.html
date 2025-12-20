@@ -70,7 +70,13 @@
                     {% for u in users %}
                     <tr>
                         <td>{{ u.user_id }}</td>
-                        <td>{{ u.user_full_name }}</td>
+                        <td>
+                            {{ u.user_first_name }}
+                            {% if u.user_middle_name %}
+                                {{ u.user_middle_name }}
+                            {% endif %}
+                            {{ u.user_last_name }}
+                        </td>
                         <td>{{ u.user_email }}</td>
                         <td>{{ u.status }}</td>
                         <td>{{ u.user_type }}</td>
@@ -79,7 +85,12 @@
                                 <button type="button"
                                 class="btn-edit"
                                 data-user-id="{{ u.user_id }}"
-                                data-user-full-name="{{ u.user_full_name }}">
+                                data-first-name="{{ u.user_first_name }}"
+                                data-middle-name="{{ u.user_middle_name }}"
+                                data-last-name="{{ u.user_last_name }}"
+                                data-phone-number="{{ u.user_phone_number }}"
+                                data-status="{{ u.status }}"
+                                data-user-type="{{ u.user_type }}">
                                 <i class="bi bi-pencil-fill"></i>
                                 </button>
 
@@ -135,4 +146,130 @@
         </ul>
     </nav>
 </div>
+
+<!-- Edit User Modal -->
+<div id="editUserModal" class="custom-modal">
+  <div class="custom-modal-backdrop close-edit-user-modal"></div>
+
+  <div class="custom-modal-dialog scrollable-modal">
+    <div class="custom-modal-header">
+      <h5 class="filters-column-title pop-up-header">Edit User</h5>
+      <button type="button" class="custom-modal-close close-edit-user-modal">&times;</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('librarian.edit_user') }}">
+      <input type="hidden" id="edit_user_id" name="user_id">
+
+    <div class="filter-input-group">
+        <label for="edit_first_name" class="filter-label">First name:</label>
+        <input type="text" id="edit_first_name" name="first_name" class="form-control filter-input" required>
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_middle_name" class="filter-label">Middle name:</label>
+        <input type="text" id="edit_middle_name" name="middle_name" class="form-control filter-input">
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_last_name" class="filter-label">Last name:</label>
+        <input type="text" id="edit_last_name" name="last_name" class="form-control filter-input" required>
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_phone" class="filter-label">Phone Number:</label>
+        <input type="tel" id="edit_phone_number" name="phone_number" class="form-control filter-input" placeholder="e.g. 09171234567">
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_status" class="filter-label">Status:</label>
+        <select id="edit_status" name="status" class="form-control filter-input" required>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Blocked">Blocked</option>
+        </select>
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_user_type" class="filter-label">User Type:</label>
+        <select id="edit_user_type" name="user_type" class="form-control filter-input" required>
+            <option value="Admin">Admin</option>
+            <option value="Librarian">Librarian</option>
+            <option value="Reader">Reader</option>
+        </select>
+    </div>
+
+      <div class="custom-modal-footer">
+        <button type="button" class="logout-link btn-cancel close-edit-user-modal">Cancel</button>
+        <button type="submit" class="logout-link btn-save">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+  // ADD GENRE MODAL
+  const openAddBtn = document.getElementById('openAddUserModal');
+  const addModal = document.getElementById('addUserModal');
+  const addCloseElems = document.querySelectorAll('.close-add-user-modal');
+
+  if (openAddBtn && addModal) {
+    openAddBtn.addEventListener('click', () => {
+      addModal.classList.add('show');
+      const input = addModal.querySelector('#genre_name');
+      if (input) setTimeout(() => input.focus(), 100);
+    });
+
+    addCloseElems.forEach(el => {
+      el.addEventListener('click', () => {
+        addModal.classList.remove('show');
+      });
+    });
+  }
+
+  // EDIT USER MODAL
+  const editModal = document.getElementById('editUserModal');
+  const editButtons = document.querySelectorAll('.btn-edit');
+  const editCloseElems = document.querySelectorAll('.close-edit-user-modal');
+  
+  const editIdInput = document.getElementById('edit_user_id');
+  const editFirstNameInput = document.getElementById('edit_first_name');
+  const editMiddleNameInput = document.getElementById('edit_middle_name');
+  const editLastNameInput = document.getElementById('edit_last_name');
+  const editPhoneNumberInput = document.getElementById('edit_phone_number');
+  const editStatusInput = document.getElementById('edit_status');
+  const editUserTypeInput = document.getElementById('edit_user_type');
+
+  if (editModal && editButtons.length > 0) {
+    editButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.userId;
+        const first_name = btn.dataset.firstName;
+        const middle_name = btn.dataset.middleName;
+        const last_name = btn.dataset.lastName;
+        const phone_number = btn.dataset.phoneNumber;
+        const status = btn.dataset.status;
+        const user_type = btn.dataset.userType;
+
+        if (editIdInput) editIdInput.value = id;
+        if (editFirstNameInput) editFirstNameInput.value = first_name;
+        if (editMiddleNameInput) editMiddleNameInput.value = middle_name;
+        if (editLastNameInput) editLastNameInput.value = last_name;
+        if (editPhoneNumberInput) editPhoneNumberInput.value = phone_number;
+        if (editStatusInput) editStatusInput.value = status;
+        if (editUserTypeInput) editUserTypeInput.value = user_type;
+
+        editModal.classList.add('show');
+      });
+    });
+
+    editCloseElems.forEach(el => {
+      el.addEventListener('click', () => {
+        editModal.classList.remove('show');
+      });
+    });
+  }
+});
+
+</script>
 {% endblock %}

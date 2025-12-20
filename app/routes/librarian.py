@@ -245,13 +245,13 @@ def books():
         elif not publication_date:
             flash("Publication date is required.", "danger")
         elif not language:
-            flash("Language date is required.", "danger")
+            flash("Language is required.", "danger")
         elif not physical_description:
-            flash("Physical description date is required.", "danger")
+            flash("Physical description is required.", "danger")
         elif not summary:
-            flash("Summary date is required.", "danger")
+            flash("Summary is required.", "danger")
         elif not page_number:
-            flash("Page number date is required.", "danger")
+            flash("Page number is required.", "danger")
         elif not genre_ids:
             flash("Genre is required.", "danger")
         elif not author_ids:
@@ -585,6 +585,73 @@ def user_management():
         return check
     
     cursor = get_cursor()
+
+    # ---------- CREATE (POST) ----------
+    if request.method == "POST":
+        add_first_name = (request.form.get("add_first_name") or "").strip()
+        add_middle_name = (request.form.get("add_middle_name") or "").strip()
+        add_last_name = (request.form.get("add_last_name") or "").strip()
+        add_phone_number = (request.form.get("add_phone_number") or "").strip()
+        add_email = (request.form.get("add_email") or "").strip()
+        add_password = request.form.get("add_password") or ""
+        add_confirm_password = request.form.get("add_confirm_password") or ""
+        add_status = (request.form.get("add_status") or "").strip()
+        add_user_type = (request.form.get("add_user_type") or "").strip()
+
+        if not add_first_name:
+            flash("First name is required.", "danger")
+            return redirect(url_for("librarian.user_management"))
+        if not add_last_name:
+            flash("Last name is required.", "danger")
+            return redirect(url_for("librarian.user_management"))
+        if not add_email:
+            flash("Email is required.", "danger")
+            return redirect(url_for("librarian.user_management"))
+        if not add_password.strip():
+            flash("Password is required.", "danger")
+            return redirect(url_for("librarian.user_management"))
+        if add_password != add_confirm_password:
+            flash("Passwords do not match.", "danger")
+            return redirect(url_for("librarian.user_management"))
+        if len(add_password) < 8:
+            flash("Password must be at least 8 characters.", "danger")
+            return redirect(url_for("librarian.user_management"))
+        if not add_status:
+            flash("Status is required.", "danger")
+            return redirect(url_for("librarian.user_management"))
+        if not add_user_type:
+            flash("User type is required.", "danger")
+            return redirect(url_for("librarian.user_management"))
+
+        # Duplicate checks (like your register)
+        cursor.execute("SELECT 1 FROM User WHERE user_email = %s", (add_email,))
+        if cursor.fetchone():
+            flash("Email already used.", "danger")
+            return redirect(url_for("librarian.user_management"))
+
+        if add_phone_number:
+            cursor.execute("SELECT 1 FROM User WHERE user_phone_number = %s", (add_phone_number,))
+            if cursor.fetchone():
+                flash("Phone number already used.", "danger")
+                return redirect(url_for("librarian.user_management"))
+
+        # IMPORTANT: store hashed password to match your login SHA2 check
+        cursor.execute("""
+            INSERT INTO User (
+                user_first_name, user_middle_name, user_last_name,
+                user_phone_number, user_email, user_password,
+                status, user_type
+            )
+            VALUES (%s, %s, %s, %s, %s, SHA2(%s, 256), %s, %s)
+        """, (
+            add_first_name, add_middle_name, add_last_name,
+            add_phone_number, add_email, add_password,
+            add_status, add_user_type
+        ))
+        mysql.connection.commit()
+
+        flash("User created successfully.", "success")
+        return redirect(url_for("librarian.user_management"))
 
     # ---------- LIST + SEARCH (GET) ----------
     page = request.args.get("page", 1, type=int)

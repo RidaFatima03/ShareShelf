@@ -718,6 +718,10 @@ html.sidebar-closed-init .filters-results.main-content {
     stroke: #5c4033;
 }
 
+.filter-action-btn {
+    text-transform: none;
+}
+
 /* Main Content */
 .main-content {
     margin-left: 250px;

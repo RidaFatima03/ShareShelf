@@ -176,7 +176,7 @@
     </div>
 
     <div class="filter-input-group">
-        <label for="edit_phone" class="filter-label">Phone Number:</label>
+        <label for="edit_phone_number" class="filter-label">Phone Number:</label>
         <input type="tel" id="edit_phone_number" name="phone_number" class="form-control filter-input" placeholder="e.g. 09171234567">
     </div>
 
@@ -198,10 +198,21 @@
         </select>
     </div>
 
-      <div class="custom-modal-footer">
+    <div class="filter-input-group">
+        <label for="edit_password" class="filter-label">New Password:</label>
+        <input type="password" id="edit_password" name="password" class="form-control filter-input" placeholder="Leave blank to keep current password">
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_confirm_password" class="filter-label">Confirm New Password:</label>
+        <input type="password" id="edit_confirm_password" name="confirm_password" class="form-control filter-input" placeholder="Re-type new password">
+    </div>
+
+
+    <div class="custom-modal-footer">
         <button type="button" class="logout-link btn-cancel close-edit-user-modal">Cancel</button>
         <button type="submit" class="logout-link btn-save">Save Changes</button>
-      </div>
+    </div>
     </form>
   </div>
 </div>
@@ -239,6 +250,10 @@
   const editPhoneNumberInput = document.getElementById('edit_phone_number');
   const editStatusInput = document.getElementById('edit_status');
   const editUserTypeInput = document.getElementById('edit_user_type');
+  const editPasswordInput = document.getElementById('edit_password');
+  const editConfirmPasswordInput = document.getElementById('edit_confirm_password');
+
+
 
   if (editModal && editButtons.length > 0) {
     editButtons.forEach(btn => {
@@ -258,6 +273,10 @@
         if (editPhoneNumberInput) editPhoneNumberInput.value = phone_number;
         if (editStatusInput) editStatusInput.value = status;
         if (editUserTypeInput) editUserTypeInput.value = user_type;
+        if (editPasswordInput) editPasswordInput.value = "";
+        if (editConfirmPasswordInput) editConfirmPasswordInput.value = "";
+
+
 
         editModal.classList.add('show');
       });

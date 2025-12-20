@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 import MySQLdb.cursors
 from extensions import mysql
 from routes.notifications import NotificationService
+from werkzeug.security import generate_password_hash
 librarian_bp = Blueprint("librarian", __name__, url_prefix="/librarian")
 
 #notify users
@@ -697,13 +698,16 @@ def edit_user():
         return check
 
     user_id = request.form.get("user_id")
-    first_name = request.form.getlist("first_name")
-    middle_name = request.form.getlist("middle_name")
-    last_name = request.form.getlist("last_name")
-    first_name = request.form.getlist("first_name")
-    phone_number = request.form.getlist("phone_number")
-    status = request.form.getlist("status")
-    user_type = request.form.getlist("user_type")
+
+    first_name = (request.form.get("first_name") or "").strip()
+    middle_name = (request.form.get("middle_name") or "").strip()
+    last_name = (request.form.get("last_name") or "").strip()
+    phone_number = (request.form.get("phone_number") or "").strip()
+    status = (request.form.get("status") or "").strip()
+    user_type = (request.form.get("user_type") or "").strip()
+
+    password = request.form.get("password") or ""
+    confirm_password = request.form.get("confirm_password") or ""
 
     if not user_id:
         flash("Invalid user.", "danger")
@@ -711,35 +715,52 @@ def edit_user():
     if not first_name:
         flash("First name is required.", "danger")
         return redirect(url_for("librarian.user_management"))
-    elif not last_name:
+    if not last_name:
         flash("Last name is required.", "danger")
         return redirect(url_for("librarian.user_management"))
-    elif not status:
+    if not status:
         flash("Status is required.", "danger")
         return redirect(url_for("librarian.user_management"))
-    elif not user_type:
+    if not user_type:
         flash("User type is required.", "danger")
         return redirect(url_for("librarian.user_management"))
 
+    # If password was provided, validate it
+    should_update_password = bool(password.strip())
+    if should_update_password:
+        if password != confirm_password:
+            flash("Passwords do not match.", "danger")
+            return redirect(url_for("librarian.user_management"))
+        if len(password) < 8:
+            flash("Password must be at least 8 characters.", "danger")
+            return redirect(url_for("librarian.user_management"))
+
     cursor = get_cursor()
 
-    # Update User
-    cursor.execute(
-        """
-        UPDATE User
-        SET user_first_name=%s,
-            user_middle_name=%s,
-            user_last_name=%s,
-            user_phone_number=%s,
-            status=%s,
-            user_type=%s
-        WHERE user_id = %s
-        """,
-        (first_name, middle_name, last_name, phone_number,
-        status, user_type, user_id)
-    )
+    if should_update_password:
+        cursor.execute("""
+            UPDATE User
+            SET user_first_name=%s,
+                user_middle_name=%s,
+                user_last_name=%s,
+                user_phone_number=%s,
+                status=%s,
+                user_type=%s,
+                user_password=SHA2(%s, 256)
+            WHERE user_id=%s
+        """, (first_name, middle_name, last_name, phone_number, status, user_type, password, user_id))
+    else:
+        cursor.execute("""
+            UPDATE User
+            SET user_first_name=%s,
+                user_middle_name=%s,
+                user_last_name=%s,
+                user_phone_number=%s,
+                status=%s,
+                user_type=%s
+            WHERE user_id=%s
+        """, (first_name, middle_name, last_name, phone_number, status, user_type, user_id))
 
     mysql.connection.commit()
     flash("User updated successfully.", "success")
-
     return redirect(url_for("librarian.user_management"))

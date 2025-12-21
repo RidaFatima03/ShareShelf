@@ -11,8 +11,9 @@
         </button>
     </div>
 
-    <form method="get" action="{{ url_for('librarian.books') }}" class="table-filter-form">
-      <table class="activity-table">
+    <div class="table-wrapper table-wrapper-scroll">
+      <form method="get" action="{{ url_for('librarian.books') }}" class="table-filter-form">
+        <table class="activity-table">
         <thead>
           <tr>
             <th>
@@ -131,11 +132,7 @@
             </th>
           </tr>
         </thead>
-      </table>
-    </form>
-
-    <table class="activity-table">
-      <tbody>
+        <tbody>
         {% if books %}
           {% for b in books %}
             <tr>
@@ -187,8 +184,10 @@
             </td>
           </tr>
         {% endif %}
-      </tbody>
-    </table>
+        </tbody>
+        </table>
+      </form>
+    </div>
 
     <!-- Navigation -->
     <nav class="pagination-container mt-4">

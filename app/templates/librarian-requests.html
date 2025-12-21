@@ -118,7 +118,35 @@
                             <td class="col-status"><span class="request-status {{ req.status|lower }}">{{ req.status }}</span></td>
                             <td>
                                 <div class="manage-btns">
-                                    <span class="no-action">N/A</span>
+                                    {% if req.status == 'Pending' %}
+                                        <button type="submit"
+                                                class="logout-link filter-action-btn request-handle-btn"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.approve_request', request_id=req.request_id) }}">
+                                            Approve
+                                        </button>
+                                        <button type="submit"
+                                                class="logout-link btn-cancel"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.reject_request', request_id=req.request_id) }}">
+                                            Reject
+                                        </button>
+                                    {% elif req.status == 'Approved' %}
+                                        <button type="submit"
+                                                class="logout-link filter-action-btn request-handle-btn"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.complete_request', request_id=req.request_id) }}">
+                                            Complete
+                                        </button>
+                                        <button type="submit"
+                                                class="logout-link btn-cancel"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.cancel_request', request_id=req.request_id) }}">
+                                            Cancel
+                                        </button>
+                                    {% else %}
+                                        <span class="no-action">N/A</span>
+                                    {% endif %}
                                     <span class="info-wrapper"  data-request-id="{{ req.request_id }}"
                                                                 data-request-type="Borrow"
                                                                 data-user-id="{{ req.user_id }}"
@@ -156,7 +184,35 @@
                             
                             <td>
                                 <div class="manage-btns">
-                                    <span class="no-action">N/A</span>
+                                    {% if don.status == 'Pending' %}
+                                        <button type="submit"
+                                                class="logout-link filter-action-btn request-handle-btn"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.approve_request', request_id=don.request_id) }}">
+                                            Approve
+                                        </button>
+                                        <button type="submit"
+                                                class="logout-link btn-cancel"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.reject_request', request_id=don.request_id) }}">
+                                            Reject
+                                        </button>
+                                    {% elif don.status == 'Approved' %}
+                                        <button type="submit"
+                                                class="logout-link filter-action-btn request-handle-btn"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.complete_request', request_id=don.request_id) }}">
+                                            Complete
+                                        </button>
+                                        <button type="submit"
+                                                class="logout-link btn-cancel"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.cancel_request', request_id=don.request_id) }}">
+                                            Cancel
+                                        </button>
+                                    {% else %}
+                                        <span class="no-action">N/A</span>
+                                    {% endif %}
                                     <span class="info-wrapper"  data-request-id="{{ don.request_id }}"
                                                                 data-request-type="Donation"
                                                                 data-user-id="{{ don.user_id }}"
@@ -192,7 +248,35 @@
                             <td class="col-status"><span class="request-status {{ req.status|lower }}">{{ req.status }}</span></td>
                             <td>
                                 <div class="manage-btns">
-                                    <span class="no-action">N/A</span>
+                                    {% if req.status == 'Pending' %}
+                                        <button type="submit"
+                                                class="logout-link filter-action-btn request-handle-btn"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.approve_request', request_id=req.request_id) }}">
+                                            Approve
+                                        </button>
+                                        <button type="submit"
+                                                class="logout-link btn-cancel"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.reject_request', request_id=req.request_id) }}">
+                                            Reject
+                                        </button>
+                                    {% elif req.status == 'Approved' %}
+                                        <button type="submit"
+                                                class="logout-link filter-action-btn request-handle-btn"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.complete_request', request_id=req.request_id) }}">
+                                            Complete
+                                        </button>
+                                        <button type="submit"
+                                                class="logout-link btn-cancel"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.cancel_request', request_id=req.request_id) }}">
+                                            Cancel
+                                        </button>
+                                    {% else %}
+                                        <span class="no-action">N/A</span>
+                                    {% endif %}
                                     <span class="info-wrapper"  data-request-id="{{ req.request_id }}"
                                                                 data-request-type="Book Request"
                                                                 data-user-id="{{ req.user_id }}"
@@ -228,7 +312,35 @@
                             <td class="col-status"><span class="request-status {{ req.status|lower }}">{{ req.status }}</span></td>
                             <td>
                                 <div class="manage-btns">
-                                    <span class="no-action">N/A</span>
+                                    {% if req.status == 'Pending' %}
+                                        <button type="submit"
+                                                class="logout-link filter-action-btn request-handle-btn"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.approve_request', request_id=req.request_id) }}">
+                                            Approve
+                                        </button>
+                                        <button type="submit"
+                                                class="logout-link btn-cancel"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.reject_request', request_id=req.request_id) }}">
+                                            Reject
+                                        </button>
+                                    {% elif req.status == 'Approved' %}
+                                        <button type="submit"
+                                                class="action-button primary btn-apply"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.complete_request', request_id=req.request_id) }}">
+                                            Complete
+                                        </button>
+                                        <button type="submit"
+                                                class="logout-link btn-cancel"
+                                                formmethod="post"
+                                                formaction="{{ url_for('librarian.cancel_request', request_id=req.request_id) }}">
+                                            Cancel
+                                        </button>
+                                    {% else %}
+                                        <span class="no-action">N/A</span>
+                                    {% endif %}
                                     <span class="info-wrapper"  data-request-id="{{ req.request_id }}"
                                                                 data-request-type="Exchange"
                                                                 data-user-id="{{ req.user_id }}"

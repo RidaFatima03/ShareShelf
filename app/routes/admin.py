@@ -164,3 +164,82 @@ def user_activity():
     )
 
 
+@admin_bp.route('/reports', methods=['GET'], endpoint='reports')
+def reports():
+    check = admin_required()
+    if check:
+        return check
+
+    cursor = get_cursor()
+
+    cursor.execute("""
+        SELECT g.genre_name, COUNT(*) AS borrow_count
+        FROM Checkout co
+        JOIN Copy c ON co.copy_id = c.item_barcode
+        JOIN Book_Genre bg ON c.book_id = bg.book_id
+        JOIN Genre g ON bg.genre_id = g.genre_id
+        GROUP BY g.genre_id, g.genre_name
+        ORDER BY borrow_count DESC
+        LIMIT 10
+    """)
+    borrowed_genres = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT u.user_id,
+               CONCAT(u.user_first_name, ' ', u.user_last_name) AS user_name,
+               COUNT(*) AS activity_count
+        FROM user_activity_log l
+        JOIN User u ON l.user_id = u.user_id
+        GROUP BY u.user_id, u.user_first_name, u.user_last_name
+        ORDER BY activity_count DESC
+        LIMIT 10
+    """)
+    active_users = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT DATE_FORMAT(due_date, '%Y-%m') AS period,
+               COUNT(*) AS overdue_count
+        FROM Checkout
+        WHERE due_date < NOW() AND returned_date IS NULL
+        GROUP BY period
+        ORDER BY period DESC
+        LIMIT 12
+    """)
+    overdue_rows = cursor.fetchall()
+    overdue_rows = list(reversed(overdue_rows))
+
+    cursor.execute("""
+        SELECT SUM(status = 'Lost') AS lost_count,
+               COUNT(*) AS total_count
+        FROM Copy
+    """)
+    lost_overall = cursor.fetchone() or {"lost_count": 0, "total_count": 0}
+    lost_total = lost_overall.get("total_count") or 0
+    lost_rate = (lost_overall.get("lost_count") or 0) / lost_total if lost_total else 0
+
+    cursor.execute("""
+        SELECT g.genre_name,
+               SUM(c.status = 'Lost') AS lost_count,
+               COUNT(*) AS total_count
+        FROM Copy c
+        JOIN Book_Genre bg ON c.book_id = bg.book_id
+        JOIN Genre g ON bg.genre_id = g.genre_id
+        GROUP BY g.genre_id, g.genre_name
+        ORDER BY lost_count DESC
+    """)
+    lost_by_genre = cursor.fetchall()
+    for row in lost_by_genre:
+        total = row.get("total_count") or 0
+        row["lost_rate"] = (row.get("lost_count") or 0) / total if total else 0
+
+    return render_template(
+        'admin-reports.html',
+        borrowed_genres=borrowed_genres,
+        active_users=active_users,
+        overdue_rows=overdue_rows,
+        lost_overall=lost_overall,
+        lost_rate=lost_rate,
+        lost_by_genre=lost_by_genre
+    )
+
+

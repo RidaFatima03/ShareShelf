@@ -1,0 +1,347 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+<div class="reports-page">
+    <h1 class="page-title">Admin Reports</h1>
+
+    <div class="report-tabs" role="tablist" aria-label="Admin report sections">
+        <button type="button" class="report-tab active" data-target="report-borrowed" role="tab" aria-selected="true">
+            Borrowed Genres
+        </button>
+        <button type="button" class="report-tab" data-target="report-active" role="tab" aria-selected="false">
+            Active Users
+        </button>
+        <button type="button" class="report-tab" data-target="report-overdue" role="tab" aria-selected="false">
+            Overdue Trends
+        </button>
+        <button type="button" class="report-tab" data-target="report-lost" role="tab" aria-selected="false">
+            Lost Rates
+        </button>
+    </div>
+
+    <section class="report-card report-section active" id="report-borrowed">
+        <div class="report-card-header">
+            <h2>Most Borrowed Genres</h2>
+        </div>
+        <div class="report-card-body">
+            <div class="report-chart">
+                <canvas id="borrowedGenresChart"></canvas>
+            </div>
+            <div class="report-table">
+                <table class="activity-table">
+                    <thead>
+                        <tr>
+                            <th>Genre</th>
+                            <th>Borrow Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if borrowed_genres %}
+                            {% for row in borrowed_genres %}
+                            <tr>
+                                <td>{{ row.genre_name }}</td>
+                                <td>{{ row.borrow_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="2" class="no-data">No borrow data found.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="report-card report-section" id="report-active">
+        <div class="report-card-header">
+            <h2>Most Active Users</h2>
+        </div>
+        <div class="report-card-body">
+            <div class="report-chart">
+                <canvas id="activeUsersChart"></canvas>
+            </div>
+            <div class="report-table">
+                <table class="activity-table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>User Name</th>
+                            <th>Activity Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if active_users %}
+                            {% for row in active_users %}
+                            <tr>
+                                <td>{{ row.user_id }}</td>
+                                <td>{{ row.user_name }}</td>
+                                <td>{{ row.activity_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="3" class="no-data">No activity data found.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="report-card report-section" id="report-overdue">
+        <div class="report-card-header">
+            <h2>Overdue Trends</h2>
+        </div>
+        <div class="report-card-body">
+            <div class="report-chart">
+                <canvas id="overdueTrendsChart"></canvas>
+            </div>
+            <div class="report-table">
+                <table class="activity-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Overdue Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if overdue_rows %}
+                            {% for row in overdue_rows %}
+                            <tr>
+                                <td>{{ row.period }}</td>
+                                <td>{{ row.overdue_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="2" class="no-data">No overdue data found.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="report-card report-section report-lost" id="report-lost">
+        <div class="report-card-header">
+            <h2>Lost Rates</h2>
+        </div>
+        <div class="report-card-body report-card-body-split">
+            <div class="report-summary">
+                <div class="report-metric">
+                    <div class="report-metric-label">Overall Lost Rate</div>
+                    <div class="report-metric-value">{{ (lost_rate * 100) | round(1) }}%</div>
+                    <div class="report-metric-subtext">
+                        {{ lost_overall.lost_count or 0 }} lost out of {{ lost_overall.total_count or 0 }} copies
+                    </div>
+                </div>
+                <div class="report-chart">
+                    <canvas id="lostOverallChart"></canvas>
+                </div>
+            </div>
+            <div class="report-table">
+                <table class="activity-table">
+                    <thead>
+                        <tr>
+                            <th>Genre</th>
+                            <th>Lost Count</th>
+                            <th>Total Copies</th>
+                            <th>Lost Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if lost_by_genre %}
+                            {% for row in lost_by_genre %}
+                            <tr>
+                                <td>{{ row.genre_name }}</td>
+                                <td>{{ row.lost_count }}</td>
+                                <td>{{ row.total_count }}</td>
+                                <td>{{ (row.lost_rate * 100) | round(1) }}%</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="no-data">No lost data found.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="report-chart report-chart-wide">
+                <canvas id="lostByGenreChart"></canvas>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const reportTabs = document.querySelectorAll('.report-tab');
+const reportSections = document.querySelectorAll('.report-section');
+
+function setActiveReport(targetId) {
+    reportSections.forEach(section => {
+        section.classList.toggle('active', section.id === targetId);
+    });
+
+    reportTabs.forEach(tab => {
+        const isActive = tab.dataset.target === targetId;
+        tab.classList.toggle('active', isActive);
+        tab.setAttribute('aria-selected', String(isActive));
+    });
+}
+
+if (reportTabs.length) {
+    reportTabs.forEach(tab => {
+        tab.addEventListener('click', () => setActiveReport(tab.dataset.target));
+    });
+
+    const hashTarget = window.location.hash.replace('#', '');
+    if (hashTarget && document.getElementById(hashTarget)) {
+        setActiveReport(hashTarget);
+    }
+}
+
+const borrowedGenreLabels = {{ borrowed_genres | map(attribute='genre_name') | list | tojson }};
+const borrowedGenreCounts = {{ borrowed_genres | map(attribute='borrow_count') | list | tojson }};
+const activeUserLabels = {{ active_users | map(attribute='user_name') | list | tojson }};
+const activeUserCounts = {{ active_users | map(attribute='activity_count') | list | tojson }};
+const overdueLabels = {{ overdue_rows | map(attribute='period') | list | tojson }};
+const overdueCounts = {{ overdue_rows | map(attribute='overdue_count') | list | tojson }};
+const lostGenreLabels = {{ lost_by_genre | map(attribute='genre_name') | list | tojson }};
+const lostGenreRates = {{ lost_by_genre | map(attribute='lost_rate') | list | tojson }};
+
+const lostCount = {{ lost_overall.lost_count or 0 }};
+const totalCount = {{ lost_overall.total_count or 0 }};
+const availableCount = Math.max(totalCount - lostCount, 0);
+
+const baseOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { position: 'bottom' }
+    },
+    scales: {
+        x: {
+            ticks: { color: '#6b5638' },
+            grid: { color: 'rgba(92, 64, 51, 0.08)' }
+        },
+        y: {
+            ticks: { color: '#6b5638' },
+            grid: { color: 'rgba(92, 64, 51, 0.08)' }
+        }
+    }
+};
+
+const borrowedGenresChartEl = document.getElementById('borrowedGenresChart');
+if (borrowedGenresChartEl) {
+    new Chart(borrowedGenresChartEl, {
+        type: 'bar',
+        data: {
+            labels: borrowedGenreLabels,
+            datasets: [{
+                label: 'Borrows',
+                data: borrowedGenreCounts,
+                backgroundColor: 'rgba(139, 111, 71, 0.35)',
+                borderColor: 'rgba(92, 64, 51, 0.8)',
+                borderWidth: 1
+            }]
+        },
+        options: baseOptions
+    });
+}
+
+const activeUsersChartEl = document.getElementById('activeUsersChart');
+if (activeUsersChartEl) {
+    new Chart(activeUsersChartEl, {
+        type: 'bar',
+        data: {
+            labels: activeUserLabels,
+            datasets: [{
+                label: 'Activities',
+                data: activeUserCounts,
+                backgroundColor: 'rgba(194, 165, 138, 0.45)',
+                borderColor: 'rgba(92, 64, 51, 0.8)',
+                borderWidth: 1
+            }]
+        },
+        options: baseOptions
+    });
+}
+
+const overdueTrendsChartEl = document.getElementById('overdueTrendsChart');
+if (overdueTrendsChartEl) {
+    new Chart(overdueTrendsChartEl, {
+        type: 'line',
+        data: {
+            labels: overdueLabels,
+            datasets: [{
+                label: 'Overdue Items',
+                data: overdueCounts,
+                borderColor: 'rgba(92, 64, 51, 0.9)',
+                backgroundColor: 'rgba(139, 111, 71, 0.2)',
+                tension: 0.3,
+                fill: true,
+                pointRadius: 3
+            }]
+        },
+        options: baseOptions
+    });
+}
+
+const lostOverallChartEl = document.getElementById('lostOverallChart');
+if (lostOverallChartEl) {
+    new Chart(lostOverallChartEl, {
+        type: 'doughnut',
+        data: {
+            labels: ['Lost', 'Other'],
+            datasets: [{
+                data: [lostCount, availableCount],
+                backgroundColor: ['rgba(198, 40, 40, 0.7)', 'rgba(139, 111, 71, 0.2)'],
+                borderColor: 'rgba(92, 64, 51, 0.1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+}
+
+const lostByGenreChartEl = document.getElementById('lostByGenreChart');
+if (lostByGenreChartEl) {
+    const lostRatesPercent = lostGenreRates.map(rate => Math.round(rate * 1000) / 10);
+    new Chart(lostByGenreChartEl, {
+        type: 'bar',
+        data: {
+            labels: lostGenreLabels,
+            datasets: [{
+                label: 'Lost Rate (%)',
+                data: lostRatesPercent,
+                backgroundColor: 'rgba(92, 64, 51, 0.25)',
+                borderColor: 'rgba(92, 64, 51, 0.7)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            ...baseOptions,
+            scales: {
+                x: baseOptions.scales.x,
+                y: {
+                    ticks: { color: '#6b5638' },
+                    grid: { color: 'rgba(92, 64, 51, 0.08)' },
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %}

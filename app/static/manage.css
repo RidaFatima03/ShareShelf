@@ -243,6 +243,30 @@
     width: 105px;
 }
 
+.activity-table .col-status {
+    width: 110px;
+}
+
+.activity-table .col-status select {
+    width: 100%;
+}
+
+.activity-table .col-user-name {
+    width: 150px;
+}
+
+.activity-table .col-user-name input {
+    width: 140px;
+}
+
+.activity-table .col-author {
+    width: 150px;
+}
+
+.activity-table .col-author input {
+    width: 140px;
+}
+
 /* Make modal scrollable */
 .scrollable-modal {
     max-height: 80vh;     /* modal will not exceed 80% of viewport height */

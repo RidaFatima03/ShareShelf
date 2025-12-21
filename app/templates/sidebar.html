@@ -165,6 +165,10 @@
                         class="nav-item {% if request.endpoint == 'librarian.genres' %}active{% endif %}">
                         <span>Manage Genres</span>
                     </a>
+                    <a href="{{ url_for('librarian.locations') }}"
+                        class="nav-item {% if request.endpoint == 'librarian.locations' %}active{% endif %}">
+                        <span>Manage Locations</span>
+                    </a>
                 </details>
 
                 <a href="{{ url_for('policy.policy') }}"

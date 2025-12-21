@@ -200,8 +200,8 @@ def new_request():
     reader_id = session["userid"]
 
     cursor.execute("""
-        INSERT INTO Request (request_type, material_id, reader_id)
-        VALUES (%s, %s, %s)
+        INSERT INTO Request (request_type, material_id, reader_id, expire_date)
+        VALUES (%s, %s, %s, DATE_ADD(NOW(), INTERVAL 14 DAY))
     """, (add_request_type, material_id, reader_id))
     mysql.connection.commit()
 

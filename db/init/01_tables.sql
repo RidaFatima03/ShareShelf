@@ -229,12 +229,12 @@ CREATE TABLE Material (
   PRIMARY KEY (material_id) 
 );
 
-CREATE TABLE Request ( 
-  request_id INT NOT NULL AUTO_INCREMENT,
-  request_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-  request_type ENUM('Hold', 'Borrow', 'Book Request', 'Exchange', 'Donation'),
-  expire_date DATETIME,
-  status ENUM('Pending', 'Approved', 'Rejected', 'Expired', 'Completed', 'Cancelled') DEFAULT 'Pending',
+  CREATE TABLE Request ( 
+    request_id INT NOT NULL AUTO_INCREMENT,
+    request_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    request_type ENUM('Hold', 'Borrow', 'Book Request', 'Exchange', 'Donation'),
+    expire_date DATETIME,
+    status ENUM('Pending', 'Approved', 'Rejected', 'Expired', 'Completed', 'Cancelled') DEFAULT 'Pending',
 
   material_id INT NULL,
   reader_id INT NOT NULL,
@@ -252,17 +252,27 @@ CREATE TABLE Request (
   FOREIGN KEY (book_id)    REFERENCES Book(book_id)         ON DELETE CASCADE,
   FOREIGN KEY (exchange_book_id) REFERENCES Copy(item_barcode) ON DELETE SET NULL,
 
-  CHECK (
-    (request_type IN ('Hold','Borrow','Exchange') AND book_id IS NOT NULL AND material_id IS NULL)
-    OR
-    (request_type = 'Book Request' AND material_id IS NOT NULL AND book_id IS NULL)
-    OR
-    (request_type = 'Donation' AND (
-        (book_id IS NOT NULL AND material_id IS NULL) OR 
-        (book_id IS NULL AND material_id IS NOT NULL)
-    ))
-  )
-);
+    CHECK (
+      (request_type IN ('Hold','Borrow','Exchange') AND book_id IS NOT NULL AND material_id IS NULL)
+      OR
+      (request_type = 'Book Request' AND material_id IS NOT NULL AND book_id IS NULL)
+      OR
+      (request_type = 'Donation' AND (
+          (book_id IS NOT NULL AND material_id IS NULL) OR 
+          (book_id IS NULL AND material_id IS NOT NULL)
+      ))
+    )
+  );
+
+  -- Scheduled job to expire requests automatically (requires event scheduler enabled)
+  CREATE EVENT IF NOT EXISTS expire_requests
+  ON SCHEDULE EVERY 1 DAY
+  DO
+    UPDATE Request
+    SET status = 'Expired'
+    WHERE expire_date IS NOT NULL
+      AND expire_date <= NOW()
+      AND status IN ('Pending', 'Approved');
 
 CREATE TABLE PasswordResetToken (
   token_id VARCHAR(256) PRIMARY KEY,

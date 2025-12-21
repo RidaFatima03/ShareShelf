@@ -13,7 +13,6 @@
 
 <div class="table-wrapper">
     <div class="request-tabs">
-        <button class="request-tab-pill {% if active_tab == 'holds' %}active{% endif %}" data-tab="holds">Holds</button>
         <button class="request-tab-pill {% if active_tab == 'borrows' %}active{% endif %}" data-tab="borrows">Borrows</button>
         <button class="request-tab-pill {% if active_tab == 'book_requests' %}active{% endif %}" data-tab="book_requests">Book Request</button>
         <button class="request-tab-pill {% if active_tab == 'exchanges' %}active{% endif %}" data-tab="exchanges">Exchanges</button>
@@ -24,10 +23,6 @@
         <!-- Search form -->
             <form method="get" action="{{ url_for('request.my_requests') }}" id="requestSearchForm">
                 <input type="hidden" name="tab" id="active_tab" value="{{ active_tab }}">
-                <input type="hidden" name="search_title_holds" id="search_title_holds" value="{{ search_values['holds']['title'] }}">
-                <input type="hidden" name="search_author_holds" id="search_author_holds" value="{{ search_values['holds']['author'] }}">
-                <input type="hidden" name="search_date_holds" id="search_date_holds" value="{{ search_values['holds']['date'] }}">
-                <input type="hidden" name="search_status_holds" id="search_status_holds" value="{{ search_values['holds']['status'] }}">
                 <input type="hidden" name="search_title_borrows" id="search_title_borrows" value="{{ search_values['borrows']['title'] }}">
                 <input type="hidden" name="search_author_borrows" id="search_author_borrows" value="{{ search_values['borrows']['author'] }}">
                 <input type="hidden" name="search_date_borrows" id="search_date_borrows" value="{{ search_values['borrows']['date'] }}">
@@ -90,38 +85,6 @@
                         </th>
                     </tr>
                 </thead>
-                <tbody data-tab-panel="holds" class="{% if active_tab != 'holds' %}hidden{% endif %}">
-                    {% if holds %}
-                        {% for req in holds %}
-                        <tr>
-                            <td>{{ req.item_title }}</td>
-                            <td>{{ req.item_author }}</td>
-                            <td>{{ req.request_date }}</td>
-                            <td class="col-status"><span class="request-status {{ req.status|lower }}">{{ req.status }}</span></td>
-                            <td>
-                                <div class="manage-btns">
-                                    <span class="no-action">N/A</span>
-                                    <span class="info-wrapper"  data-request-id="{{ req.request_id }}"
-                                                                data-request-type="Hold"
-                                                                data-isbn="{{ req.isbn }}"
-                                                                data-title="{{ req.item_title | e }}"
-                                                                data-publisher="{{ req.publisher | e }}"
-                                                                data-publication-date="{{ req.publication_date }}"
-                                                                data-author="{{ req.item_author | e }}"
-                                                                data-date="{{ req.request_date }}"
-                                                                data-status="{{ req.status }}">
-                                        <button class="info-btn" type="button">
-                                            i
-                                        </button>
-                                    </span>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr><td colspan="5" style="text-align:center; padding: 20px; color: #888;">No hold requests.</td></tr>
-                    {% endif %}
-                </tbody>
                 <tbody data-tab-panel="borrows" class="{% if active_tab != 'borrows' %}hidden{% endif %}">
                     {% if borrows %}
                         {% for req in borrows %}

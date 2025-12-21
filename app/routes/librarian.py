@@ -39,7 +39,7 @@ def requests():
 
     cursor = get_cursor()
 
-    tabs = ["holds", "borrows", "book_requests", "exchanges", "donations"]
+    tabs = ["borrows", "book_requests", "exchanges", "donations"]
     active_tab = (request.args.get("tab") or "borrows").strip() or "borrows"
     if active_tab not in tabs:
         active_tab = "borrows"
@@ -111,25 +111,6 @@ def requests():
 
         where_sql = (" AND " + " AND ".join(where)) if where else ""
         return where_sql, params
-
-    # HOLDS
-    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["holds"], active_tab == "holds")
-    cursor.execute(f"""
-        SELECT r.request_id, r.request_date, r.status, r.reader_id AS user_id,
-               CONCAT_WS(' ', u.user_first_name, u.user_middle_name, u.user_last_name) AS user_full_name,
-               b.title AS item_title,
-               GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
-        FROM Request r
-        JOIN User u ON r.reader_id = u.user_id
-        JOIN Book b ON r.book_id = b.book_id
-        LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
-        LEFT JOIN Author a ON ba.author_id = a.author_id
-        WHERE r.request_type = 'Hold'{where_sql}
-        GROUP BY r.request_id, r.reader_id, u.user_first_name, u.user_middle_name, u.user_last_name,
-                 b.title, r.request_date, r.status
-        ORDER BY r.request_date DESC
-    """, params)
-    holds = cursor.fetchall()
 
     # BORROWS
     where_sql, params = build_request_filters("b.title", "a.author_name", search_values["borrows"], active_tab == "borrows")
@@ -219,7 +200,6 @@ def requests():
 
     return render_template(
         "librarian-requests.html",
-        holds=holds,
         borrows=borrows,
         book_requests=book_requests,
         exchanges=exchanges,

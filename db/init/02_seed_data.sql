@@ -262,28 +262,28 @@ VALUES
 ('9780385472579', 'The Things They Carried', 'Houghton Mifflin', '1990-03-28', 'Tim O’Brien'),
 ('9780307474278', 'The Lost Symbol', 'Doubleday', '2009-09-15', 'Dan Brown');
 
-INSERT INTO Request (request_type, expire_date, status, material_id, reader_id, book_id, exchange_book_id)
+INSERT INTO Request (request_date, expire_date, request_type, status, material_id, reader_id, book_id, exchange_book_id)
 VALUES
--- Hold Requests (existing books)
-('Hold', '2025-11-20 23:59:59', 'Pending', NULL, 1, 3, NULL),
-('Hold', '2025-11-18 23:59:59', 'Approved', NULL, 2, 7, NULL),
-('Hold', '2025-11-25 23:59:59', 'Pending', NULL, 3, 1, NULL),
+-- Hold Requests (existing books) - no expiration
+('2025-11-06 09:00:00', NULL, 'Hold', 'Pending', NULL, 1, 3, NULL),
+('2025-11-06 10:15:00', NULL, 'Hold', 'Approved', NULL, 2, 7, NULL),
+('2025-11-07 14:30:00', NULL, 'Hold', 'Pending', NULL, 3, 1, NULL),
 
 -- Borrow Requests (existing books)
-('Borrow', '2025-11-30 23:59:59', 'Approved', NULL, 1, 2, NULL),
-('Borrow', '2025-11-28 23:59:59', 'Pending', NULL, 4, 6, NULL),
+('2025-11-05 12:00:00', '2025-11-19 12:00:00', 'Borrow', 'Approved', NULL, 1, 2, NULL),
+('2025-11-08 16:20:00', '2025-11-22 16:20:00', 'Borrow', 'Pending', NULL, 4, 6, NULL),
 
 -- Book Request Requests
-('Book Request', NULL, 'Pending', 1, 2, NULL, NULL),
-('Book Request', NULL, 'Approved', 2, 3, NULL, NULL),
-('Book Request', NULL, 'Rejected', 3, 1, NULL, NULL),
-('Book Request', NULL, 'Pending', 4, 4, NULL, NULL),
-('Book Request', NULL, 'Approved', 5, 3, NULL, NULL),
+('2025-11-04 09:45:00', '2025-11-18 09:45:00', 'Book Request', 'Pending', 1, 2, NULL, NULL),
+('2025-11-04 11:10:00', '2025-11-18 11:10:00', 'Book Request', 'Approved', 2, 3, NULL, NULL),
+('2025-11-04 13:30:00', '2025-11-18 13:30:00', 'Book Request', 'Rejected', 3, 1, NULL, NULL),
+('2025-11-05 10:05:00', '2025-11-19 10:05:00', 'Book Request', 'Pending', 4, 4, NULL, NULL),
+('2025-11-05 15:00:00', '2025-11-19 15:00:00', 'Book Request', 'Approved', 5, 3, NULL, NULL),
 
 -- **EXCHANGE REQUESTS**
 -- 1. Jane (Reader 2) requests John's "Fourth Wing" (Book 11). 
 --    This will show up as an "Incoming Request" when you log in as John.
-('Exchange', NULL, 'Pending', NULL, 2, 11, NULL); 
+('2025-11-06 18:00:00', '2025-11-20 18:00:00', 'Exchange', 'Pending', NULL, 2, 11, NULL);
 
 INSERT INTO Log (log_date, source, log_level, log_node, log_message)
 VALUES

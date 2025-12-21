@@ -27,6 +27,7 @@ services:
 
   db:
     image: mysql:5.7
+    command: --event_scheduler=ON
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: shareshelfdb

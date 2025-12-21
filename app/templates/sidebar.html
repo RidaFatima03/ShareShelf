@@ -126,15 +126,25 @@
                 {% endif %}
 
                 {% if session.get('user_type') in ['Librarian'] %}
-<a href="{{ url_for('librarian.requests') }}"
-    class="nav-item {% if request.endpoint == 'librarian.requests' %}active{% endif %}">
-    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666"
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"></circle>
-        <polyline points="12 6 12 12 16 14"></polyline>
-    </svg>
-    <span>All Requests</span>
-</a>
+                <a href="{{ url_for('librarian.requests') }}"
+                    class="nav-item {% if request.endpoint == 'librarian.requests' %}active{% endif %}">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>All Requests</span>
+                </a>
+
+                <a href="{{ url_for('copies.list') }}"
+                    class="nav-item {% if request.endpoint == 'copies.list' %}active{% endif %}">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                    <span>Manage Copies</span>
+                </a>
 
                 <a href="{{ url_for('librarian.authors') }}"
                     class="nav-item {% if request.endpoint == 'librarian.authors' %}active{% endif %}">

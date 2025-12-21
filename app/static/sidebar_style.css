@@ -2008,6 +2008,20 @@ html.sidebar-closed-init .filters-results.main-content {
     overflow-x: auto;
 }
 
+.table-wrapper-scroll {
+    overflow-x: auto;
+}
+
+.table-wrapper-scroll .activity-table {
+    width: max-content;
+    min-width: 100%;
+}
+
+.table-wrapper-scroll .activity-table th,
+.table-wrapper-scroll .activity-table td {
+    white-space: nowrap;
+}
+
 .checkouts-table,
 .fines-table,
 .requests-table {

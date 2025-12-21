@@ -1,5 +1,6 @@
 # routes/admin.py
 from flask import Blueprint, render_template, request, redirect, url_for, session
+import math
 import MySQLdb.cursors
 from extensions import mysql
 
@@ -27,8 +28,14 @@ def system_logs():
 
     selected_source = request.args.get('source') or ''
     selected_level = request.args.get('log_level') or ''
+    node_query = request.args.get('node_query') or ''
+    message_query = request.args.get('message_query') or ''
     start_date = request.args.get('start_date') or ''
     end_date = request.args.get('end_date') or ''
+    page = request.args.get('page', default=1, type=int)
+    per_page = 20
+    if page < 1:
+        page = 1
 
     cursor.execute("SELECT DISTINCT source FROM Log ORDER BY source;")
     sources = [row['source'] for row in cursor.fetchall()]
@@ -38,6 +45,7 @@ def system_logs():
 
     query = """
         SELECT
+            log_id,
             log_date,
             source,
             log_level,
@@ -45,6 +53,7 @@ def system_logs():
             log_message
         FROM Log
     """
+    count_query = "SELECT COUNT(*) AS total FROM Log"
     conditions = []
     params = []
 
@@ -56,6 +65,14 @@ def system_logs():
         conditions.append("log_level = %s")
         params.append(selected_level)
 
+    if node_query:
+        conditions.append("log_node LIKE %s")
+        params.append(f"%{node_query}%")
+
+    if message_query:
+        conditions.append("log_message LIKE %s")
+        params.append(f"%{message_query}%")
+
     if start_date:
         conditions.append("log_date >= %s")
         params.append(start_date)
@@ -65,11 +82,21 @@ def system_logs():
         params.append(end_date)
 
     if conditions:
-        query += " WHERE " + " AND ".join(conditions)
+        where_clause = " WHERE " + " AND ".join(conditions)
+        query += where_clause
+        count_query += where_clause
 
-    query += " ORDER BY log_date DESC;"
+    query += " ORDER BY log_date DESC LIMIT %s OFFSET %s"
+    params_with_page = params + [per_page, (page - 1) * per_page]
 
-    cursor.execute(query, tuple(params))
+    cursor.execute(count_query, tuple(params))
+    total_count = cursor.fetchone().get('total', 0)
+    total_pages = max(1, math.ceil(total_count / per_page)) if total_count else 1
+    if page > total_pages:
+        page = total_pages
+        params_with_page = params + [per_page, (page - 1) * per_page]
+
+    cursor.execute(query, tuple(params_with_page))
     logs = cursor.fetchall()
 
     return render_template(
@@ -80,7 +107,13 @@ def system_logs():
         selected_source=selected_source,
         selected_level=selected_level,
         start_date=start_date,
-        end_date=end_date
+        end_date=end_date,
+        node_query=node_query,
+        message_query=message_query,
+        page=page,
+        total_pages=total_pages,
+        has_prev=page > 1,
+        has_next=page < total_pages
     )
 
 
@@ -94,14 +127,20 @@ def user_activity():
 
     action_type = request.args.get('action_type') or ''
     user_query = request.args.get('user_query') or ''
+    description_query = request.args.get('description_query') or ''
     start_date = request.args.get('start_date') or ''
     end_date = request.args.get('end_date') or ''
+    page = request.args.get('page', default=1, type=int)
+    per_page = 20
+    if page < 1:
+        page = 1
 
     cursor.execute("SELECT DISTINCT action_type FROM user_activity_log ORDER BY action_type;")
     action_types = [row['action_type'] for row in cursor.fetchall()]
 
     query = """
         SELECT
+          l.log_id,
           l.action_date,
           u.user_id,
           l.action_type,
@@ -110,6 +149,11 @@ def user_activity():
         JOIN User AS u ON u.user_id = l.user_id
     """
 
+    count_query = """
+        SELECT COUNT(*) AS total
+        FROM user_activity_log AS l
+        JOIN User AS u ON u.user_id = l.user_id
+    """
     conditions = []
     params = []
 
@@ -121,6 +165,10 @@ def user_activity():
         conditions.append("u.user_id = %s")
         params.append(user_query)
 
+    if description_query:
+        conditions.append("l.details LIKE %s")
+        params.append(f"%{description_query}%")
+
     if start_date:
         conditions.append("l.action_date >= %s")
         params.append(start_date)
@@ -130,11 +178,21 @@ def user_activity():
         params.append(end_date)
 
     if conditions:
-        query += " WHERE " + " AND ".join(conditions)
+        where_clause = " WHERE " + " AND ".join(conditions)
+        query += where_clause
+        count_query += where_clause
 
-    query += " ORDER BY l.action_date DESC"
+    query += " ORDER BY l.action_date DESC LIMIT %s OFFSET %s"
+    params_with_page = params + [per_page, (page - 1) * per_page]
 
-    cursor.execute(query, params)
+    cursor.execute(count_query, params)
+    total_count = cursor.fetchone().get('total', 0)
+    total_pages = max(1, math.ceil(total_count / per_page)) if total_count else 1
+    if page > total_pages:
+        page = total_pages
+        params_with_page = params + [per_page, (page - 1) * per_page]
+
+    cursor.execute(query, params_with_page)
     logs = cursor.fetchall()
 
     cursor.execute("""
@@ -159,8 +217,13 @@ def user_activity():
         action_types=action_types,
         selected_action=action_type,
         user_query=user_query,
+        description_query=description_query,
         start_date=start_date,
-        end_date=end_date
+        end_date=end_date,
+        page=page,
+        total_pages=total_pages,
+        has_prev=page > 1,
+        has_next=page < total_pages
     )
 
 

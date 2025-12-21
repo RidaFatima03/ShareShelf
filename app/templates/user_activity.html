@@ -5,83 +5,210 @@
 
     <h1 class="page-title">User Activity</h1>
 
-    <!-- Filters -->
-    <form method="get" class="activity-filters">
-        <div class="filter-row">
-
-            <!-- Action Type -->
-            <div class="filter-group">
-                <label>Action Type</label>
-                <select name="action_type">
-                    <option value="">All</option>
-                    {% for a in action_types %}
-                    <option value="{{ a }}" {% if a == selected_action %}selected{% endif %}>
-                        {{ a }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Date Range -->
-            <div class="filter-group">
-                <label>Action Date Range</label>
-                <div class="date-range">
-                    <input type="date" name="start_date" value="{{ start_date }}">
-                    <span>–</span>
-                    <input type="date" name="end_date" value="{{ end_date }}">
-                </div>
-            </div>
-
-            <!-- User -->
-            <div class="filter-group">
-                <label>User</label>
-                <input type="text" name="user_query" placeholder="Search by user ID…" value="{{ user_query }}">
-            </div>
-
-            <!-- Buttons -->
-            <div class="filter-actions">
-                <button class="btn btn-primary" type="submit">
-                    <i class="fa-solid fa-filter"></i> Apply Filters
-                </button>
-
-                <a href="{{ url_for('admin.user_activity') }}" class="btn btn-secondary">
-                    Clear Filters
-                </a>
-            </div>
-        </div>
-    </form>
-
     <!-- Table -->
-    <div class="activity-table-wrapper">
-        <table class="activity-table">
-            <thead>
-                <tr>
-                    <th>Timestamp</th>
-                    <th>User ID</th>
-                    <th>Activity Type</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if logs %}
-                    {% for log in logs %}
+    <div class="table-wrapper table-wrapper-scroll">
+        <form method="get" class="table-filter-form">
+            <table class="activity-table">
+                <thead>
                     <tr>
-                        <td>{{ log.action_date }}</td>
-                        <td>{{ log.user_id }}</td>
-                        <td>{{ log.action_type }}</td>
-                        <td>{{ log.details }}</td>
+                        <th>
+                            Timestamp<br>
+                            <div class="table-date-range">
+                                <input type="date"
+                                       name="start_date"
+                                       class="filter-input filter-input-manage"
+                                       value="{{ start_date }}">
+                                <input type="date"
+                                       name="end_date"
+                                       class="filter-input filter-input-manage"
+                                       value="{{ end_date }}">
+                            </div>
+                        </th>
+                        <th class="col-user-id">
+                            User ID<br>
+                            <input type="text"
+                                   name="user_query"
+                                   placeholder="Search user ID..."
+                                   value="{{ user_query }}"
+                                   class="filter-input filter-input-manage">
+                        </th>
+                        <th>
+                            Activity Type<br>
+                            <select name="action_type" class="filter-input filter-input-manage">
+                                <option value="">All</option>
+                                {% for a in action_types %}
+                                <option value="{{ a }}" {% if a == selected_action %}selected{% endif %}>
+                                    {{ a }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </th>
+                        <th>
+                            Description<br>
+                            <input type="text"
+                                   name="description_query"
+                                   placeholder="Search description..."
+                                   value="{{ description_query }}"
+                                   class="filter-input filter-input-manage">
+                        </th>
+                        <th class="col-actions">
+                            Actions<br>
+                            <div class="table-filter-actions">
+                                <button class="logout-link btn-apply filter-action-btn" type="submit">
+                                    Apply
+                                </button>
+                                <a href="{{ url_for('admin.user_activity') }}" class="logout-link btn-cancel filter-action-btn">
+                                    Clear
+                                </a>
+                            </div>
+                        </th>
                     </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="4" class="no-data">No activity found.</td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% if logs %}
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.action_date }}</td>
+                            <td class="col-user-id">{{ log.user_id }}</td>
+                            <td>{{ log.action_type }}</td>
+                            <td>{{ log.details }}</td>
+                            <td class="col-actions">
+                                <div class="manage-btns">
+                                    <span class="info-wrapper"
+                                          data-activity-id="{{ log.log_id }}"
+                                          data-activity-date="{{ log.action_date }}"
+                                          data-activity-user="{{ log.user_id }}"
+                                          data-activity-type="{{ log.action_type | e }}"
+                                          data-activity-details="{{ log.details | e }}">
+                                        <button class="info-btn" type="button">i</button>
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="no-data">No activity found.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </form>
 
         <p class="logs-footer">Recent activities, sorted by date.</p>
     </div>
 
+    <nav class="pagination-container mt-4">
+        <ul class="pagination">
+            <li class="page-item {% if not has_prev %}disabled{% endif %}">
+                <a class="page-link"
+                    href="{% if has_prev %}{{ url_for('admin.user_activity', page=page-1, action_type=selected_action, user_query=user_query, description_query=description_query, start_date=start_date, end_date=end_date) }}{% else %}#{% endif %}">
+                    Previous
+                </a>
+            </li>
+
+            {% for p in range(1, total_pages + 1) %}
+            <li class="page-item {% if p == page %}active{% endif %}">
+                <a class="page-link"
+                    href="{{ url_for('admin.user_activity', page=p, action_type=selected_action, user_query=user_query, description_query=description_query, start_date=start_date, end_date=end_date) }}">
+                    {{ p }}
+                </a>
+            </li>
+            {% endfor %}
+
+            <li class="page-item {% if not has_next %}disabled{% endif %}">
+                <a class="page-link"
+                    href="{% if has_next %}{{ url_for('admin.user_activity', page=page+1, action_type=selected_action, user_query=user_query, description_query=description_query, start_date=start_date, end_date=end_date) }}{% else %}#{% endif %}">
+                    Next
+                </a>
+            </li>
+        </ul>
+    </nav>
+
 </div>
+
+<div id="viewActivityModal" class="custom-modal" aria-hidden="true">
+  <div class="custom-modal-backdrop close-view-activity-modal"></div>
+
+  <div class="custom-modal-dialog">
+    <div class="custom-modal-header">
+      <h5 class="filters-column-title pop-up-header">Activity Details</h5>
+      <button type="button" class="custom-modal-close close-view-activity-modal" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="filter-input-group">
+      <div class="view-row">
+        <span class="filter-label">Log ID:</span>
+        <span id="va_id"></span>
+      </div>
+
+      <div class="view-row">
+        <span class="filter-label">Action Date:</span>
+        <span id="va_date"></span>
+      </div>
+
+      <div class="view-row">
+        <span class="filter-label">User ID:</span>
+        <span id="va_user"></span>
+      </div>
+
+      <div class="view-row">
+        <span class="filter-label">Action Type:</span>
+        <span id="va_type"></span>
+      </div>
+
+      <div class="view-row">
+        <span class="filter-label">Details:</span>
+        <span id="va_details"></span>
+      </div>
+    </div>
+
+    <div class="custom-modal-footer">
+      <button type="button" class="logout-link btn-cancel close-view-activity-modal">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('viewActivityModal');
+  const closeElems = document.querySelectorAll('.close-view-activity-modal');
+  const vaId = document.getElementById('va_id');
+  const vaDate = document.getElementById('va_date');
+  const vaUser = document.getElementById('va_user');
+  const vaType = document.getElementById('va_type');
+  const vaDetails = document.getElementById('va_details');
+
+  function openModal() {
+    modal.classList.add('show');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeModal() {
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  document.querySelectorAll('.info-wrapper .info-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const wrapper = e.currentTarget.closest('.info-wrapper');
+      if (!wrapper) return;
+
+      vaId.textContent = wrapper.dataset.activityId || '-';
+      vaDate.textContent = wrapper.dataset.activityDate || '-';
+      vaUser.textContent = wrapper.dataset.activityUser || '-';
+      vaType.textContent = wrapper.dataset.activityType || '-';
+      vaDetails.textContent = wrapper.dataset.activityDetails || '-';
+
+      openModal();
+    });
+  });
+
+  closeElems.forEach(el => el.addEventListener('click', closeModal));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('show')) closeModal();
+  });
+});
+</script>
 {% endblock %}

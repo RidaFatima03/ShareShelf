@@ -314,8 +314,8 @@ def borrow_book(copy_id):
             return redirect(request.referrer)
 
         cursor.execute("""
-            INSERT INTO Request (request_date, request_type, status, reader_id, book_id)
-            VALUES (NOW(), 'Borrow', 'Pending', %s, %s)
+            INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id)
+            VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Borrow', 'Pending', %s, %s)
         """, (user_id, copy_data['book_id']))
 
         mysql.connection.commit()
@@ -363,8 +363,8 @@ def hold_book(book_id):
             flash("You already have an active hold on this book.", "warning")
         else:
             insert_query = """
-                INSERT INTO Request (request_date, request_type, status, reader_id, book_id)
-                VALUES (NOW(), 'Hold', 'Pending', %s, %s)
+                INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id)
+                VALUES (NOW(), NULL, 'Hold', 'Pending', %s, %s)
             """
             cursor.execute(insert_query, (user_id, book_id))
             mysql.connection.commit()
@@ -391,8 +391,8 @@ def add_book():
             if mode == 'existing':
                 book_id = request.form.get('book_id')
                 cursor.execute("""
-                    INSERT INTO Request (request_date, request_type, status, reader_id, book_id) 
-                    VALUES (NOW(), 'Donation', 'Pending', %s, %s)
+                    INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id) 
+                    VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Donation', 'Pending', %s, %s)
                 """, (user_id, book_id))
                 
             elif mode == 'manual':
@@ -414,8 +414,8 @@ def add_book():
                     material_id = cursor.lastrowid
                 
                 cursor.execute("""
-                    INSERT INTO Request (request_date, request_type, status, reader_id, material_id) 
-                    VALUES (NOW(), 'Donation', 'Pending', %s, %s)
+                    INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, material_id) 
+                    VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Donation', 'Pending', %s, %s)
                 """, (user_id, material_id))
             
             mysql.connection.commit()
@@ -836,8 +836,8 @@ def request_exchange(barcode):
                 """, (existing_req['request_id'],))
         else:
             cursor.execute("""
-                INSERT INTO Request (request_date, request_type, status, reader_id, book_id) 
-                VALUES (NOW(), 'Exchange', 'Pending', %s, %s)
+                INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id) 
+                VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Exchange', 'Pending', %s, %s)
             """, (user_id, copy['book_id']))
         
         owner_id = copy['owner_id']

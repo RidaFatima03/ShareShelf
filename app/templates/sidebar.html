@@ -136,43 +136,36 @@
                     <span>All Requests</span>
                 </a>
 
-                <a href="{{ url_for('copies.list') }}"
-                    class="nav-item {% if request.endpoint == 'copies.list' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                    </svg>
-                    <span>Manage Copies</span>
-                </a>
-
-                <a href="{{ url_for('librarian.authors') }}"
-                    class="nav-item {% if request.endpoint == 'librarian.authors' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    <span>Manage Authors</span>
-
-                <a href="{{ url_for('librarian.genres') }}"
-                    class="nav-item {% if request.endpoint == 'librarian.genres' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 12v7a2 2 0 0 1-2 2h-7"></path>
-                        <path d="M4 12V5a2 2 0 0 1 2-2h7"></path>
-                        <line x1="8" y1="8" x2="16" y2="16"></line>
-                    </svg>
-                    <span>Manage Genres</span>
-
-                <a href="{{ url_for('librarian.books') }}" 
-                   class="nav-item {% if request.endpoint == 'librarian.books' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                    </svg>
-                    <span>Manage Books</span>
+                <details class="nav-group" {% if request.endpoint in ['copies.list','librarian.authors','librarian.genres','librarian.books'] %}open{% endif %}>
+                    <summary class="nav-item">
+                        <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                        <span>Manage Catalog</span>
+                        <svg class="nav-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666666"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </summary>
+                    <a href="{{ url_for('librarian.authors') }}"
+                        class="nav-item {% if request.endpoint == 'librarian.authors' %}active{% endif %}">
+                        <span>Manage Authors</span>
+                    </a>
+                    <a href="{{ url_for('librarian.books') }}" 
+                       class="nav-item {% if request.endpoint == 'librarian.books' %}active{% endif %}">
+                        <span>Manage Books</span>
+                    </a>
+                    <a href="{{ url_for('copies.list') }}"
+                        class="nav-item {% if request.endpoint == 'copies.list' %}active{% endif %}">
+                        <span>Manage Copies</span>
+                    </a>
+                    <a href="{{ url_for('librarian.genres') }}"
+                        class="nav-item {% if request.endpoint == 'librarian.genres' %}active{% endif %}">
+                        <span>Manage Genres</span>
+                    </a>
+                </details>
 
                 <a href="{{ url_for('policy.policy') }}"
                     class="nav-item {% if request.endpoint == 'policy.policy' %}active{% endif %}">

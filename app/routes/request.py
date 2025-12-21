@@ -15,7 +15,7 @@ def my_requests():
     user_id = session["userid"]
     cursor = get_cursor()
 
-    tabs = ["borrows", "donations", "book_requests"]
+    tabs = ["holds", "borrows", "book_requests", "exchanges", "donations"]
     active_tab = (request.args.get("tab") or "borrows").strip() or "borrows"
     if active_tab not in tabs:
         active_tab = "borrows"
@@ -72,6 +72,21 @@ def my_requests():
         where_sql = (" AND " + " AND ".join(where)) if where else ""
         return where_sql, params
 
+    # HOLDS
+    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["holds"], active_tab == "holds")
+    cursor.execute(f"""
+        SELECT r.request_id, r.request_date, r.status, b.title AS item_title,
+               GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
+        FROM Request r
+        JOIN Book b ON r.book_id = b.book_id
+        LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
+        LEFT JOIN Author a ON ba.author_id = a.author_id
+        WHERE r.reader_id = %s AND r.request_type = 'Hold'{where_sql}
+        GROUP BY r.request_id, b.title, r.request_date, r.status
+        ORDER BY r.request_date DESC
+    """, [user_id] + params)
+    holds = cursor.fetchall()
+
     # BORROWS
     where_sql, params = build_request_filters("b.title", "a.author_name", search_values["borrows"], active_tab == "borrows")
     cursor.execute(f"""
@@ -86,6 +101,21 @@ def my_requests():
         ORDER BY r.request_date DESC
     """, [user_id] + params)
     borrows = cursor.fetchall()
+
+    # EXCHANGES
+    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["exchanges"], active_tab == "exchanges")
+    cursor.execute(f"""
+        SELECT r.request_id, r.request_date, r.status, b.title AS item_title,
+               GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
+        FROM Request r
+        JOIN Book b ON r.book_id = b.book_id
+        LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
+        LEFT JOIN Author a ON ba.author_id = a.author_id
+        WHERE r.reader_id = %s AND r.request_type = 'Exchange'{where_sql}
+        GROUP BY r.request_id, b.title, r.request_date, r.status
+        ORDER BY r.request_date DESC
+    """, [user_id] + params)
+    exchanges = cursor.fetchall()
 
     # DONATIONS (Book)
     where_sql, params = build_request_filters("b.title", "a.author_name", search_values["donations"], active_tab == "donations")
@@ -127,9 +157,11 @@ def my_requests():
 
     return render_template(
         "my-requests.html",
+        holds=holds,
         borrows=borrows,
-        donations=donations,
         book_requests=book_requests,
+        exchanges=exchanges,
+        donations=donations,
         active_tab=active_tab,
         search_values=search_values,
         active_values=active_values

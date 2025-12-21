@@ -4,11 +4,8 @@
 
 
 <div class="manage-header">
-    <h1 class="page-title">My Requests</h1>
+    <h1 class="page-title">All Requests</h1>
 
-    <button type="button" id="openNewRequestModal" class="logout-link btn-new">
-        New Request
-    </button>
 </div>
 
 <div class="table-wrapper">
@@ -22,31 +19,57 @@
     <table class="activity-table">
 
         <!-- Search form -->
-            <form method="get" action="{{ url_for('request.my_requests') }}" id="requestSearchForm">
+            <form method="get" action="{{ url_for('librarian.requests') }}" id="requestSearchForm">
                 <input type="hidden" name="tab" id="active_tab" value="{{ active_tab }}">
                 <input type="hidden" name="search_title_holds" id="search_title_holds" value="{{ search_values['holds']['title'] }}">
                 <input type="hidden" name="search_author_holds" id="search_author_holds" value="{{ search_values['holds']['author'] }}">
                 <input type="hidden" name="search_date_holds" id="search_date_holds" value="{{ search_values['holds']['date'] }}">
                 <input type="hidden" name="search_status_holds" id="search_status_holds" value="{{ search_values['holds']['status'] }}">
+                <input type="hidden" name="search_user_id_holds" id="search_user_id_holds" value="{{ search_values['holds']['user_id'] }}">
+                <input type="hidden" name="search_user_name_holds" id="search_user_name_holds" value="{{ search_values['holds']['user_name'] }}">
                 <input type="hidden" name="search_title_borrows" id="search_title_borrows" value="{{ search_values['borrows']['title'] }}">
                 <input type="hidden" name="search_author_borrows" id="search_author_borrows" value="{{ search_values['borrows']['author'] }}">
                 <input type="hidden" name="search_date_borrows" id="search_date_borrows" value="{{ search_values['borrows']['date'] }}">
                 <input type="hidden" name="search_status_borrows" id="search_status_borrows" value="{{ search_values['borrows']['status'] }}">
+                <input type="hidden" name="search_user_id_borrows" id="search_user_id_borrows" value="{{ search_values['borrows']['user_id'] }}">
+                <input type="hidden" name="search_user_name_borrows" id="search_user_name_borrows" value="{{ search_values['borrows']['user_name'] }}">
                 <input type="hidden" name="search_title_book_requests" id="search_title_book_requests" value="{{ search_values['book_requests']['title'] }}">
                 <input type="hidden" name="search_author_book_requests" id="search_author_book_requests" value="{{ search_values['book_requests']['author'] }}">
                 <input type="hidden" name="search_date_book_requests" id="search_date_book_requests" value="{{ search_values['book_requests']['date'] }}">
                 <input type="hidden" name="search_status_book_requests" id="search_status_book_requests" value="{{ search_values['book_requests']['status'] }}">
+                <input type="hidden" name="search_user_id_book_requests" id="search_user_id_book_requests" value="{{ search_values['book_requests']['user_id'] }}">
+                <input type="hidden" name="search_user_name_book_requests" id="search_user_name_book_requests" value="{{ search_values['book_requests']['user_name'] }}">
                 <input type="hidden" name="search_title_exchanges" id="search_title_exchanges" value="{{ search_values['exchanges']['title'] }}">
                 <input type="hidden" name="search_author_exchanges" id="search_author_exchanges" value="{{ search_values['exchanges']['author'] }}">
                 <input type="hidden" name="search_date_exchanges" id="search_date_exchanges" value="{{ search_values['exchanges']['date'] }}">
                 <input type="hidden" name="search_status_exchanges" id="search_status_exchanges" value="{{ search_values['exchanges']['status'] }}">
+                <input type="hidden" name="search_user_id_exchanges" id="search_user_id_exchanges" value="{{ search_values['exchanges']['user_id'] }}">
+                <input type="hidden" name="search_user_name_exchanges" id="search_user_name_exchanges" value="{{ search_values['exchanges']['user_name'] }}">
                 <input type="hidden" name="search_title_donations" id="search_title_donations" value="{{ search_values['donations']['title'] }}">
                 <input type="hidden" name="search_author_donations" id="search_author_donations" value="{{ search_values['donations']['author'] }}">
                 <input type="hidden" name="search_date_donations" id="search_date_donations" value="{{ search_values['donations']['date'] }}">
                 <input type="hidden" name="search_status_donations" id="search_status_donations" value="{{ search_values['donations']['status'] }}">
+                <input type="hidden" name="search_user_id_donations" id="search_user_id_donations" value="{{ search_values['donations']['user_id'] }}">
+                <input type="hidden" name="search_user_name_donations" id="search_user_name_donations" value="{{ search_values['donations']['user_name'] }}">
 
                 <thead>
                     <tr>
+                        <th class="col-id">
+                            User ID<br>
+                            <input type="text"
+                                    name="search_user_id" id="search_user_id_input"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="User ID..."
+                                    value="{{ active_values['user_id'] }}">
+                        </th>
+                        <th class="col-user-name">
+                            User Name<br>
+                            <input type="text"
+                                    name="search_user_name" id="search_user_name_input"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="User name..."
+                                    value="{{ active_values['user_name'] }}">
+                        </th>
                         <th>
                             Book Title<br>
                             <input type="text"
@@ -55,7 +78,7 @@
                                     placeholder="Search title..."
                                     value="{{ active_values['title'] }}">
                         </th>
-                        <th>
+                        <th class="col-author">
                             Author<br>
                             <input type="text"
                                     name="search_author" id="search_author_input"
@@ -94,8 +117,10 @@
                     {% if holds %}
                         {% for req in holds %}
                         <tr>
+                            <td class="col-id">{{ req.user_id }}</td>
+                            <td class="col-user-name">{{ req.user_full_name }}</td>
                             <td>{{ req.item_title }}</td>
-                            <td>{{ req.item_author }}</td>
+                            <td class="col-author">{{ req.item_author }}</td>
                             <td>{{ req.request_date }}</td>
                             <td class="col-status"><span class="request-status {{ req.status|lower }}">{{ req.status }}</span></td>
                             <td>
@@ -103,6 +128,8 @@
                                     <span class="no-action">N/A</span>
                                     <span class="info-wrapper"  data-request-id="{{ req.request_id }}"
                                                                 data-request-type="Hold"
+                                                                data-user-id="{{ req.user_id }}"
+                                                                data-user-name="{{ req.user_full_name | e }}"
                                                                 data-isbn="{{ req.isbn }}"
                                                                 data-title="{{ req.item_title | e }}"
                                                                 data-publisher="{{ req.publisher | e }}"
@@ -119,28 +146,26 @@
                         </tr>
                         {% endfor %}
                     {% else %}
-                        <tr><td colspan="5" style="text-align:center; padding: 20px; color: #888;">No hold requests.</td></tr>
+                        <tr><td colspan="7" style="text-align:center; padding: 20px; color: #888;">No hold requests.</td></tr>
                     {% endif %}
                 </tbody>
                 <tbody data-tab-panel="borrows" class="{% if active_tab != 'borrows' %}hidden{% endif %}">
                     {% if borrows %}
                         {% for req in borrows %}
                         <tr>
+                            <td class="col-id">{{ req.user_id }}</td>
+                            <td class="col-user-name">{{ req.user_full_name }}</td>
                             <td>{{ req.item_title }}</td>
-                            <td>{{ req.item_author }}</td>
+                            <td class="col-author">{{ req.item_author }}</td>
                             <td>{{ req.request_date }}</td>
                             <td class="col-status"><span class="request-status {{ req.status|lower }}">{{ req.status }}</span></td>
                             <td>
                                 <div class="manage-btns">
-                                    {% if req.status == 'Pending' %}
-                                        <form action="{{ url_for('request.cancel_request', request_id=req.request_id) }}" method="POST">
-                                            <button type="submit" class="action-button primary">Cancel</button>
-                                        </form>
-                                    {% else %}
-                                        <span class="no-action">N/A</span>
-                                    {% endif %}
+                                    <span class="no-action">N/A</span>
                                     <span class="info-wrapper"  data-request-id="{{ req.request_id }}"
                                                                 data-request-type="Borrow"
+                                                                data-user-id="{{ req.user_id }}"
+                                                                data-user-name="{{ req.user_full_name | e }}"
                                                                 data-isbn="{{ req.isbn }}"
                                                                 data-title="{{ req.item_title | e }}"
                                                                 data-publisher="{{ req.publisher | e }}"
@@ -157,30 +182,28 @@
                         </tr>
                         {% endfor %}
                     {% else %}
-                        <tr><td colspan="5" style="text-align:center; padding: 20px; color: #888;">No pending borrow requests.</td></tr>
+                        <tr><td colspan="7" style="text-align:center; padding: 20px; color: #888;">No pending borrow requests.</td></tr>
                     {% endif %}
                 </tbody>
                 <tbody data-tab-panel="donations" class="{% if active_tab != 'donations' %}hidden{% endif %}">
                     {% if donations %}
                         {% for don in donations %}
                         <tr>
+                            <td class="col-id">{{ don.user_id }}</td>
+                            <td class="col-user-name">{{ don.user_full_name }}</td>
                             <td>{{ don.item_title }}</td>
-                            <td>{{ don.item_author }}</td>
+                            <td class="col-author">{{ don.item_author }}</td>
                             <td>{{ don.request_date }}</td>
                             
                             <td class="col-status"><span class="request-status {{ don.status|lower }}">{{ don.status }}</span></td>
                             
                             <td>
                                 <div class="manage-btns">
-                                    {% if don.status == 'Pending' %}
-                                        <form action="{{ url_for('request.cancel_request', request_id=don.request_id) }}" method="POST">
-                                            <button type="submit" class="logout-link btn-cancel">Cancel</button>
-                                        </form>
-                                    {% else %}
-                                        <span class="no-action">Processed</span>
-                                    {% endif %}
+                                    <span class="no-action">N/A</span>
                                     <span class="info-wrapper"  data-request-id="{{ don.request_id }}"
                                                                 data-request-type="Donation"
+                                                                data-user-id="{{ don.user_id }}"
+                                                                data-user-name="{{ don.user_full_name | e }}"
                                                                 data-isbn="{{ don.isbn }}"
                                                                 data-title="{{ don.item_title | e }}"
                                                                 data-publisher="{{ don.publisher | e }}"
@@ -197,28 +220,26 @@
                         </tr>
                         {% endfor %}
                     {% else %}
-                        <tr><td colspan="5" style="text-align:center; padding: 20px; color: #888;">No pending donation requests.</td></tr>
+                        <tr><td colspan="7" style="text-align:center; padding: 20px; color: #888;">No pending donation requests.</td></tr>
                     {% endif %}
                 </tbody>
                 <tbody data-tab-panel="book_requests" class="{% if active_tab != 'book_requests' %}hidden{% endif %}">
                     {% if book_requests %}
                         {% for req in book_requests %}
                         <tr>
+                            <td class="col-id">{{ req.user_id }}</td>
+                            <td class="col-user-name">{{ req.user_full_name }}</td>
                             <td>{{ req.item_title }}</td>
-                            <td>{{ req.item_author }}</td>
+                            <td class="col-author">{{ req.item_author }}</td>
                             <td>{{ req.request_date }}</td>
                             <td class="col-status"><span class="request-status {{ req.status|lower }}">{{ req.status }}</span></td>
                             <td>
                                 <div class="manage-btns">
-                                    {% if req.status == 'Pending' %}
-                                        <form action="{{ url_for('request.cancel_request', request_id=req.request_id) }}" method="POST">
-                                            <button type="submit" class="action-button primary">Cancel</button>
-                                        </form>
-                                    {% else %}
-                                        <span class="no-action">N/A</span>
-                                    {% endif %}
+                                    <span class="no-action">N/A</span>
                                     <span class="info-wrapper"  data-request-id="{{ req.request_id }}"
                                                                 data-request-type="Book Request"
+                                                                data-user-id="{{ req.user_id }}"
+                                                                data-user-name="{{ req.user_full_name | e }}"
                                                                 data-isbn="{{ req.isbn }}"
                                                                 data-title="{{ req.item_title | e }}"
                                                                 data-publisher="{{ req.publisher | e }}"
@@ -235,15 +256,17 @@
                         </tr>
                         {% endfor %}
                     {% else %}
-                        <tr><td colspan="5" style="text-align:center; padding: 20px; color: #888;">No new book requests.</td></tr>
+                        <tr><td colspan="7" style="text-align:center; padding: 20px; color: #888;">No new book requests.</td></tr>
                     {% endif %}
                 </tbody>
                 <tbody data-tab-panel="exchanges" class="{% if active_tab != 'exchanges' %}hidden{% endif %}">
                     {% if exchanges %}
                         {% for req in exchanges %}
                         <tr>
+                            <td class="col-id">{{ req.user_id }}</td>
+                            <td class="col-user-name">{{ req.user_full_name }}</td>
                             <td>{{ req.item_title }}</td>
-                            <td>{{ req.item_author }}</td>
+                            <td class="col-author">{{ req.item_author }}</td>
                             <td>{{ req.request_date }}</td>
                             <td class="col-status"><span class="request-status {{ req.status|lower }}">{{ req.status }}</span></td>
                             <td>
@@ -251,6 +274,8 @@
                                     <span class="no-action">N/A</span>
                                     <span class="info-wrapper"  data-request-id="{{ req.request_id }}"
                                                                 data-request-type="Exchange"
+                                                                data-user-id="{{ req.user_id }}"
+                                                                data-user-name="{{ req.user_full_name | e }}"
                                                                 data-isbn="{{ req.isbn }}"
                                                                 data-title="{{ req.item_title | e }}"
                                                                 data-publisher="{{ req.publisher | e }}"
@@ -267,57 +292,11 @@
                         </tr>
                         {% endfor %}
                     {% else %}
-                        <tr><td colspan="5" style="text-align:center; padding: 20px; color: #888;">No exchange requests.</td></tr>
+                        <tr><td colspan="7" style="text-align:center; padding: 20px; color: #888;">No exchange requests.</td></tr>
                     {% endif %}
                 </tbody>
             </form>
     </table>
-</div>
-
-<!-- New Request Modal -->
-<div id="newRequestModal" class="custom-modal">
-    <div class="custom-modal-backdrop close-new-request-modal"></div>
-
-    <div class="custom-modal-dialog scrollable-modal">
-        <div class="custom-modal-header">
-            <h5 class="filters-column-title pop-up-header">New Request</h5>
-            <button type="button" class="custom-modal-close close-new-request-modal">&times;</button>
-        </div>
-
-        <form method="POST" action="{{ url_for('request.new_request') }}" id="newRequestForm">
-            <div class="filter-input-group">
-                <label for="add_request_type" class="filter-label">Request Type:</label>
-                <select id="add_request_type" name="add_request_type" class="form-control filter-input" required>
-                    <option value="Donation" selected>Donation</option>
-                    <option value="Book Request">Book Request</option>
-                </select>
-            </div>
-            <div class="filter-input-group">
-                <label for="add_isbn" class="filter-label">ISBN:</label>
-                <input type="number" id="add_isbn" name="add_isbn" class="form-control filter-input" required>
-            </div>
-            <div class="filter-input-group">
-                <label for="add_title" class="filter-label">Title:</label>
-                <input type="text" id="add_title" name="add_title" class="form-control filter-input" required>
-            </div>
-            <div class="filter-input-group">
-                <label for="add_publisher" class="filter-label">Publisher:</label>
-                <input type="text" id="add_publisher" name="add_publisher" class="form-control filter-input" required>
-            </div>
-            <div class="filter-input-group">
-                <label for="add_publication_date" class="filter-label">Publication date:</label>
-                <input type="date" id="add_publication_date" name="add_publication_date" class="form-control filter-input" required>
-            </div>
-            <div class="filter-input-group">
-                <label for="add_author" class="filter-label">Author:</label>
-                <input type="text" id="add_author" name="add_author" class="form-control filter-input" required>
-            </div>
-            <div class="custom-modal-footer">
-                <button type="button" class="logout-link btn-cancel close-new-request-modal">Cancel</button>
-                <button type="submit" class="logout-link btn-save">Create Request</button>
-            </div>
-        </form>
-    </div>
 </div>
 
 <!-- View Request Modal -->
@@ -339,6 +318,16 @@
       <div class="view-row">
         <span class="filter-label">Request Type:</span>
         <span id="vr_type"></span>
+      </div>
+
+      <div class="view-row">
+        <span class="filter-label">User ID:</span>
+        <span id="vr_user_id"></span>
+      </div>
+
+      <div class="view-row">
+        <span class="filter-label">User Name:</span>
+        <span id="vr_user_name"></span>
       </div>
 
       <div class="view-row">
@@ -391,6 +380,8 @@
     const clearBtn = document.getElementById('clearFiltersBtn');
 
     const inputs = {
+        userId: document.getElementById('search_user_id_input'),
+        userName: document.getElementById('search_user_name_input'),
         title: document.getElementById('search_title_input'),
         author: document.getElementById('search_author_input'),
         date: document.getElementById('search_date_input'),
@@ -407,11 +398,15 @@
 
     function syncActiveInputsToHidden(tab) {
         if (!tab) return;
+        const userIdHidden = getHidden(tab, 'user_id');
+        const userNameHidden = getHidden(tab, 'user_name');
         const titleHidden = getHidden(tab, 'title');
         const authorHidden = getHidden(tab, 'author');
         const dateHidden = getHidden(tab, 'date');
         const statusHidden = getHidden(tab, 'status');
 
+        if (userIdHidden && inputs.userId) userIdHidden.value = inputs.userId.value;
+        if (userNameHidden && inputs.userName) userNameHidden.value = inputs.userName.value;
         if (titleHidden && inputs.title) titleHidden.value = inputs.title.value;
         if (authorHidden && inputs.author) authorHidden.value = inputs.author.value;
         if (dateHidden && inputs.date) dateHidden.value = inputs.date.value;
@@ -420,11 +415,15 @@
 
     function loadHiddenToActiveInputs(tab) {
         if (!tab) return;
+        const userIdHidden = getHidden(tab, 'user_id');
+        const userNameHidden = getHidden(tab, 'user_name');
         const titleHidden = getHidden(tab, 'title');
         const authorHidden = getHidden(tab, 'author');
         const dateHidden = getHidden(tab, 'date');
         const statusHidden = getHidden(tab, 'status');
 
+        if (inputs.userId) inputs.userId.value = userIdHidden ? userIdHidden.value : '';
+        if (inputs.userName) inputs.userName.value = userNameHidden ? userNameHidden.value : '';
         if (inputs.title) inputs.title.value = titleHidden ? titleHidden.value : '';
         if (inputs.author) inputs.author.value = authorHidden ? authorHidden.value : '';
         if (inputs.date) inputs.date.value = dateHidden ? dateHidden.value : '';
@@ -468,6 +467,8 @@
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
             const current = getCurrentTab();
+            if (inputs.userId) inputs.userId.value = '';
+            if (inputs.userName) inputs.userName.value = '';
             if (inputs.title) inputs.title.value = '';
             if (inputs.author) inputs.author.value = '';
             if (inputs.date) inputs.date.value = '';
@@ -478,31 +479,7 @@
             }
         });
     }
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const openBtn = document.getElementById('openNewRequestModal');
-  const modal = document.getElementById('newRequestModal');
-  const closeElems = document.querySelectorAll('.close-new-request-modal');
-  const form = document.getElementById('newRequestForm');
-  const requestType = document.getElementById('add_request_type');
-
-  if (openBtn && modal) {
-    openBtn.addEventListener('click', () => {
-      modal.classList.add('show');
-      if (form) form.reset();
-      if (requestType) setTimeout(() => requestType.focus(), 100);
-    });
-  }
-
-  closeElems.forEach(el => {
-    el.addEventListener('click', () => {
-      modal.classList.remove('show');
-    });
-  });
-});
-</script>
-<script>
+</script><script>
 document.addEventListener('DOMContentLoaded', function () {
   const modal = document.getElementById('viewRequestModal');
   const closeElems = document.querySelectorAll('.close-view-request-modal');
@@ -510,6 +487,8 @@ document.addEventListener('DOMContentLoaded', function () {
   // Fields in modal
   const vrId = document.getElementById('vr_id');
   const vrType = document.getElementById('vr_type');
+  const vrUserId = document.getElementById('vr_user_id');
+  const vrUserName = document.getElementById('vr_user_name');
   const vrIsbn = document.getElementById('vr_isbn');
   const vrTitle = document.getElementById('vr_title');
   const vrPublisher = document.getElementById('vr_publisher');
@@ -536,6 +515,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const id = wrapper.dataset.requestId || '-';
       const type = wrapper.dataset.requestType || '-';
+      const userId = wrapper.dataset.userId || '-';
+      const userName = wrapper.dataset.userName || '-';
       const isbn = wrapper.dataset.isbn || '-';
       const title = wrapper.dataset.title || '-';
       const author = wrapper.dataset.author || '-';
@@ -546,6 +527,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       vrId.textContent = id;
       vrType.textContent = type;
+      vrUserId.textContent = userId;
+      vrUserName.textContent = userName;
       vrIsbn.textContent = isbn;
       vrTitle.textContent = title;
       vrPublisher.textContent = publisher;

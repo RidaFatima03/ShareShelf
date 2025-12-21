@@ -29,6 +29,206 @@ def librarian_required():
         return "Forbidden", 403
     return None
 
+
+
+@librarian_bp.route("/requests", methods=["GET"], endpoint="requests")
+def requests():
+    check = librarian_required()
+    if check:
+        return check
+
+    cursor = get_cursor()
+
+    tabs = ["holds", "borrows", "book_requests", "exchanges", "donations"]
+    active_tab = (request.args.get("tab") or "borrows").strip() or "borrows"
+    if active_tab not in tabs:
+        active_tab = "borrows"
+
+    def get_tab_values(tab):
+        title_val = (request.args.get(f"search_title_{tab}") or "").strip()
+        author_val = (request.args.get(f"search_author_{tab}") or "").strip()
+        date_val = (request.args.get(f"search_date_{tab}") or "").strip()
+        status_val = (request.args.get(f"search_status_{tab}") or "").strip()
+        user_id_val = (request.args.get(f"search_user_id_{tab}") or "").strip()
+        user_name_val = (request.args.get(f"search_user_name_{tab}") or "").strip()
+
+        if tab == active_tab:
+            if not title_val:
+                title_val = (request.args.get("search_title") or "").strip()
+            if not author_val:
+                author_val = (request.args.get("search_author") or "").strip()
+            if not date_val:
+                date_val = (request.args.get("search_date") or "").strip()
+            if not status_val:
+                status_val = (request.args.get("search_status") or "").strip()
+            if not user_id_val:
+                user_id_val = (request.args.get("search_user_id") or "").strip()
+            if not user_name_val:
+                user_name_val = (request.args.get("search_user_name") or "").strip()
+
+        return {
+            "title": title_val,
+            "author": author_val,
+            "date": date_val,
+            "status": status_val,
+            "user_id": user_id_val,
+            "user_name": user_name_val,
+        }
+
+    search_values = {tab: get_tab_values(tab) for tab in tabs}
+    active_values = search_values[active_tab]
+
+    def build_request_filters(title_col, author_col, values, apply_filters):
+        if not apply_filters:
+            return "", []
+
+        where = []
+        params = []
+
+        if values["title"]:
+            where.append(f"{title_col} LIKE %s")
+            params.append(f"%{values['title']}%")
+
+        if values["author"]:
+            where.append(f"{author_col} LIKE %s")
+            params.append(f"%{values['author']}%")
+
+        if values["date"]:
+            where.append("DATE(r.request_date) = %s")
+            params.append(values["date"])
+
+        if values["status"]:
+            where.append("r.status = %s")
+            params.append(values["status"])
+
+        if values["user_id"]:
+            where.append("CAST(r.reader_id AS CHAR) LIKE %s")
+            params.append(f"%{values['user_id']}%")
+
+        if values["user_name"]:
+            where.append("CONCAT_WS(' ', u.user_first_name, u.user_middle_name, u.user_last_name) LIKE %s")
+            params.append(f"%{values['user_name']}%")
+
+        where_sql = (" AND " + " AND ".join(where)) if where else ""
+        return where_sql, params
+
+    # HOLDS
+    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["holds"], active_tab == "holds")
+    cursor.execute(f"""
+        SELECT r.request_id, r.request_date, r.status, r.reader_id AS user_id,
+               CONCAT_WS(' ', u.user_first_name, u.user_middle_name, u.user_last_name) AS user_full_name,
+               b.title AS item_title,
+               GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
+        FROM Request r
+        JOIN User u ON r.reader_id = u.user_id
+        JOIN Book b ON r.book_id = b.book_id
+        LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
+        LEFT JOIN Author a ON ba.author_id = a.author_id
+        WHERE r.request_type = 'Hold'{where_sql}
+        GROUP BY r.request_id, r.reader_id, u.user_first_name, u.user_middle_name, u.user_last_name,
+                 b.title, r.request_date, r.status
+        ORDER BY r.request_date DESC
+    """, params)
+    holds = cursor.fetchall()
+
+    # BORROWS
+    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["borrows"], active_tab == "borrows")
+    cursor.execute(f"""
+        SELECT r.request_id, r.request_date, r.status, r.reader_id AS user_id,
+               CONCAT_WS(' ', u.user_first_name, u.user_middle_name, u.user_last_name) AS user_full_name,
+               b.title AS item_title,
+               GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
+        FROM Request r
+        JOIN User u ON r.reader_id = u.user_id
+        JOIN Book b ON r.book_id = b.book_id
+        LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
+        LEFT JOIN Author a ON ba.author_id = a.author_id
+        WHERE r.request_type = 'Borrow'{where_sql}
+        GROUP BY r.request_id, r.reader_id, u.user_first_name, u.user_middle_name, u.user_last_name,
+                 b.title, r.request_date, r.status
+        ORDER BY r.request_date DESC
+    """, params)
+    borrows = cursor.fetchall()
+
+    # EXCHANGES
+    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["exchanges"], active_tab == "exchanges")
+    cursor.execute(f"""
+        SELECT r.request_id, r.request_date, r.status, r.reader_id AS user_id,
+               CONCAT_WS(' ', u.user_first_name, u.user_middle_name, u.user_last_name) AS user_full_name,
+               b.title AS item_title,
+               GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
+        FROM Request r
+        JOIN User u ON r.reader_id = u.user_id
+        JOIN Book b ON r.book_id = b.book_id
+        LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
+        LEFT JOIN Author a ON ba.author_id = a.author_id
+        WHERE r.request_type = 'Exchange'{where_sql}
+        GROUP BY r.request_id, r.reader_id, u.user_first_name, u.user_middle_name, u.user_last_name,
+                 b.title, r.request_date, r.status
+        ORDER BY r.request_date DESC
+    """, params)
+    exchanges = cursor.fetchall()
+
+    # DONATIONS (Book)
+    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["donations"], active_tab == "donations")
+    cursor.execute(f"""
+        SELECT r.request_id, r.request_date, r.status, r.reader_id AS user_id,
+               CONCAT_WS(' ', u.user_first_name, u.user_middle_name, u.user_last_name) AS user_full_name,
+               b.isbn, b.title AS item_title, b.publisher, b.publication_date,
+               GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
+        FROM Request r
+        JOIN User u ON r.reader_id = u.user_id
+        JOIN Book b ON r.book_id = b.book_id
+        LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
+        LEFT JOIN Author a ON ba.author_id = a.author_id
+        WHERE r.request_type = 'Donation' AND r.book_id IS NOT NULL{where_sql}
+        GROUP BY r.request_id, r.reader_id, u.user_first_name, u.user_middle_name, u.user_last_name,
+                 b.title, r.request_date, r.status
+    """, params)
+    donations_books = cursor.fetchall()
+
+    # DONATIONS (Material)
+    where_sql, params = build_request_filters("m.title", "m.author", search_values["donations"], active_tab == "donations")
+    cursor.execute(f"""
+        SELECT r.request_id, r.request_date, r.status, r.reader_id AS user_id,
+               CONCAT_WS(' ', u.user_first_name, u.user_middle_name, u.user_last_name) AS user_full_name,
+               m.isbn, m.title AS item_title, m.publisher, m.publication_date, m.author AS item_author
+        FROM Request r
+        JOIN User u ON r.reader_id = u.user_id
+        JOIN Material m ON r.material_id = m.material_id
+        WHERE r.request_type = 'Donation' AND r.material_id IS NOT NULL{where_sql}
+    """, params)
+    donations_materials = cursor.fetchall()
+
+    donations = list(donations_books) + list(donations_materials)
+    donations.sort(key=lambda x: x["request_date"], reverse=True)
+
+    # BOOK REQUESTS (Material)
+    where_sql, params = build_request_filters("m.title", "m.author", search_values["book_requests"], active_tab == "book_requests")
+    cursor.execute(f"""
+        SELECT r.request_id, r.request_date, r.status, r.reader_id AS user_id,
+               CONCAT_WS(' ', u.user_first_name, u.user_middle_name, u.user_last_name) AS user_full_name,
+               m.isbn, m.title AS item_title, m.publisher, m.publication_date, m.author AS item_author
+        FROM Request r
+        JOIN User u ON r.reader_id = u.user_id
+        JOIN Material m ON r.material_id = m.material_id
+        WHERE r.request_type = 'Book Request'{where_sql}
+        ORDER BY r.request_date DESC
+    """, params)
+    book_requests = cursor.fetchall()
+
+    return render_template(
+        "librarian-requests.html",
+        holds=holds,
+        borrows=borrows,
+        book_requests=book_requests,
+        exchanges=exchanges,
+        donations=donations,
+        active_tab=active_tab,
+        search_values=search_values,
+        active_values=active_values
+    )
+
 ###---------------------------- AUTHORS MANAGEMENT----------------------------###
 @librarian_bp.route("/authors", methods=["GET", "POST"], endpoint="authors")
 def authors():

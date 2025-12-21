@@ -245,7 +245,6 @@ CREATE TABLE Material (
   owner_confirmed BOOLEAN DEFAULT FALSE,
 
   PRIMARY KEY (request_id),
-  UNIQUE (reader_id, book_id, request_type),
 
   FOREIGN KEY (material_id) REFERENCES Material(material_id) ON DELETE CASCADE,
   FOREIGN KEY (reader_id)  REFERENCES Reader(reader_id)     ON DELETE CASCADE,

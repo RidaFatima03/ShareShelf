@@ -209,6 +209,90 @@ def requests():
         active_values=active_values
     )
 
+@librarian_bp.route("/requests/approve/<int:request_id>", methods=["POST"], endpoint="approve_request")
+def approve_request(request_id):
+    check = librarian_required()
+    if check:
+        return check
+
+    cursor = get_cursor()
+    cursor.execute("SELECT status FROM Request WHERE request_id = %s", (request_id,))
+    req = cursor.fetchone()
+
+    if not req:
+        flash("Request not found.", "danger")
+    elif req["status"] != "Pending":
+        flash("Only pending requests can be approved.", "warning")
+    else:
+        cursor.execute("UPDATE Request SET status = 'Approved' WHERE request_id = %s", (request_id,))
+        mysql.connection.commit()
+        flash("Request approved successfully.", "success")
+
+    return redirect(request.referrer or url_for("librarian.requests"))
+
+@librarian_bp.route("/requests/reject/<int:request_id>", methods=["POST"], endpoint="reject_request")
+def reject_request(request_id):
+    check = librarian_required()
+    if check:
+        return check
+
+    cursor = get_cursor()
+    cursor.execute("SELECT status FROM Request WHERE request_id = %s", (request_id,))
+    req = cursor.fetchone()
+
+    if not req:
+        flash("Request not found.", "danger")
+    elif req["status"] != "Pending":
+        flash("Only pending requests can be rejected.", "warning")
+    else:
+        cursor.execute("UPDATE Request SET status = 'Rejected' WHERE request_id = %s", (request_id,))
+        mysql.connection.commit()
+        flash("Request rejected successfully.", "success")
+
+    return redirect(request.referrer or url_for("librarian.requests"))
+
+@librarian_bp.route("/requests/complete/<int:request_id>", methods=["POST"], endpoint="complete_request")
+def complete_request(request_id):
+    check = librarian_required()
+    if check:
+        return check
+
+    cursor = get_cursor()
+    cursor.execute("SELECT status FROM Request WHERE request_id = %s", (request_id,))
+    req = cursor.fetchone()
+
+    if not req:
+        flash("Request not found.", "danger")
+    elif req["status"] != "Approved":
+        flash("Only approved requests can be completed.", "warning")
+    else:
+        cursor.execute("UPDATE Request SET status = 'Completed' WHERE request_id = %s", (request_id,))
+        mysql.connection.commit()
+        flash("Request completed successfully.", "success")
+
+    return redirect(request.referrer or url_for("librarian.requests"))
+
+@librarian_bp.route("/requests/cancel/<int:request_id>", methods=["POST"], endpoint="cancel_request")
+def cancel_request(request_id):
+    check = librarian_required()
+    if check:
+        return check
+
+    cursor = get_cursor()
+    cursor.execute("SELECT status FROM Request WHERE request_id = %s", (request_id,))
+    req = cursor.fetchone()
+
+    if not req:
+        flash("Request not found.", "danger")
+    elif req["status"] != "Approved":
+        flash("Only approved requests can be cancelled.", "warning")
+    else:
+        cursor.execute("UPDATE Request SET status = 'Cancelled' WHERE request_id = %s", (request_id,))
+        mysql.connection.commit()
+        flash("Request cancelled successfully.", "success")
+
+    return redirect(request.referrer or url_for("librarian.requests"))
+
 ###---------------------------- AUTHORS MANAGEMENT----------------------------###
 @librarian_bp.route("/authors", methods=["GET", "POST"], endpoint="authors")
 def authors():

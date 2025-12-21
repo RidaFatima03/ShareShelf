@@ -306,11 +306,12 @@ def borrow_book(copy_id):
 
         cursor.execute("""
             SELECT request_id FROM Request 
-            WHERE reader_id = %s AND book_id = %s AND request_type = 'Borrow' AND status = 'Pending'
+            WHERE reader_id = %s AND book_id = %s AND request_type = 'Borrow'
+              AND status IN ('Pending', 'Approved')
         """, (user_id, copy_data['book_id']))
         
         if cursor.fetchone():
-            flash("You already have a pending borrow request for this book.", "warning")
+            flash("You already have an active borrow request for this book.", "warning")
             return redirect(request.referrer)
 
         cursor.execute("""
@@ -390,6 +391,15 @@ def add_book():
         if acquisition_type == 'Donation':
             if mode == 'existing':
                 book_id = request.form.get('book_id')
+                cursor.execute("""
+                    SELECT request_id FROM Request
+                    WHERE reader_id = %s AND book_id = %s AND request_type = 'Donation'
+                      AND status IN ('Pending', 'Approved')
+                """, (user_id, book_id))
+                if cursor.fetchone():
+                    flash("You already have an active donation request for this book.", "warning")
+                    return redirect(request.referrer)
+
                 cursor.execute("""
                     INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id) 
                     VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Donation', 'Pending', %s, %s)

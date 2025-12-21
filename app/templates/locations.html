@@ -1,0 +1,261 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+<div>
+    
+    <div class="manage-header">
+        <h1 class="page-title">Locations</h1>
+
+        <button type="button" id="openAddLocationModal" class="logout-link btn-new">
+            Add New Location
+        </button>
+    </div>
+    
+    <div class="table-wrapper">
+        <table class="activity-table">
+            <form method="get" action="{{ url_for('librarian.locations') }}">
+                <thead>
+                    <tr>
+                        <th>
+                            ID<br>
+                            <input type="text"
+                                    name="search_id"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Search ID..."
+                                    value="{{ search_id }}">
+                        </th>
+                        <th>
+                            Direction<br>
+                            <input type="text"
+                                    name="search_direction"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Search direction..."
+                                    value="{{ search_direction }}">
+                        </th>
+                        <th>
+                            Collection<br>
+                            <input type="text"
+                                    name="search_collection"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Search collection..."
+                                    value="{{ search_collection }}">
+                        </th>
+                        <th>
+                            Shelf Row<br>
+                            <input type="text"
+                                    name="search_shelf_row"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Search shelf row..."
+                                    value="{{ search_shelf_row }}">
+                        </th>
+                        <th>
+                            <button type="submit" class="logout-link btn-apply filter-action-btn">Apply</button>
+                            <a href="{{ url_for('librarian.locations') }}" class="logout-link btn-cancel filter-action-btn">Clear</a>
+                        </th>
+                    </tr>
+                </thead>
+            </form>
+            <tbody>
+                {% if locations %}
+                    {% for location in locations %}
+                        <tr>
+                            <td>{{ location.location_id }}</td>
+                            <td>{{ location.direction }}</td>
+                            <td>{{ location.collection }}</td>
+                            <td>{{ location.shelf_row }}</td>
+                            <td>
+                                <div class="manage-btns">
+                                    <button type="button"
+                                            class="btn-edit"
+                                            data-location-id="{{ location.location_id }}"
+                                            data-direction="{{ location.direction }}"
+                                            data-collection="{{ location.collection }}"
+                                            data-shelf-row="{{ location.shelf_row }}">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </button>
+
+                                    <form method="POST"
+                                          action="{{ url_for('librarian.delete_location', location_id=location.location_id) }}"
+                                          onsubmit="return confirm('Delete this location?');"
+                                          class="d-inline">
+                                        <button type="submit" class="rounded-circle p-1 btn-delete">
+                                            <i class="bi bi-trash trash-can"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-3">
+                            No locations found.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <nav class="pagination-container mt-4">
+      <ul class="pagination">
+        <li class="page-item {% if not has_prev %}disabled{% endif %}">
+          <a class="page-link"
+            href="{% if has_prev %}{{ url_for('librarian.locations', page=page-1,
+                                                search_id=search_id,
+                                                search_direction=search_direction,
+                                                search_collection=search_collection,
+                                                search_shelf_row=search_shelf_row) }}{% else %}#{% endif %}">
+            Previous
+            </a>
+        </li>
+
+        {% for p in range(1, total_pages + 1) %}
+          <li class="page-item {% if p == page %}active{% endif %}">
+            <a class="page-link"
+            href="{{ url_for('librarian.locations', page=p,
+                                search_id=search_id,
+                                search_direction=search_direction,
+                                search_collection=search_collection,
+                                search_shelf_row=search_shelf_row) }}">
+            {{ p }}
+            </a>
+          </li>
+        {% endfor %}
+
+        <li class="page-item {% if not has_next %}disabled{% endif %}">
+            <a class="page-link"
+            href="{% if has_next %}{{ url_for('librarian.locations', page=page+1,
+                                                search_id=search_id,
+                                                search_direction=search_direction,
+                                                search_collection=search_collection,
+                                                search_shelf_row=search_shelf_row) }}{% else %}#{% endif %}">
+            Next
+            </a>
+        </li>
+      </ul>
+    </nav>
+
+</div>
+
+<!-- Add Location Modal -->
+<div id="addLocationModal" class="custom-modal">
+  <div class="custom-modal-backdrop close-add-location-modal"></div>
+
+  <div class="custom-modal-dialog">
+    <div class="custom-modal-header">
+      <h5 class="filters-column-title pop-up-header">Add New Location</h5>
+      <button type="button" class="custom-modal-close close-add-location-modal">&times;</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('librarian.locations') }}">
+      <div class="filter-input-group">
+        <label for="direction" class="filter-label">Direction:</label>
+        <input type="text" id="direction" name="direction" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="collection" class="filter-label">Collection:</label>
+        <input type="text" id="collection" name="collection" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="shelf_row" class="filter-label">Shelf Row:</label>
+        <input type="text" id="shelf_row" name="shelf_row" class="form-control filter-input" required>
+      </div>
+
+      <div class="custom-modal-footer">
+        <button type="button" class="logout-link btn-cancel close-add-location-modal">Cancel</button>
+        <button type="submit" class="logout-link btn-save">Create Location</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Location Modal -->
+<div id="editLocationModal" class="custom-modal">
+  <div class="custom-modal-backdrop close-edit-location-modal"></div>
+
+  <div class="custom-modal-dialog">
+    <div class="custom-modal-header">
+      <h5 class="filters-column-title pop-up-header">Edit Location</h5>
+      <button type="button" class="custom-modal-close close-edit-location-modal">&times;</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('librarian.edit_location') }}">
+      <input type="hidden" id="edit_location_id" name="location_id">
+
+      <div class="filter-input-group">
+        <label for="edit_direction" class="filter-label">Direction:</label>
+        <input type="text" id="edit_direction" name="direction" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="edit_collection" class="filter-label">Collection:</label>
+        <input type="text" id="edit_collection" name="collection" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="edit_shelf_row" class="filter-label">Shelf Row:</label>
+        <input type="text" id="edit_shelf_row" name="shelf_row" class="form-control filter-input" required>
+      </div>
+
+      <div class="custom-modal-footer">
+        <button type="button" class="logout-link btn-cancel close-edit-location-modal">Cancel</button>
+        <button type="submit" class="logout-link btn-save">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const openAddBtn = document.getElementById('openAddLocationModal');
+  const addModal = document.getElementById('addLocationModal');
+  const addCloseElems = document.querySelectorAll('.close-add-location-modal');
+
+  if (openAddBtn && addModal) {
+    openAddBtn.addEventListener('click', () => {
+      addModal.classList.add('show');
+      const input = addModal.querySelector('#direction');
+      if (input) setTimeout(() => input.focus(), 100);
+    });
+
+    addCloseElems.forEach(el => {
+      el.addEventListener('click', () => {
+        addModal.classList.remove('show');
+      });
+    });
+  }
+
+  const editModal = document.getElementById('editLocationModal');
+  const editButtons = document.querySelectorAll('.btn-edit');
+  const editCloseElems = document.querySelectorAll('.close-edit-location-modal');
+  const editIdInput = document.getElementById('edit_location_id');
+  const editDirectionInput = document.getElementById('edit_direction');
+  const editCollectionInput = document.getElementById('edit_collection');
+  const editShelfInput = document.getElementById('edit_shelf_row');
+
+  if (editModal && editButtons.length > 0) {
+    editButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (editIdInput) editIdInput.value = btn.dataset.locationId || '';
+        if (editDirectionInput) editDirectionInput.value = btn.dataset.direction || '';
+        if (editCollectionInput) editCollectionInput.value = btn.dataset.collection || '';
+        if (editShelfInput) editShelfInput.value = btn.dataset.shelfRow || '';
+
+        editModal.classList.add('show');
+        if (editDirectionInput) setTimeout(() => editDirectionInput.focus(), 100);
+      });
+    });
+
+    editCloseElems.forEach(el => {
+      el.addEventListener('click', () => {
+        editModal.classList.remove('show');
+      });
+    });
+  }
+});
+</script>
+
+{% endblock %}

@@ -462,6 +462,146 @@ def delete_genre(genre_id):
 
     return redirect(url_for("librarian.genres"))
 
+###---------------------------- LOCATION MANAGEMENT----------------------------###
+@librarian_bp.route("/locations", methods=["GET", "POST"], endpoint="locations")
+def locations():
+    check = librarian_required()
+    if check:
+        return check
+
+    cursor = get_cursor()
+
+    # ---------- CREATE (POST) ----------
+    if request.method == "POST":
+        direction = (request.form.get("direction") or "").strip()
+        collection = (request.form.get("collection") or "").strip()
+        shelf_row = (request.form.get("shelf_row") or "").strip()
+
+        if not direction:
+            flash("Direction is required.", "danger")
+        elif not collection:
+            flash("Collection is required.", "danger")
+        elif not shelf_row:
+            flash("Shelf row is required.", "danger")
+        else:
+            cursor.execute(
+                "INSERT INTO Location (direction, collection, shelf_row) VALUES (%s, %s, %s)",
+                (direction, collection, shelf_row)
+            )
+            mysql.connection.commit()
+            flash("Location created successfully.", "success")
+        return redirect(url_for("librarian.locations"))
+
+    # ---------- LIST + SEARCH (GET) ----------
+    page = request.args.get("page", 1, type=int)
+    per_page = 10
+
+    where_sql, params, v = build_like_filters([
+        ("search_id", "CAST(location_id AS CHAR)", True),
+        ("search_direction", "direction", False),
+        ("search_collection", "collection", False),
+        ("search_shelf_row", "shelf_row", False),
+    ], request.args)
+
+    cursor.execute(f"SELECT COUNT(*) AS total FROM Location {where_sql}", params)
+    total = (cursor.fetchone() or {}).get("total", 0)
+
+    page, total_pages, offset, has_prev, has_next = paginate(page, per_page, total)
+
+    cursor.execute(f"""
+        SELECT location_id, direction, collection, shelf_row
+        FROM Location
+        {where_sql}
+        ORDER BY location_id
+        LIMIT %s OFFSET %s
+    """, params + [per_page, offset])
+
+    return render_template(
+        "locations.html",
+        locations=cursor.fetchall(),
+        page=page, total_pages=total_pages, has_prev=has_prev, has_next=has_next,
+        search_id=v["search_id"],
+        search_direction=v["search_direction"],
+        search_collection=v["search_collection"],
+        search_shelf_row=v["search_shelf_row"],
+    )
+
+
+@librarian_bp.route("/locations/delete/<int:location_id>", methods=["POST"], endpoint="delete_location")
+def delete_location(location_id):
+    check = librarian_required()
+    if check:
+        return check
+
+    cursor = get_cursor()
+    cursor.execute("DELETE FROM Location WHERE location_id = %s", (location_id,))
+    mysql.connection.commit()
+    flash("Location deleted successfully.", "success")
+
+    return redirect(url_for("librarian.locations"))
+
+
+@librarian_bp.route("/locations/edit", methods=["POST"], endpoint="edit_location")
+def edit_location():
+    check = librarian_required()
+    if check:
+        return check
+
+    location_id = request.form.get("location_id")
+    direction = (request.form.get("direction") or "").strip()
+    collection = (request.form.get("collection") or "").strip()
+    shelf_row = (request.form.get("shelf_row") or "").strip()
+
+    if not location_id or not direction or not collection or not shelf_row:
+        flash("All location fields are required.", "danger")
+        return redirect(url_for("librarian.locations"))
+
+    cursor = get_cursor()
+    cursor.execute(
+        "SELECT direction, collection, shelf_row FROM Location WHERE location_id = %s",
+        (location_id,)
+    )
+    current = cursor.fetchone()
+    if not current:
+        flash("Location not found.", "danger")
+        return redirect(url_for("librarian.locations"))
+
+    if (
+        current.get("direction") == direction
+        and current.get("collection") == collection
+        and current.get("shelf_row") == shelf_row
+    ):
+        flash("No changes to save.", "info")
+        return redirect(url_for("librarian.locations"))
+
+    cursor.execute(
+        """
+        SELECT location_id
+        FROM Location
+        WHERE direction = %s AND collection = %s AND shelf_row = %s
+          AND location_id <> %s
+        LIMIT 1
+        """,
+        (direction, collection, shelf_row, location_id)
+    )
+    duplicate = cursor.fetchone()
+    if duplicate:
+        flash("Location with the same direction, collection, and shelf row already exists.", "danger")
+        return redirect(url_for("librarian.locations"))
+
+    cursor.execute(
+        """
+        UPDATE Location
+        SET direction = %s, collection = %s, shelf_row = %s
+        WHERE location_id = %s
+        """,
+        (direction, collection, shelf_row, location_id)
+    )
+    mysql.connection.commit()
+    flash("Location updated successfully.", "success")
+
+    return redirect(url_for("librarian.locations"))
+
 
 @librarian_bp.route("/genres/edit", methods=["POST"], endpoint="edit_genre")
 def edit_genre():

@@ -2331,6 +2331,23 @@ html.sidebar-closed-init .filters-results.main-content {
     font-weight: 600;
 }
 
+.request-timeline {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: #555555;
+}
+
+.request-timeline li {
+    padding: 4px 0;
+    border-bottom: 1px solid #f0ebe4;
+}
+
+.request-timeline li:last-child {
+    border-bottom: none;
+}
+
 .request-status.pending {
     background-color: #fdecea;
     color: #c62828;

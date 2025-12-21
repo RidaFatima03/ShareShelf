@@ -263,6 +263,35 @@ CREATE TABLE Material (
     )
   );
 
+  CREATE TABLE Request_Status_History (
+    history_id INT NOT NULL AUTO_INCREMENT,
+    request_id INT NOT NULL,
+    status ENUM('Pending', 'Approved', 'Rejected', 'Expired', 'Completed', 'Cancelled') NOT NULL,
+    changed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (history_id),
+    FOREIGN KEY (request_id) REFERENCES Request(request_id) ON DELETE CASCADE
+  );
+
+  DELIMITER //
+  CREATE TRIGGER request_status_history_insert
+  AFTER INSERT ON Request
+  FOR EACH ROW
+  BEGIN
+    INSERT INTO Request_Status_History (request_id, status, changed_at)
+    VALUES (NEW.request_id, NEW.status, NOW());
+  END//
+
+  CREATE TRIGGER request_status_history_update
+  AFTER UPDATE ON Request
+  FOR EACH ROW
+  BEGIN
+    IF NEW.status <> OLD.status THEN
+      INSERT INTO Request_Status_History (request_id, status, changed_at)
+      VALUES (NEW.request_id, NEW.status, NOW());
+    END IF;
+  END//
+  DELIMITER ;
+
   -- Scheduled job to expire requests automatically (requires event scheduler enabled)
   CREATE EVENT IF NOT EXISTS expire_requests
   ON SCHEDULE EVERY 1 DAY

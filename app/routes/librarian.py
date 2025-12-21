@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 import MySQLdb.cursors
 from extensions import mysql
 from routes.notifications import NotificationService
@@ -292,6 +292,22 @@ def cancel_request(request_id):
         flash("Request cancelled successfully.", "success")
 
     return redirect(request.referrer or url_for("librarian.requests"))
+
+@librarian_bp.route("/requests/history/<int:request_id>", methods=["GET"], endpoint="request_history")
+def request_history(request_id):
+    check = librarian_required()
+    if check:
+        return check
+
+    cursor = get_cursor()
+    cursor.execute("""
+        SELECT status, changed_at
+        FROM Request_Status_History
+        WHERE request_id = %s
+        ORDER BY changed_at
+    """, (request_id,))
+    history = cursor.fetchall() or []
+    return jsonify(history)
 
 ###---------------------------- AUTHORS MANAGEMENT----------------------------###
 @librarian_bp.route("/authors", methods=["GET", "POST"], endpoint="authors")

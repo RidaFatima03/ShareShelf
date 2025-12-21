@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 import MySQLdb.cursors
 from extensions import mysql
 
@@ -240,3 +240,28 @@ def cancel_request(request_id):
 
     flash("Request cancelled successfully.", "success")
     return redirect(url_for("request.my_requests"))
+
+@request_bp.route("/history/<int:request_id>", methods=["GET"], endpoint="request_history")
+def request_history(request_id):
+    if "loggedin" not in session:
+        return redirect(url_for("auth.login"))
+
+    reader_id = session["userid"]
+    cursor = get_cursor()
+    cursor.execute("""
+        SELECT r.request_id
+        FROM Request r
+        WHERE r.request_id = %s AND r.reader_id = %s
+    """, (request_id, reader_id))
+    req = cursor.fetchone()
+    if not req:
+        return jsonify([]), 404
+
+    cursor.execute("""
+        SELECT status, changed_at
+        FROM Request_Status_History
+        WHERE request_id = %s
+        ORDER BY changed_at
+    """, (request_id,))
+    history = cursor.fetchall() or []
+    return jsonify(history)

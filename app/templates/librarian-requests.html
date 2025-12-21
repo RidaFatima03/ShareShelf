@@ -119,26 +119,26 @@
                             <td>
                                 <div class="manage-btns">
                                     {% if req.status == 'Pending' %}
-                                        <button type="submit"
+                                        <button data-confirm="Approve this request?" type="submit"
                                                 class="logout-link filter-action-btn request-handle-btn"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.approve_request', request_id=req.request_id) }}">
                                             Approve
                                         </button>
-                                        <button type="submit"
+                                        <button data-confirm="Reject this request?" type="submit"
                                                 class="logout-link btn-cancel"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.reject_request', request_id=req.request_id) }}">
                                             Reject
                                         </button>
                                     {% elif req.status == 'Approved' %}
-                                        <button type="submit"
+                                        <button data-confirm="Mark this request as completed?" type="submit"
                                                 class="logout-link filter-action-btn request-handle-btn"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.complete_request', request_id=req.request_id) }}">
                                             Complete
                                         </button>
-                                        <button type="submit"
+                                        <button data-confirm="Cancel this request?" type="submit"
                                                 class="logout-link btn-cancel"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.cancel_request', request_id=req.request_id) }}">
@@ -185,26 +185,26 @@
                             <td>
                                 <div class="manage-btns">
                                     {% if don.status == 'Pending' %}
-                                        <button type="submit"
+                                        <button data-confirm="Approve this request?" type="submit"
                                                 class="logout-link filter-action-btn request-handle-btn"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.approve_request', request_id=don.request_id) }}">
                                             Approve
                                         </button>
-                                        <button type="submit"
+                                        <button data-confirm="Reject this request?" type="submit"
                                                 class="logout-link btn-cancel"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.reject_request', request_id=don.request_id) }}">
                                             Reject
                                         </button>
                                     {% elif don.status == 'Approved' %}
-                                        <button type="submit"
+                                        <button data-confirm="Mark this request as completed?" type="submit"
                                                 class="logout-link filter-action-btn request-handle-btn"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.complete_request', request_id=don.request_id) }}">
                                             Complete
                                         </button>
-                                        <button type="submit"
+                                        <button data-confirm="Cancel this request?" type="submit"
                                                 class="logout-link btn-cancel"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.cancel_request', request_id=don.request_id) }}">
@@ -249,26 +249,26 @@
                             <td>
                                 <div class="manage-btns">
                                     {% if req.status == 'Pending' %}
-                                        <button type="submit"
+                                        <button data-confirm="Approve this request?" type="submit"
                                                 class="logout-link filter-action-btn request-handle-btn"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.approve_request', request_id=req.request_id) }}">
                                             Approve
                                         </button>
-                                        <button type="submit"
+                                        <button data-confirm="Reject this request?" type="submit"
                                                 class="logout-link btn-cancel"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.reject_request', request_id=req.request_id) }}">
                                             Reject
                                         </button>
                                     {% elif req.status == 'Approved' %}
-                                        <button type="submit"
+                                        <button data-confirm="Mark this request as completed?" type="submit"
                                                 class="logout-link filter-action-btn request-handle-btn"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.complete_request', request_id=req.request_id) }}">
                                             Complete
                                         </button>
-                                        <button type="submit"
+                                        <button data-confirm="Cancel this request?" type="submit"
                                                 class="logout-link btn-cancel"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.cancel_request', request_id=req.request_id) }}">
@@ -313,26 +313,26 @@
                             <td>
                                 <div class="manage-btns">
                                     {% if req.status == 'Pending' %}
-                                        <button type="submit"
+                                        <button data-confirm="Approve this request?" type="submit"
                                                 class="logout-link filter-action-btn request-handle-btn"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.approve_request', request_id=req.request_id) }}">
                                             Approve
                                         </button>
-                                        <button type="submit"
+                                        <button data-confirm="Reject this request?" type="submit"
                                                 class="logout-link btn-cancel"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.reject_request', request_id=req.request_id) }}">
                                             Reject
                                         </button>
                                     {% elif req.status == 'Approved' %}
-                                        <button type="submit"
+                                        <button data-confirm="Mark this request as completed?" type="submit"
                                                 class="action-button primary btn-apply"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.complete_request', request_id=req.request_id) }}">
                                             Complete
                                         </button>
-                                        <button type="submit"
+                                        <button data-confirm="Cancel this request?" type="submit"
                                                 class="logout-link btn-cancel"
                                                 formmethod="post"
                                                 formaction="{{ url_for('librarian.cancel_request', request_id=req.request_id) }}">
@@ -432,6 +432,11 @@
       <div class="view-row">
         <span class="filter-label">Status:</span>
         <span id="vr_status" class="request-status"></span>
+      </div>
+
+      <div class="view-row">
+        <span class="filter-label">Status Timeline:</span>
+        <ul id="vr_timeline" class="request-timeline"></ul>
       </div>
     </div>
 
@@ -548,6 +553,15 @@
             }
         });
     }
+
+    document.querySelectorAll('button[data-confirm]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const msg = btn.getAttribute('data-confirm') || 'Are you sure?';
+            if (!confirm(msg)) {
+                e.preventDefault();
+            }
+        });
+    });
 </script><script>
 document.addEventListener('DOMContentLoaded', function () {
   const modal = document.getElementById('viewRequestModal');
@@ -565,6 +579,24 @@ document.addEventListener('DOMContentLoaded', function () {
   const vrAuthor = document.getElementById('vr_author');
   const vrDate = document.getElementById('vr_date');
   const vrStatus = document.getElementById('vr_status');
+  const vrTimeline = document.getElementById('vr_timeline');
+
+  function renderTimeline(items) {
+    if (!vrTimeline) return;
+    vrTimeline.innerHTML = '';
+    if (!items || items.length === 0) {
+      const li = document.createElement('li');
+      li.textContent = 'No history yet.';
+      vrTimeline.appendChild(li);
+      return;
+    }
+    items.forEach(item => {
+      const li = document.createElement('li');
+      const when = item.changed_at ? new Date(item.changed_at).toLocaleString() : '';
+      li.textContent = `${item.status}${when ? ' — ' + when : ''}`;
+      vrTimeline.appendChild(li);
+    });
+  }
 
   function openModal() {
     modal.classList.add('show');
@@ -609,6 +641,11 @@ document.addEventListener('DOMContentLoaded', function () {
       vrStatus.textContent = status;
       vrStatus.className = 'request-status'; // reset
       vrStatus.classList.add((status || '').toLowerCase());
+
+      fetch(`{{ url_for('librarian.request_history', request_id=0) }}`.replace('/0', `/${id}`))
+        .then(res => (res.ok ? res.json() : []))
+        .then(data => renderTimeline(data))
+        .catch(() => renderTimeline([]));
 
       openModal();
     });

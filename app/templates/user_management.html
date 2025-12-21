@@ -16,7 +16,7 @@
             <table class="activity-table">
                 <thead>
                     <tr>
-                        <th>
+                        <th class="col-id">
                             ID<br>
                             <input type="text"
                                     name="search_id"
@@ -82,7 +82,7 @@
                 <tbody>
                     {% for u in users %}
                     <tr>
-                        <td>{{ u.user_id }}</td>
+                        <td class="col-id">{{ u.user_id }}</td>
                         <td>
                             {{ u.user_first_name }}
                             {% if u.user_middle_name %}

@@ -235,6 +235,14 @@
     margin-top: 10px;
 }
 
+.activity-table .col-id {
+    width: 115px;
+}
+
+.activity-table .col-id input {
+    width: 105px;
+}
+
 /* Make modal scrollable */
 .scrollable-modal {
     max-height: 80vh;     /* modal will not exceed 80% of viewport height */

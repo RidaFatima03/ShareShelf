@@ -1,0 +1,436 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+<div>
+    <div class="manage-header">
+        <h1 class="page-title">Copies</h1>
+
+        <button type="button" id="openAddCopyModal" class="logout-link btn-new">
+            Add New Copy
+        </button>
+    </div>
+
+    <div class="table-wrapper">
+        <form method="get" action="{{ url_for('copies.list') }}">
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th>
+                            Barcode<br>
+                            <input type="text"
+                                    name="search_barcode"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Search barcode..."
+                                    value="{{ search_barcode }}">
+                        </th>
+                        <th>
+                            Book Title<br>
+                            <input type="text"
+                                    name="search_title"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Search title..."
+                                    value="{{ search_title }}">
+                        </th>
+                        <th>
+                            Book ID<br>
+                            <input type="text"
+                                    name="search_book_id"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Book ID..."
+                                    value="{{ search_book_id }}">
+                        </th>
+                        <th>
+                            Status<br>
+                            <select name="search_status"
+                                    class="filter-input filter-input-manage">
+                                <option value="">All</option>
+                                {% for s in ['Available','On Loan','On Hold','Lost','Exchanged','Pending Handoff'] %}
+                                    <option value="{{ s }}" {% if search_status == s %}selected{% endif %}>{{ s }}</option>
+                                {% endfor %}
+                            </select>
+                        </th>
+                        <th>
+                            Acquisition<br>
+                            <select name="search_acquisition"
+                                    class="filter-input filter-input-manage">
+                                <option value="">All</option>
+                                {% for a in ['Purchase','Donation','Exchange','Other'] %}
+                                    <option value="{{ a }}" {% if search_acquisition == a %}selected{% endif %}>{{ a }}</option>
+                                {% endfor %}
+                            </select>
+                        </th>
+                        <th>
+                            Material Type<br>
+                            <input type="text"
+                                    name="search_material"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Type..."
+                                    value="{{ search_material }}">
+                        </th>
+                        <th>
+                            Call Number<br>
+                            <input type="text"
+                                    name="search_call_number"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Call number..."
+                                    value="{{ search_call_number }}">
+                        </th>
+                        <th>
+                            Location<br>
+                            <select name="search_location"
+                                    class="filter-input filter-input-manage">
+                                <option value="">All</option>
+                                {% for l in all_locations %}
+                                    <option value="{{ l.location_id }}" {% if search_location == l.location_id|string %}selected{% endif %}>
+                                        {{ l.direction }} / {{ l.collection }} / {{ l.shelf_row }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </th>
+                        <th>
+                            Owner<br>
+                            <select name="search_owner"
+                                    class="filter-input filter-input-manage">
+                                <option value="">All</option>
+                                {% for r in all_readers %}
+                                    <option value="{{ r.user_id }}" {% if search_owner == r.user_id|string %}selected{% endif %}>
+                                        {{ r.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </th>
+                        <th>
+                            <button type="submit" class="logout-link btn-apply filter-action-btn">Apply</button>
+                            <a href="{{ url_for('copies.list') }}" class="logout-link btn-cancel filter-action-btn">Clear</a>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if copies %}
+                        {% for c in copies %}
+                        <tr>
+                            <td>{{ c.item_barcode }}</td>
+                            <td>{{ c.book_title }}</td>
+                            <td>{{ c.book_id }}</td>
+                            <td><span class="request-status {{ c.status|lower|replace(' ', '-') }}">{{ c.status }}</span></td>
+                            <td>{{ c.acquisition_type }}</td>
+                            <td>{{ c.material_type }}</td>
+                            <td>{{ c.call_number or '-' }}</td>
+                            <td>{{ c.location_name or '-' }}</td>
+                            <td>{{ c.owner_name or '-' }}</td>
+                            <td>
+                                <div class="manage-btns">
+                                    <button type="button"
+                                            class="btn-edit"
+                                            data-item-barcode="{{ c.item_barcode }}"
+                                            data-material-type="{{ c.material_type }}"
+                                            data-call-number="{{ c.call_number }}"
+                                            data-acquisition-type="{{ c.acquisition_type }}"
+                                            data-status="{{ c.status }}"
+                                            data-book-id="{{ c.book_id }}"
+                                            data-location-id="{{ c.location_id }}"
+                                            data-owner-id="{{ c.owner_id }}">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </button>
+                                    <form method="POST"
+                                        action="{{ url_for('copies.delete', item_barcode=c.item_barcode) }}"
+                                        onsubmit="return confirm('Delete this copy?');"
+                                        class="d-inline">
+                                        <button type="submit" class="rounded-circle p-1 btn-delete">
+                                            <i class="bi bi-trash trash-can"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-3">
+                                No copies found.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </form>
+    </div>
+
+    <nav class="pagination-container mt-4">
+        <ul class="pagination">
+            <li class="page-item {% if not has_prev %}disabled{% endif %}">
+                <a class="page-link"
+                    href="{% if has_prev %}{{ url_for('copies.list', page=page-1,
+                                search_barcode=search_barcode,
+                                search_title=search_title,
+                                search_book_id=search_book_id,
+                                search_status=search_status,
+                                search_acquisition=search_acquisition,
+                                search_material=search_material,
+                                search_call_number=search_call_number,
+                                search_location=search_location,
+                                search_owner=search_owner) }}{% else %}#{% endif %}">
+                    Previous
+                </a>
+            </li>
+
+            {% for p in range(1, total_pages + 1) %}
+            <li class="page-item {% if p == page %}active{% endif %}">
+                <a class="page-link"
+                    href="{{ url_for('copies.list', page=p,
+                                search_barcode=search_barcode,
+                                search_title=search_title,
+                                search_book_id=search_book_id,
+                                search_status=search_status,
+                                search_acquisition=search_acquisition,
+                                search_material=search_material,
+                                search_call_number=search_call_number,
+                                search_location=search_location,
+                                search_owner=search_owner) }}">
+                    {{ p }}
+                </a>
+            </li>
+            {% endfor %}
+
+            <li class="page-item {% if not has_next %}disabled{% endif %}">
+                <a class="page-link"
+                    href="{% if has_next %}{{ url_for('copies.list', page=page+1,
+                                search_barcode=search_barcode,
+                                search_title=search_title,
+                                search_book_id=search_book_id,
+                                search_status=search_status,
+                                search_acquisition=search_acquisition,
+                                search_material=search_material,
+                                search_call_number=search_call_number,
+                                search_location=search_location,
+                                search_owner=search_owner) }}{% else %}#{% endif %}">
+                    Next
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<!-- Add Copy Modal -->
+<div id="addCopyModal" class="custom-modal">
+    <div class="custom-modal-backdrop close-add-copy-modal"></div>
+
+    <div class="custom-modal-dialog scrollable-modal">
+        <div class="custom-modal-header">
+            <h5 class="filters-column-title pop-up-header">Add New Copy</h5>
+            <button type="button" class="custom-modal-close close-add-copy-modal">&times;</button>
+        </div>
+
+        <form method="POST" action="{{ url_for('copies.list') }}" id="addCopyForm">
+            <div class="filter-input-group">
+                <label for="item_barcode" class="filter-label">Barcode:</label>
+                <input type="text" id="item_barcode" name="item_barcode" class="form-control filter-input" required>
+            </div>
+            <div class="filter-input-group">
+                <label for="material_type" class="filter-label">Material type:</label>
+                <input type="text" id="material_type" name="material_type" class="form-control filter-input" required>
+            </div>
+            <div class="filter-input-group">
+                <label for="call_number" class="filter-label">Call number:</label>
+                <input type="text" id="call_number" name="call_number" class="form-control filter-input">
+            </div>
+            <div class="filter-input-group">
+                <label for="acquisition_type" class="filter-label">Acquisition type:</label>
+                <select id="acquisition_type" name="acquisition_type" class="form-control filter-input" required>
+                    {% for a in ['Purchase','Donation','Exchange','Other'] %}
+                        <option value="{{ a }}">{{ a }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-input-group">
+                <label for="status" class="filter-label">Status:</label>
+                <select id="status" name="status" class="form-control filter-input" required>
+                    <option value="Available">Available</option>
+                    <option value="Lost">Lost</option>
+                </select>
+            </div>
+            <div class="filter-input-group">
+                <label for="book_id" class="filter-label">Book:</label>
+                <select id="book_id" name="book_id" class="form-control filter-input" required>
+                    <option value="">Select</option>
+                    {% for b in all_books %}
+                        <option value="{{ b.book_id }}">{{ b.title }} ({{ b.book_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-input-group">
+                <label for="location_id" class="filter-label">Location:</label>
+                <select id="location_id" name="location_id" class="form-control filter-input">
+                    <option value="">None</option>
+                    {% for l in all_locations %}
+                        <option value="{{ l.location_id }}">{{ l.direction }} / {{ l.collection }} / {{ l.shelf_row }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-input-group">
+                <label for="owner_id" class="filter-label">Owner:</label>
+                <select id="owner_id" name="owner_id" class="form-control filter-input">
+                    <option value="">None</option>
+                    {% for r in all_readers %}
+                        <option value="{{ r.user_id }}">{{ r.name }} ({{ r.user_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="custom-modal-footer">
+                <button type="button" class="logout-link btn-cancel close-add-copy-modal">Cancel</button>
+                <button type="submit" class="logout-link btn-save">Create Copy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Copy Modal -->
+<div id="editCopyModal" class="custom-modal">
+    <div class="custom-modal-backdrop close-edit-copy-modal"></div>
+
+    <div class="custom-modal-dialog scrollable-modal">
+        <div class="custom-modal-header">
+            <h5 class="filters-column-title pop-up-header">Edit Copy</h5>
+            <button type="button" class="custom-modal-close close-edit-copy-modal">&times;</button>
+        </div>
+
+        <form method="POST" action="{{ url_for('copies.edit') }}">
+            <input type="hidden" id="edit_item_barcode" name="item_barcode">
+            <div class="filter-input-group">
+                <label for="edit_material_type" class="filter-label">Material type:</label>
+                <input type="text" id="edit_material_type" name="material_type" class="form-control filter-input" required>
+            </div>
+            <div class="filter-input-group">
+                <label for="edit_call_number" class="filter-label">Call number:</label>
+                <input type="text" id="edit_call_number" name="call_number" class="form-control filter-input">
+            </div>
+            <div class="filter-input-group">
+                <label for="edit_acquisition_type" class="filter-label">Acquisition type:</label>
+                <select id="edit_acquisition_type" name="acquisition_type" class="form-control filter-input" required>
+                    {% for a in ['Purchase','Donation','Exchange','Other'] %}
+                        <option value="{{ a }}">{{ a }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-input-group">
+                <label for="edit_status" class="filter-label">Status:</label>
+                <select id="edit_status" name="status" class="form-control filter-input" required>
+                    <option value="Available">Available</option>
+                    <option value="Lost">Lost</option>
+                </select>
+                <small id="edit_status_note" class="text-muted"></small>
+            </div>
+            <div class="filter-input-group">
+                <label for="edit_book_id" class="filter-label">Book:</label>
+                <select id="edit_book_id" name="book_id" class="form-control filter-input" required>
+                    {% for b in all_books %}
+                        <option value="{{ b.book_id }}">{{ b.title }} ({{ b.book_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-input-group">
+                <label for="edit_location_id" class="filter-label">Location:</label>
+                <select id="edit_location_id" name="location_id" class="form-control filter-input">
+                    <option value="">None</option>
+                    {% for l in all_locations %}
+                        <option value="{{ l.location_id }}">{{ l.direction }} / {{ l.collection }} / {{ l.shelf_row }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-input-group">
+                <label for="edit_owner_id" class="filter-label">Owner:</label>
+                <select id="edit_owner_id" name="owner_id" class="form-control filter-input">
+                    <option value="">None</option>
+                    {% for r in all_readers %}
+                        <option value="{{ r.user_id }}">{{ r.name }} ({{ r.user_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="custom-modal-footer">
+                <button type="button" class="logout-link btn-cancel close-edit-copy-modal">Cancel</button>
+                <button type="submit" class="logout-link btn-save">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const openAddBtn = document.getElementById('openAddCopyModal');
+    const addModal = document.getElementById('addCopyModal');
+    const addCloseElems = document.querySelectorAll('.close-add-copy-modal');
+    const addForm = document.getElementById('addCopyForm');
+
+    if (openAddBtn && addModal) {
+        openAddBtn.addEventListener('click', () => {
+            addModal.classList.add('show');
+            if (addForm) addForm.reset();
+        });
+        addCloseElems.forEach(el => {
+            el.addEventListener('click', () => {
+                addModal.classList.remove('show');
+            });
+        });
+    }
+
+    const editModal = document.getElementById('editCopyModal');
+    const editButtons = document.querySelectorAll('.btn-edit');
+    const editCloseElems = document.querySelectorAll('.close-edit-copy-modal');
+
+    const editBarcode = document.getElementById('edit_item_barcode');
+    const editMaterial = document.getElementById('edit_material_type');
+    const editCall = document.getElementById('edit_call_number');
+    const editAcq = document.getElementById('edit_acquisition_type');
+    const editStatus = document.getElementById('edit_status');
+    const editStatusNote = document.getElementById('edit_status_note');
+    const editBook = document.getElementById('edit_book_id');
+    const editLocation = document.getElementById('edit_location_id');
+    const editOwner = document.getElementById('edit_owner_id');
+
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (editBarcode) editBarcode.value = btn.dataset.itemBarcode || '';
+            if (editMaterial) editMaterial.value = btn.dataset.materialType || '';
+            if (editCall) editCall.value = btn.dataset.callNumber || '';
+            if (editAcq) editAcq.value = btn.dataset.acquisitionType || '';
+                const statusValue = btn.dataset.status || '';
+                if (editStatus) {
+                    const allowed = ['Available', 'Lost'];
+                    Array.from(editStatus.querySelectorAll('[data-auto-status]')).forEach(opt => opt.remove());
+                    const hasOption = Array.from(editStatus.options).some(opt => opt.value === statusValue);
+                    if (!hasOption && statusValue) {
+                        const opt = document.createElement('option');
+                        opt.value = statusValue;
+                        opt.textContent = `${statusValue} (auto)`;
+                        opt.dataset.autoStatus = 'true';
+                        editStatus.appendChild(opt);
+                    }
+
+                editStatus.value = statusValue || editStatus.value;
+
+                if (statusValue && !allowed.includes(statusValue)) {
+                    if (editStatusNote) {
+                        editStatusNote.textContent = 'Auto status shown for reference. You can switch to Available or Lost.';
+                    }
+                } else if (editStatusNote) {
+                    editStatusNote.textContent = '';
+                }
+            }
+            if (editBook) editBook.value = btn.dataset.bookId || '';
+            if (editLocation) editLocation.value = btn.dataset.locationId || '';
+            if (editOwner) editOwner.value = btn.dataset.ownerId || '';
+
+            editModal.classList.add('show');
+        });
+    });
+
+    editCloseElems.forEach(el => {
+        el.addEventListener('click', () => {
+            editModal.classList.remove('show');
+        });
+    });
+});
+</script>
+{% endblock %}

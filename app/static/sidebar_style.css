@@ -722,6 +722,31 @@ html.sidebar-closed-init .filters-results.main-content {
     text-transform: none;
 }
 
+.nav-group {
+    display: block;
+}
+
+.nav-group summary {
+    list-style: none;
+}
+
+.nav-group summary::-webkit-details-marker {
+    display: none;
+}
+
+.nav-group summary .nav-caret {
+    margin-left: auto;
+    transition: transform 0.2s ease;
+}
+
+.nav-group[open] summary .nav-caret {
+    transform: rotate(90deg);
+}
+
+.nav-group .nav-item {
+    padding-left: 28px;
+}
+
 /* Main Content */
 .main-content {
     margin-left: 250px;

@@ -33,7 +33,7 @@ def system_logs():
     start_date = request.args.get('start_date') or ''
     end_date = request.args.get('end_date') or ''
     page = request.args.get('page', default=1, type=int)
-    per_page = 20
+    per_page = 10
     if page < 1:
         page = 1
 
@@ -95,6 +95,8 @@ def system_logs():
     if page > total_pages:
         page = total_pages
         params_with_page = params + [per_page, (page - 1) * per_page]
+    start_index = 0 if total_count == 0 else (page - 1) * per_page + 1
+    end_index = 0 if total_count == 0 else min(page * per_page, total_count)
 
     cursor.execute(query, tuple(params_with_page))
     logs = cursor.fetchall()
@@ -110,6 +112,9 @@ def system_logs():
         end_date=end_date,
         node_query=node_query,
         message_query=message_query,
+        total_count=total_count,
+        start_index=start_index,
+        end_index=end_index,
         page=page,
         total_pages=total_pages,
         has_prev=page > 1,
@@ -131,7 +136,7 @@ def user_activity():
     start_date = request.args.get('start_date') or ''
     end_date = request.args.get('end_date') or ''
     page = request.args.get('page', default=1, type=int)
-    per_page = 20
+    per_page = 10
     if page < 1:
         page = 1
 
@@ -191,6 +196,8 @@ def user_activity():
     if page > total_pages:
         page = total_pages
         params_with_page = params + [per_page, (page - 1) * per_page]
+    start_index = 0 if total_count == 0 else (page - 1) * per_page + 1
+    end_index = 0 if total_count == 0 else min(page * per_page, total_count)
 
     cursor.execute(query, params_with_page)
     logs = cursor.fetchall()
@@ -220,6 +227,9 @@ def user_activity():
         description_query=description_query,
         start_date=start_date,
         end_date=end_date,
+        total_count=total_count,
+        start_index=start_index,
+        end_index=end_index,
         page=page,
         total_pages=total_pages,
         has_prev=page > 1,

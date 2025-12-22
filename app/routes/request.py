@@ -156,6 +156,15 @@ def my_requests():
     """, [user_id] + params)
     book_requests = cursor.fetchall()
 
+    counts = {
+        "holds": len(holds),
+        "borrows": len(borrows),
+        "book_requests": len(book_requests),
+        "exchanges": len(exchanges),
+        "donations": len(donations),
+    }
+    active_count = counts.get(active_tab, 0)
+
     return render_template(
         "my-requests.html",
         holds=holds,
@@ -165,7 +174,8 @@ def my_requests():
         donations=donations,
         active_tab=active_tab,
         search_values=search_values,
-        active_values=active_values
+        active_values=active_values,
+        total_count=active_count
     )
 
 @request_bp.route("/new_request", methods=["POST"], endpoint="new_request")

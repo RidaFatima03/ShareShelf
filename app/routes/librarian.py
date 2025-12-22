@@ -26,7 +26,7 @@ def get_cursor():
 
 def librarian_required():
     if 'loggedin' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
     if session.get('user_type') != 'Librarian':
         return "Forbidden", 403
     return None
@@ -200,6 +200,14 @@ def requests():
     """, params)
     book_requests = cursor.fetchall()
 
+    counts = {
+        "borrows": len(borrows),
+        "book_requests": len(book_requests),
+        "exchanges": len(exchanges),
+        "donations": len(donations),
+    }
+    active_count = counts.get(active_tab, 0)
+
     return render_template(
         "librarian-requests.html",
         borrows=borrows,
@@ -208,7 +216,8 @@ def requests():
         donations=donations,
         active_tab=active_tab,
         search_values=search_values,
-        active_values=active_values
+        active_values=active_values,
+        total_count=active_count
     )
 
 @librarian_bp.route("/requests/approve/<int:request_id>", methods=["POST"], endpoint="approve_request")
@@ -350,6 +359,8 @@ def authors():
     total = (cursor.fetchone() or {}).get("total", 0)
 
     page, total_pages, offset, has_prev, has_next = paginate(page, per_page, total)
+    start_index = 0 if total == 0 else (page - 1) * per_page + 1
+    end_index = min(page * per_page, total)
 
     # data query
     cursor.execute(f"""
@@ -365,6 +376,9 @@ def authors():
         authors=cursor.fetchall(),
         page=page, total_pages=total_pages, has_prev=has_prev, has_next=has_next,
         search_id=v["search_id"], search_name=v["search_name"],
+        total_count=total,
+        start_index=start_index,
+        end_index=end_index,
     )
 
 @librarian_bp.route("/authors/delete/<int:author_id>", methods=["POST"], endpoint="delete_author")
@@ -443,6 +457,8 @@ def genres():
     total = (cursor.fetchone() or {}).get("total", 0)
 
     page, total_pages, offset, has_prev, has_next = paginate(page, per_page, total)
+    start_index = 0 if total == 0 else (page - 1) * per_page + 1
+    end_index = min(page * per_page, total)
 
     # data query
     cursor.execute(f"""
@@ -458,6 +474,9 @@ def genres():
         genres=cursor.fetchall(),
         page=page, total_pages=total_pages, has_prev=has_prev, has_next=has_next,
         search_id=v["search_id"], search_name=v["search_name"],
+        total_count=total,
+        start_index=start_index,
+        end_index=end_index,
     )
 
 
@@ -472,6 +491,30 @@ def delete_genre(genre_id):
     mysql.connection.commit()
     system_log("Catalog", "INFO", "GenreService", f"Genre deleted (genre_id={genre_id}).")
     flash("Genre deleted successfully.", "success")
+
+    return redirect(url_for("librarian.genres"))
+
+@librarian_bp.route("/genres/edit", methods=["POST"], endpoint="edit_genre")
+def edit_genre():
+    check = librarian_required()
+    if check:
+        return check
+
+    genre_id = request.form.get("genre_id")
+    name = (request.form.get("genre_name") or "").strip()
+
+    if not genre_id or not name:
+        flash("Genre name is required.", "danger")
+        return redirect(url_for("librarian.genres"))
+
+    cursor = get_cursor()
+    cursor.execute(
+        "UPDATE Genre SET genre_name = %s WHERE genre_id = %s",
+        (name, genre_id)
+    )
+    mysql.connection.commit()
+    system_log("Catalog", "INFO", "GenreService", f"Genre updated (genre_id={genre_id}).")
+    flash("Genre updated successfully.", "success")
 
     return redirect(url_for("librarian.genres"))
 
@@ -522,6 +565,8 @@ def locations():
     total = (cursor.fetchone() or {}).get("total", 0)
 
     page, total_pages, offset, has_prev, has_next = paginate(page, per_page, total)
+    start_index = 0 if total == 0 else (page - 1) * per_page + 1
+    end_index = min(page * per_page, total)
 
     cursor.execute(f"""
         SELECT location_id, direction, collection, shelf_row
@@ -539,6 +584,9 @@ def locations():
         search_direction=v["search_direction"],
         search_collection=v["search_collection"],
         search_shelf_row=v["search_shelf_row"],
+        total_count=total,
+        start_index=start_index,
+        end_index=end_index,
     )
 
 
@@ -619,31 +667,6 @@ def edit_location():
 
     return redirect(url_for("librarian.locations"))
 
-
-@librarian_bp.route("/genres/edit", methods=["POST"], endpoint="edit_genre")
-def edit_genre():
-    check = librarian_required()
-    if check:
-        return check
-
-    genre_id = request.form.get("genre_id")
-    name = (request.form.get("genre_name") or "").strip()
-
-    if not genre_id or not name:
-        flash("Genre name is required.", "danger")
-        return redirect(url_for("librarian.genres"))
-
-    cursor = get_cursor()
-    cursor.execute(
-        "UPDATE Genre SET genre_name = %s WHERE genre_id = %s",
-        (name, genre_id)
-    )
-    mysql.connection.commit()
-    system_log("Catalog", "INFO", "GenreService", f"Genre updated (genre_id={genre_id}).")
-    flash("Genre updated successfully.", "success")
-
-    return redirect(url_for("librarian.genres"))
-
 ###---------------------------- BOOK MANAGEMENT----------------------------###
 @librarian_bp.route("/books", methods=["GET", "POST"], endpoint="books")
 def books():
@@ -660,6 +683,8 @@ def books():
     # Load all authors for dropdown
     cursor.execute("SELECT author_id, author_name FROM Author ORDER BY author_name")
     all_authors = cursor.fetchall()
+    cursor.execute("SELECT DISTINCT language FROM Book WHERE language IS NOT NULL AND language != '' ORDER BY language")
+    all_languages = [row["language"] for row in cursor.fetchall()]
 
     # ---------- CREATE (POST) ----------
     if request.method == "POST":
@@ -668,6 +693,8 @@ def books():
         publisher = (request.form.get("publisher") or "").strip()
         publication_date = (request.form.get("publication_date") or "").strip()
         language = (request.form.get("language") or "").strip()
+        if language == "__other__":
+            language = (request.form.get("language_custom") or "").strip()
         physical_description = (request.form.get("physical_description") or "").strip()
         summary = (request.form.get("summary") or "").strip()
         page_number = (request.form.get("page_number") or "").strip()
@@ -858,6 +885,8 @@ def books():
 
     has_prev = page > 1
     has_next = page < total_pages
+    start_index = 0 if total == 0 else (page - 1) * per_page + 1
+    end_index = min(page * per_page, total)
 
     return render_template(
         "books.html",
@@ -866,6 +895,9 @@ def books():
         total_pages=total_pages,
         has_prev=has_prev,
         has_next=has_next,
+        total_count=total,
+        start_index=start_index,
+        end_index=end_index,
         search_id=search_id,
         search_isbn=search_isbn,
         search_title=search_title,
@@ -877,7 +909,8 @@ def books():
         search_page_number=search_page_number,
         search_genre=search_genre,
         all_genres=all_genres,
-        all_authors=all_authors
+        all_authors=all_authors,
+        all_languages=all_languages
     )
 
 @librarian_bp.route("/books/delete/<int:book_id>", methods=["POST"], endpoint="delete_book")
@@ -906,6 +939,8 @@ def edit_book():
     publisher = (request.form.get("publisher") or "").strip()
     publication_date = (request.form.get("publication_date") or "").strip()
     language = (request.form.get("language") or "").strip()
+    if language == "__other__":
+        language = (request.form.get("language_custom") or "").strip()
     physical_description = (request.form.get("physical_description") or "").strip()
     summary = (request.form.get("summary") or "").strip()
     page_number = (request.form.get("page_number") or "").strip()
@@ -1193,6 +1228,8 @@ def user_management():
 
     has_prev = page > 1
     has_next = page < total_pages
+    start_index = 0 if total == 0 else (page - 1) * per_page + 1
+    end_index = 0 if total == 0 else min(page * per_page, total)
 
     return render_template(
             "user_management.html",
@@ -1207,7 +1244,10 @@ def user_management():
             search_status=search_status,
             search_user_type=search_user_type,
             search_policy=search_policy,
-            all_policies=all_policies
+            all_policies=all_policies,
+            total_count=total,
+            start_index=start_index,
+            end_index=end_index,
         )
 
 @librarian_bp.route("/user_management/delete/<int:user_id>", methods=["POST"], endpoint="delete_user")

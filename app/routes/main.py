@@ -2,12 +2,21 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from datetime import datetime, timedelta
 import MySQLdb.cursors
 from extensions import mysql
+from routes.notifications import NotificationService
 from utils.system_log import system_log
 
 main_bp = Blueprint('main', __name__)
 
 def get_cursor():
     return mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+def notify_librarians(subject, details):
+    cursor = get_cursor()
+    cursor.execute("SELECT user_id FROM User WHERE user_type = 'Librarian'")
+    librarians = cursor.fetchall()
+    service = NotificationService(mysql.connection)
+    for librarian in librarians:
+        service.add_notification(librarian["user_id"], subject, details)
 
 @main_bp.route('/main', methods=['GET'], endpoint='main_page')
 def main_page():
@@ -323,6 +332,20 @@ def borrow_book(copy_id):
         request_id = cursor.lastrowid
 
         mysql.connection.commit()
+        cursor.execute("""
+            SELECT CONCAT_WS(' ', user_first_name, user_middle_name, user_last_name) AS full_name
+            FROM User
+            WHERE user_id = %s
+        """, (user_id,))
+        user_row = cursor.fetchone() or {}
+        cursor.execute("SELECT title FROM Book WHERE book_id = %s", (copy_data['book_id'],))
+        book_row = cursor.fetchone() or {}
+        user_full_name = user_row.get("full_name") or f"User {user_id}"
+        book_title = book_row.get("title") or f"book {copy_data['book_id']}"
+        notify_librarians(
+            "New borrow request",
+            f"User {user_full_name} created a request to borrow {book_title}."
+        )
         system_log(
             "Requests",
             "INFO",

@@ -21,11 +21,16 @@
             
             <form class="login-form" action="{{ url_for('auth.login') }}" method="post">
                 {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, msg in messages %}
-                        <div class="alert alert-{{ category }}">{{ msg }}</div>
-                        {% endfor %}
-                    {% endif %}
+                {% if messages %}
+                <div class="flash-container">
+                    {% for category, message in messages %}
+                    <div class="custom-alert custom-alert-{{ category|lower }}">
+                        {{ message }}
+                        <button type="button" class="custom-alert-close" onclick="this.parentElement.remove()">x</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
                 {% endwith %}
                 <!-- Email Field -->
                 <div class="form-group">
@@ -87,6 +92,16 @@
             }
         });
     }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        setTimeout(() => {
+            document.querySelectorAll(".custom-alert").forEach(el => {
+                el.style.transition = "opacity 0.4s";
+                el.style.opacity = "0";
+                setTimeout(() => el.remove(), 400);
+            });
+        }, 3000);
+    });
 </script>
 </html>
 

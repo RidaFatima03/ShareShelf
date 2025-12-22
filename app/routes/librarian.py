@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 import MySQLdb.cursors
 from extensions import mysql
 from routes.notifications import NotificationService
+from routes.auth import user_log_activity
 from werkzeug.security import generate_password_hash
 librarian_bp = Blueprint("librarian", __name__, url_prefix="/librarian")
 
@@ -1293,6 +1294,12 @@ def edit_user():
                 policy_id=%s
             WHERE user_id=%s
         """, (first_name, middle_name, last_name, phone_number, status, user_type, policy_id, user_id))
+
+    user_log_activity(
+        session.get("userid"),
+        "Update User",
+        f"Librarian {session.get('username', '')} updated user ID {user_id}."
+    )
 
     mysql.connection.commit()
     flash("User updated successfully.", "success")

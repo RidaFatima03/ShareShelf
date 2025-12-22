@@ -331,7 +331,8 @@ def authors():
         else:
             cursor.execute("INSERT INTO Author (author_name) VALUES (%s)", (author_name,))
             mysql.connection.commit()
-            system_log("Catalog", "INFO", "AuthorService", "Author created.")
+            author_id = cursor.lastrowid
+            system_log("Catalog", "INFO", "AuthorService", f"Author created (author_id={author_id}).")
             flash("Author created successfully.", "success")
         return redirect(url_for("librarian.authors"))
 
@@ -423,7 +424,8 @@ def genres():
         else:
             cursor.execute("INSERT INTO Genre (genre_name) VALUES (%s)", (genre_name,))
             mysql.connection.commit()
-            system_log("Catalog", "INFO", "GenreService", "Genre created.")
+            genre_id = cursor.lastrowid
+            system_log("Catalog", "INFO", "GenreService", f"Genre created (genre_id={genre_id}).")
             flash("Genre created successfully.", "success")
         return redirect(url_for("librarian.genres"))
 
@@ -500,7 +502,8 @@ def locations():
                 (direction, collection, shelf_row)
             )
             mysql.connection.commit()
-            system_log("Catalog", "INFO", "LocationService", "Location created.")
+            location_id = cursor.lastrowid
+            system_log("Catalog", "INFO", "LocationService", f"Location created (location_id={location_id}).")
             flash("Location created successfully.", "success")
         return redirect(url_for("librarian.locations"))
 

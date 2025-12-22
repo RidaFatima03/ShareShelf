@@ -89,7 +89,8 @@ def add_policy():
         """, (name, period, renewals, fine, max_loans, holds, applies))
 
         mysql.connection.commit()
-        system_log("Policy", "INFO", "PolicyService", "Policy created.")
+        policy_id = cursor.lastrowid
+        system_log("Policy", "INFO", "PolicyService", f"Policy created (policy_id={policy_id}).")
 
         flash("Policy added successfully!", "success")
         return redirect(url_for('policy.policy'))

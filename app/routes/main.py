@@ -320,9 +320,15 @@ def borrow_book(copy_id):
             INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id)
             VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Borrow', 'Pending', %s, %s)
         """, (user_id, copy_data['book_id']))
+        request_id = cursor.lastrowid
 
         mysql.connection.commit()
-        system_log("Requests", "INFO", "RequestService", "Borrow request created.")
+        system_log(
+            "Requests",
+            "INFO",
+            "RequestService",
+            f"Borrow request created (request_id={request_id}, book_id={copy_data['book_id']})."
+        )
         flash("Borrow request sent to Librarian for approval.", "success")
 
     except Exception as e:
@@ -372,8 +378,14 @@ def hold_book(book_id):
                 VALUES (NOW(), NULL, 'Hold', 'Pending', %s, %s)
             """
             cursor.execute(insert_query, (user_id, book_id))
+            request_id = cursor.lastrowid
             mysql.connection.commit()
-            system_log("Requests", "INFO", "RequestService", "Hold request created.")
+            system_log(
+                "Requests",
+                "INFO",
+                "RequestService",
+                f"Hold request created (request_id={request_id}, book_id={book_id})."
+            )
             flash("Hold placed successfully!", "success")
 
     except Exception as e:
@@ -395,6 +407,7 @@ def add_book():
     
     try:
         if acquisition_type == 'Donation':
+            request_id = None
             if mode == 'existing':
                 book_id = request.form.get('book_id')
                 cursor.execute("""
@@ -410,6 +423,7 @@ def add_book():
                     INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id) 
                     VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Donation', 'Pending', %s, %s)
                 """, (user_id, book_id))
+                request_id = cursor.lastrowid
                 
             elif mode == 'manual':
                 isbn = request.form.get('isbn')
@@ -433,9 +447,24 @@ def add_book():
                     INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, material_id) 
                     VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Donation', 'Pending', %s, %s)
                 """, (user_id, material_id))
+                request_id = cursor.lastrowid
             
             mysql.connection.commit()
-            system_log("Requests", "INFO", "RequestService", "Donation request created.")
+            if request_id:
+                if mode == "existing":
+                    system_log(
+                        "Requests",
+                        "INFO",
+                        "RequestService",
+                        f"Donation request created (request_id={request_id}, book_id={book_id})."
+                    )
+                else:
+                    system_log(
+                        "Requests",
+                        "INFO",
+                        "RequestService",
+                        f"Donation request created (request_id={request_id}, material_id={material_id})."
+                    )
             flash("Donation request sent to Librarian for approval.", "success")
             return redirect(url_for('request.my_requests')) 
 
@@ -496,7 +525,12 @@ def add_book():
             """, (new_barcode, book_id, user_id))
             
             mysql.connection.commit()
-            system_log("Catalog", "INFO", "ExchangeService", "Exchange copy created.")
+            system_log(
+                "Catalog",
+                "INFO",
+                "ExchangeService",
+                f"Exchange copy created (barcode={new_barcode}, book_id={book_id})."
+            )
             flash("Book added to your Exchange list!", "success")
             return redirect(url_for('main.my_books'))
 
@@ -847,6 +881,7 @@ def request_exchange(barcode):
         """, (user_id, copy['book_id']))
         existing_req = cursor.fetchone()
 
+        request_id = None
         if existing_req:
             if existing_req['status'] in ['Pending', 'Approved']:
                 flash("You already have an active request for this book. Please wait for the owner to respond.", "info")
@@ -859,11 +894,13 @@ def request_exchange(barcode):
                         requester_confirmed = 0, owner_confirmed = 0, exchange_book_id = NULL
                     WHERE request_id = %s
                 """, (existing_req['request_id'],))
+                request_id = existing_req['request_id']
         else:
             cursor.execute("""
                 INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id) 
                 VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Exchange', 'Pending', %s, %s)
             """, (user_id, copy['book_id']))
+            request_id = cursor.lastrowid
         
         owner_id = copy['owner_id']
         book_title = copy['title']
@@ -872,7 +909,13 @@ def request_exchange(barcode):
         cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", (notif_subject, notif_msg, owner_id))
 
         mysql.connection.commit()
-        system_log("Requests", "INFO", "ExchangeService", "Exchange request created.")
+        if request_id:
+            system_log(
+                "Requests",
+                "INFO",
+                "ExchangeService",
+                f"Exchange request created (request_id={request_id}, book_id={copy['book_id']})."
+            )
         flash("Exchange request sent successfully!", "success")
 
     except Exception as e:

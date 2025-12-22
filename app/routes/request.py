@@ -206,7 +206,13 @@ def new_request():
     """, (add_request_type, material_id, reader_id))
     mysql.connection.commit()
 
-    system_log("Requests", "INFO", "RequestService", "Book request created.")
+    request_id = cursor.lastrowid
+    system_log(
+        "Requests",
+        "INFO",
+        "RequestService",
+        f"Request created (request_id={request_id}, material_id={material_id})."
+    )
     flash("Request created successfully.", "success")
     return redirect(url_for("request.my_requests"))
 

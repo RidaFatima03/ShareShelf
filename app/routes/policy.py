@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session,flash
 import MySQLdb.cursors
 from extensions import mysql
+from utils.system_log import system_log
 
 policy_bp = Blueprint('policy', __name__)
 
@@ -48,6 +49,7 @@ def edit_policy(id):
         """, (name, period, renewals, fine, max_loans, holds, id))
 
         mysql.connection.commit()
+        system_log("Policy", "INFO", "PolicyService", f"Policy updated (policy_id={id}).")
 
         return redirect(url_for('policy.policy'))
 
@@ -87,6 +89,7 @@ def add_policy():
         """, (name, period, renewals, fine, max_loans, holds, applies))
 
         mysql.connection.commit()
+        system_log("Policy", "INFO", "PolicyService", "Policy created.")
 
         flash("Policy added successfully!", "success")
         return redirect(url_for('policy.policy'))
@@ -101,6 +104,7 @@ def delete_policy(id):
     cursor = get_cursor()
     cursor.execute("DELETE FROM Policy WHERE policy_id = %s", (id,))
     mysql.connection.commit()
+    system_log("Policy", "INFO", "PolicyService", f"Policy deleted (policy_id={id}).")
 
     return redirect(url_for('policy.policy'))
 

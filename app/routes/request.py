@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 import MySQLdb.cursors
 from extensions import mysql
+from utils.system_log import system_log
 
 request_bp = Blueprint("request", __name__, url_prefix="/request")
 
@@ -205,6 +206,7 @@ def new_request():
     """, (add_request_type, material_id, reader_id))
     mysql.connection.commit()
 
+    system_log("Requests", "INFO", "RequestService", "Book request created.")
     flash("Request created successfully.", "success")
     return redirect(url_for("request.my_requests"))
 
@@ -238,6 +240,7 @@ def cancel_request(request_id):
     """, (request_id,))
     mysql.connection.commit()
 
+    system_log("Requests", "INFO", "RequestService", f"Request cancelled (request_id={request_id}).")
     flash("Request cancelled successfully.", "success")
     return redirect(url_for("request.my_requests"))
 

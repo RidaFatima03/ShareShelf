@@ -29,7 +29,12 @@ def login():
 
         cursor = get_cursor()
         cursor.execute(
-            'SELECT * FROM User WHERE user_email = %s AND user_password = SHA2(%s, 256)',
+            """
+            SELECT * FROM User
+            WHERE user_email = %s
+              AND user_password = SHA2(%s, 256)
+              AND status = 'Active'
+            """,
             (email, password,)
         )
         user = cursor.fetchone()
@@ -57,7 +62,17 @@ def login():
 
             return redirect(url_for('main.main_page'))
         else:
-            flash('Incorrect email or password!', 'danger')
+            cursor.execute(
+                "SELECT status FROM User WHERE user_email = %s",
+                (email,)
+            )
+            status_row = cursor.fetchone()
+            if status_row and status_row.get('status') == 'Blocked':
+                flash('Your account is blocked. Please contact support.', 'danger')
+            elif status_row and status_row.get('status') == 'Inactive':
+                flash('Your account is inactive. Please contact support.', 'danger')
+            else:
+                flash('Incorrect email or password!', 'danger')
             return redirect(url_for('auth.login'))
 
     return render_template('login.html')

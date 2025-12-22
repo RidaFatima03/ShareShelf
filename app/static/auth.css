@@ -250,6 +250,59 @@ body {
     text-decoration: underline;
 }
 
+.flash-container {
+    margin-bottom: 16px;
+}
+
+.custom-alert {
+    position: relative;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+    animation: flashFadeIn 0.25s ease-out;
+}
+
+.custom-alert-success {
+    background-color: #e8f7e8;
+    border: 1px solid #b6e3b6;
+    color: #2e7d32;
+}
+
+.custom-alert-danger,
+.custom-alert-error {
+    background-color: #fdecea;
+    border: 1px solid #f5c2c0;
+    color: #c62828;
+}
+
+.custom-alert-info {
+    background-color: #e8f1fd;
+    border: 1px solid #b8cff5;
+    color: #1565c0;
+}
+
+.custom-alert-warning {
+    background-color: #fff8e1;
+    border: 1px solid #ffe3a3;
+    color: #b37b00;
+}
+
+.custom-alert-close {
+    margin-left: auto;
+    border: none;
+    background: transparent;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    color: inherit;
+}
+
 /* Register Card */
 .register-card {
     background-color: #f5f1eb;

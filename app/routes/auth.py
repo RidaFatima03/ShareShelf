@@ -64,13 +64,13 @@ def login():
                 "Auth",
                 "INFO",
                 "AuthService",
-                "Login succeeded."
+                f"Login succeeded (user_id={session['userid']})."
             )
 
             return redirect(url_for('main.main_page'))
         else:
             cursor.execute(
-                "SELECT status FROM User WHERE user_email = %s",
+                "SELECT user_id, status FROM User WHERE user_email = %s",
                 (email,)
             )
             status_row = cursor.fetchone()
@@ -79,7 +79,7 @@ def login():
                     "Auth",
                     "WARN",
                     "LoginGuard",
-                    "Blocked login attempt."
+                    f"Blocked login attempt (user_id={status_row.get('user_id')})."
                 )
                 flash('Your account is blocked. Please contact support.', 'danger')
             elif status_row and status_row.get('status') == 'Inactive':
@@ -87,7 +87,7 @@ def login():
                     "Auth",
                     "WARN",
                     "LoginGuard",
-                    "Inactive login attempt."
+                    f"Inactive login attempt (user_id={status_row.get('user_id')})."
                 )
                 flash('Your account is inactive. Please contact support.', 'danger')
             else:
@@ -137,8 +137,9 @@ def register():
         cursor.execute('INSERT INTO User (user_first_name, user_middle_name, user_last_name, user_phone_number, user_email, user_password) ' \
         '     VALUES (% s, %s, %s, %s, %s, SHA2(%s, 256))',
              (user_first_name, user_middle_name, user_last_name, user_phone_number, user_email, user_password))
+        new_user_id = cursor.lastrowid
         mysql.connection.commit()
-        system_log("Auth", "INFO", "RegistrationService", "User registration created.")
+        system_log("Auth", "INFO", "RegistrationService", f"User created (user_id={new_user_id}).")
         message = 'User successfully created!'
         return render_template('login.html', message = message)
 
@@ -174,7 +175,7 @@ def send_reset_link():
         """, (token, user_id))
 
         mysql.connection.commit()
-        system_log("Auth", "INFO", "PasswordReset", "Password reset token created.")
+        system_log("Auth", "INFO", "PasswordReset", f"Password reset token created (user_id={user_id}).")
 
         # 4) Build reset URL and send it by email
         reset_url = url_for('auth.change_password', token=token, _external=True)
@@ -259,7 +260,7 @@ def change_password(token):
         """, (token,))
 
         mysql.connection.commit()
-        system_log("Auth", "INFO", "PasswordReset", "Password reset completed.")
+        system_log("Auth", "INFO", "PasswordReset", f"Password reset completed (user_id={user_id}).")
 
         flash("Your password has been reset. You can now log in.", "success")
         return redirect(url_for('auth.login'))
@@ -279,7 +280,7 @@ def logout():
             "Auth",
             "INFO",
             "AuthService",
-            "Logout completed."
+            f"Logout completed (user_id={session.get('userid')})."
         )
     session.clear()
     return redirect(url_for('auth.login'))

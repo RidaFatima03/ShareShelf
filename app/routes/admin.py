@@ -12,7 +12,7 @@ def get_cursor():
 
 def admin_required():
     if 'loggedin' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
     if session.get('user_type') != 'Admin':
         return "Forbidden", 403
     return None

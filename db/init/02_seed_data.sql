@@ -1,37 +1,32 @@
+INSERT INTO Policy (
+  name, loan_period_days, renewals_allowed, fine_per_day,
+  max_concurrent_loans, holds_limit_reservation, applies_to_role
+) VALUES
+('Standard Policy', 14, 2, 0.5, 5, 5, 'Reader');
+
 INSERT INTO User (
     user_first_name, user_middle_name, user_last_name,
     user_phone_number, user_email, user_password,
-    status, joined_at, user_type
+    status, user_type, policy_id
 ) VALUES
-('John', 'A.', 'Doe', '5551112222', 'john.doe@example.com', SHA2('password1', 256), 'Active', '2023-10-01 09:15:00', 'Reader'),
-('Jane', 'B.', 'Smith', '5553334444', 'jane.smith@example.com', SHA2('password2', 256), 'Active', '2023-09-20 10:30:00', 'Reader'),
-('Michael', 'C.', 'Brown', '5555556666', 'michael.brown@example.com', SHA2('password3', 256), 'Active', '2023-08-12 14:00:00', 'Reader'),
-('Sarah', 'D.', 'Miller', '5557778888', 'sarah.miller@example.com', SHA2('password4', 256), 'Inactive', '2023-07-01 11:45:00', 'Reader'),
+-- Reader
+('Melisa', '', 'Tanrikulu', '5555556666', 'melisa.tanrikulu@example.com', SHA2('melisatanrikulu', 256), 'Active', 'Reader', 1);
 
-('Emily', 'E.', 'Johnson', '5559990000', 'emily.johnson@example.com', SHA2('password5', 256), 'Active', '2023-06-10 13:30:00', 'Librarian'),
-('Robert', 'F.', 'Wilson', '5551212121', 'robert.wilson@example.com', SHA2('password6', 256), 'Active', '2023-06-15 09:00:00', 'Librarian'),
+INSERT INTO User (
+    user_first_name, user_middle_name, user_last_name,
+    user_phone_number, user_email, user_password,
+    status, user_type
+) VALUES
+-- Librarian
+('Emily', 'E.', 'Johnson', '5559990000', 'emily.johnson@example.com', SHA2('password', 256), 'Active', 'Librarian'),
+-- Admin
+('Admin', '', 'Admin', '5555656565', 'admin.admin@example.com', SHA2('adminadmin', 256), 'Active', 'Admin');
 
-('Alice', 'G.', 'Taylor', '5553434343', 'alice.taylor@example.com', SHA2('password7', 256), 'Active', '2023-05-10 15:00:00', 'Admin'),
-('Melisa', '', 'Tanrikulu', '5369498281', 'melisatanrikulu07@gmail.com', SHA2('passwordMelisa99', 256), 'Active', '2023-05-15 12:30:00', 'Admin'),
-('David', 'H.', 'Anderson', '5555656565', 'david.anderson@example.com', SHA2('password8', 256), 'Active', '2023-05-15 12:30:00', 'Admin');
-
-INSERT INTO Reader (reader_id, is_approved)
+INSERT INTO Reader (reader_id)
 VALUES
-(1, TRUE),
-(2, TRUE),
-(3, TRUE),
-(4, FALSE);
+(1);
 
-INSERT INTO Librarian (librarian_id) 
-VALUES
-(5),
-(6);
-
-INSERT INTO Admin (admin_id)
-VALUES
-(7),
-(8);
-
+/*
 INSERT INTO Author (author_name) VALUES
 ('Andy Weir'),
 ('Harper Lee'),
@@ -343,7 +338,7 @@ VALUES
 ('Policy Update', '2025-11-09 22:15:10', 'Updated loan policy: Reader loan period set to 21 days.', 7),
 ('System Backup', '2025-11-10 02:00:00', 'Scheduled system backup completed successfully.', 7),
 ('Logout', '2025-11-10 02:10:00', 'Admin Robert White logged out.', 7);
-
+*/
 
 UPDATE Book b
 SET average_rating = (

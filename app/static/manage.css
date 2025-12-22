@@ -181,8 +181,16 @@
 /* FORCE pagination to behave */
 .pagination-container {
     display: flex;
-    justify-content: center;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
     margin-top: 16px;
+}
+
+.pagination-summary {
+    color: #8b6f47;
+    font-size: 0.9rem;
 }
 
 /* kill bullets + make horizontal */
@@ -356,6 +364,10 @@
 .table-filter-actions .btn-apply,
 .table-filter-actions .btn-cancel {
     margin-top: 0;
+}
+
+.mt-2 {
+    margin-top: 8px;
 }
 
 .col-user-id {

@@ -11,8 +11,8 @@
     </div>
 
     <div class="table-wrapper">
-        <form method="get" action="{{ url_for('copies.list') }}">
-            <table class="activity-table">
+        <form id="copies-filter-form" method="get" action="{{ url_for('copies.list') }}"></form>
+        <table class="activity-table">
                 <thead>
                     <tr>
                         <th>
@@ -21,6 +21,7 @@
                                     name="search_barcode"
                                     class="filter-input filter-input-manage"
                                     placeholder="Search barcode..."
+                                    form="copies-filter-form"
                                     value="{{ search_barcode }}">
                         </th>
                         <th>
@@ -29,6 +30,7 @@
                                     name="search_title"
                                     class="filter-input filter-input-manage"
                                     placeholder="Search title..."
+                                    form="copies-filter-form"
                                     value="{{ search_title }}">
                         </th>
                         <th>
@@ -37,12 +39,14 @@
                                     name="search_book_id"
                                     class="filter-input filter-input-manage"
                                     placeholder="Book ID..."
+                                    form="copies-filter-form"
                                     value="{{ search_book_id }}">
                         </th>
                         <th>
                             Status<br>
                             <select name="search_status"
-                                    class="filter-input filter-input-manage">
+                                    class="filter-input filter-input-manage"
+                                    form="copies-filter-form">
                                 <option value="">All</option>
                                 {% for s in ['Available','On Loan','On Hold','Lost','Exchanged','Pending Handoff'] %}
                                     <option value="{{ s }}" {% if search_status == s %}selected{% endif %}>{{ s }}</option>
@@ -52,7 +56,8 @@
                         <th>
                             Acquisition<br>
                             <select name="search_acquisition"
-                                    class="filter-input filter-input-manage">
+                                    class="filter-input filter-input-manage"
+                                    form="copies-filter-form">
                                 <option value="">All</option>
                                 {% for a in ['Purchase','Donation','Exchange','Other'] %}
                                     <option value="{{ a }}" {% if search_acquisition == a %}selected{% endif %}>{{ a }}</option>
@@ -65,6 +70,7 @@
                                     name="search_material"
                                     class="filter-input filter-input-manage"
                                     placeholder="Type..."
+                                    form="copies-filter-form"
                                     value="{{ search_material }}">
                         </th>
                         <th>
@@ -73,12 +79,14 @@
                                     name="search_call_number"
                                     class="filter-input filter-input-manage"
                                     placeholder="Call number..."
+                                    form="copies-filter-form"
                                     value="{{ search_call_number }}">
                         </th>
                         <th>
                             Location<br>
                             <select name="search_location"
-                                    class="filter-input filter-input-manage">
+                                    class="filter-input filter-input-manage"
+                                    form="copies-filter-form">
                                 <option value="">All</option>
                                 {% for l in all_locations %}
                                     <option value="{{ l.location_id }}" {% if search_location == l.location_id|string %}selected{% endif %}>
@@ -90,7 +98,8 @@
                         <th>
                             Owner<br>
                             <select name="search_owner"
-                                    class="filter-input filter-input-manage">
+                                    class="filter-input filter-input-manage"
+                                    form="copies-filter-form">
                                 <option value="">All</option>
                                 {% for r in all_readers %}
                                     <option value="{{ r.user_id }}" {% if search_owner == r.user_id|string %}selected{% endif %}>
@@ -100,7 +109,7 @@
                             </select>
                         </th>
                         <th>
-                            <button type="submit" class="logout-link btn-apply filter-action-btn">Apply</button>
+                            <button type="submit" class="logout-link btn-apply filter-action-btn" form="copies-filter-form">Apply</button>
                             <a href="{{ url_for('copies.list') }}" class="logout-link btn-cancel filter-action-btn">Clear</a>
                         </th>
                     </tr>
@@ -153,7 +162,6 @@
                     {% endif %}
                 </tbody>
             </table>
-        </form>
     </div>
 
     <nav class="pagination-container mt-4">
@@ -320,7 +328,7 @@
                 <select id="book_id" name="book_id" class="form-control filter-input" required>
                     <option value="">Select</option>
                     {% for b in all_books %}
-                        <option value="{{ b.book_id }}">{{ b.title }} ({{ b.book_id }})</option>
+                        <option value="{{ b.book_id }}">{{ b.title }} (ID: {{ b.book_id }})</option>
                     {% endfor %}
                 </select>
             </div>
@@ -391,7 +399,7 @@
                 <label for="edit_book_id" class="filter-label">Book:</label>
                 <select id="edit_book_id" name="book_id" class="form-control filter-input" required>
                     {% for b in all_books %}
-                        <option value="{{ b.book_id }}">{{ b.title }} ({{ b.book_id }})</option>
+                        <option value="{{ b.book_id }}">{{ b.title }} (ID: {{ b.book_id }})</option>
                     {% endfor %}
                 </select>
             </div>

@@ -177,7 +177,7 @@ def list_copies():
         LEFT JOIN Location l ON c.location_id = l.location_id
         LEFT JOIN User u ON c.owner_id = u.user_id
         {where_sql}
-        ORDER BY c.added_date DESC
+        ORDER BY c.item_barcode ASC
         LIMIT %s OFFSET %s
     """, params + [per_page, offset])
     copies = cursor.fetchall()

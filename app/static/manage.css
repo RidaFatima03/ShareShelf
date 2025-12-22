@@ -315,6 +315,13 @@
     max-width: 1200px;
 }
 
+.main-content-expanded .logs-page,
+.main-content-expanded .activity-page,
+.main-content-expanded .reports-page {
+    max-width: none;
+    width: 100%;
+}
+
 .logs-filters,
 .activity-filters {
     background-color: #ffffff;
@@ -349,7 +356,6 @@
 .table-date-range {
     display: flex;
     gap: 8px;
-    margin-top: 6px;
 }
 
 .table-filter-actions {

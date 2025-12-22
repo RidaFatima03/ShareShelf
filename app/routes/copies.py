@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 import MySQLdb.cursors
 from extensions import mysql
+from utils.system_log import system_log
 
 copies_bp = Blueprint("copies", __name__, url_prefix="/librarian/copies")
 
@@ -93,6 +94,7 @@ def list_copies():
             owner_id or None,
         ))
         mysql.connection.commit()
+        system_log("Catalog", "INFO", "CopyService", f"Copy created (barcode={item_barcode}).")
         flash("Copy created successfully.", "success")
         return redirect(url_for("copies.list"))
 
@@ -242,6 +244,7 @@ def edit_copy():
         item_barcode,
     ))
     mysql.connection.commit()
+    system_log("Catalog", "INFO", "CopyService", f"Copy updated (barcode={item_barcode}).")
     flash("Copy updated successfully.", "success")
     return redirect(url_for("copies.list"))
 
@@ -255,5 +258,6 @@ def delete_copy(item_barcode):
     cursor = get_cursor()
     cursor.execute("DELETE FROM Copy WHERE item_barcode = %s", (item_barcode,))
     mysql.connection.commit()
+    system_log("Catalog", "INFO", "CopyService", f"Copy deleted (barcode={item_barcode}).")
     flash("Copy deleted successfully.", "success")
     return redirect(url_for("copies.list"))

@@ -3,6 +3,7 @@ import MySQLdb.cursors
 from extensions import mysql
 from routes.notifications import NotificationService
 from routes.auth import user_log_activity
+from utils.system_log import system_log
 from werkzeug.security import generate_password_hash
 librarian_bp = Blueprint("librarian", __name__, url_prefix="/librarian")
 
@@ -227,6 +228,7 @@ def approve_request(request_id):
     else:
         cursor.execute("UPDATE Request SET status = 'Approved' WHERE request_id = %s", (request_id,))
         mysql.connection.commit()
+        system_log("Requests", "INFO", "RequestService", f"Request approved (request_id={request_id}).")
         flash("Request approved successfully.", "success")
 
     return redirect(request.referrer or url_for("librarian.requests"))
@@ -248,6 +250,7 @@ def reject_request(request_id):
     else:
         cursor.execute("UPDATE Request SET status = 'Rejected' WHERE request_id = %s", (request_id,))
         mysql.connection.commit()
+        system_log("Requests", "INFO", "RequestService", f"Request rejected (request_id={request_id}).")
         flash("Request rejected successfully.", "success")
 
     return redirect(request.referrer or url_for("librarian.requests"))
@@ -269,6 +272,7 @@ def complete_request(request_id):
     else:
         cursor.execute("UPDATE Request SET status = 'Completed' WHERE request_id = %s", (request_id,))
         mysql.connection.commit()
+        system_log("Requests", "INFO", "RequestService", f"Request completed (request_id={request_id}).")
         flash("Request completed successfully.", "success")
 
     return redirect(request.referrer or url_for("librarian.requests"))
@@ -290,6 +294,7 @@ def cancel_request(request_id):
     else:
         cursor.execute("UPDATE Request SET status = 'Cancelled' WHERE request_id = %s", (request_id,))
         mysql.connection.commit()
+        system_log("Requests", "INFO", "RequestService", f"Request cancelled (request_id={request_id}).")
         flash("Request cancelled successfully.", "success")
 
     return redirect(request.referrer or url_for("librarian.requests"))
@@ -326,6 +331,7 @@ def authors():
         else:
             cursor.execute("INSERT INTO Author (author_name) VALUES (%s)", (author_name,))
             mysql.connection.commit()
+            system_log("Catalog", "INFO", "AuthorService", "Author created.")
             flash("Author created successfully.", "success")
         return redirect(url_for("librarian.authors"))
 
@@ -369,6 +375,7 @@ def delete_author(author_id):
     cursor = get_cursor()
     cursor.execute("DELETE FROM Author WHERE author_id = %s", (author_id,))
     mysql.connection.commit()
+    system_log("Catalog", "INFO", "AuthorService", f"Author deleted (author_id={author_id}).")
     flash("Author deleted successfully.", "success")
 
     return redirect(url_for("librarian.authors"))
@@ -393,6 +400,7 @@ def edit_author():
         (name, author_id)
     )
     mysql.connection.commit()
+    system_log("Catalog", "INFO", "AuthorService", f"Author updated (author_id={author_id}).")
     flash("Author updated successfully.", "success")
 
     return redirect(url_for("librarian.authors"))
@@ -415,6 +423,7 @@ def genres():
         else:
             cursor.execute("INSERT INTO Genre (genre_name) VALUES (%s)", (genre_name,))
             mysql.connection.commit()
+            system_log("Catalog", "INFO", "GenreService", "Genre created.")
             flash("Genre created successfully.", "success")
         return redirect(url_for("librarian.genres"))
 
@@ -459,6 +468,7 @@ def delete_genre(genre_id):
     cursor = get_cursor()
     cursor.execute("DELETE FROM Genre WHERE genre_id = %s", (genre_id,))
     mysql.connection.commit()
+    system_log("Catalog", "INFO", "GenreService", f"Genre deleted (genre_id={genre_id}).")
     flash("Genre deleted successfully.", "success")
 
     return redirect(url_for("librarian.genres"))
@@ -490,6 +500,7 @@ def locations():
                 (direction, collection, shelf_row)
             )
             mysql.connection.commit()
+            system_log("Catalog", "INFO", "LocationService", "Location created.")
             flash("Location created successfully.", "success")
         return redirect(url_for("librarian.locations"))
 
@@ -537,6 +548,7 @@ def delete_location(location_id):
     cursor = get_cursor()
     cursor.execute("DELETE FROM Location WHERE location_id = %s", (location_id,))
     mysql.connection.commit()
+    system_log("Catalog", "INFO", "LocationService", f"Location deleted (location_id={location_id}).")
     flash("Location deleted successfully.", "success")
 
     return redirect(url_for("librarian.locations"))
@@ -599,6 +611,7 @@ def edit_location():
         (direction, collection, shelf_row, location_id)
     )
     mysql.connection.commit()
+    system_log("Catalog", "INFO", "LocationService", f"Location updated (location_id={location_id}).")
     flash("Location updated successfully.", "success")
 
     return redirect(url_for("librarian.locations"))
@@ -623,6 +636,7 @@ def edit_genre():
         (name, genre_id)
     )
     mysql.connection.commit()
+    system_log("Catalog", "INFO", "GenreService", f"Genre updated (genre_id={genre_id}).")
     flash("Genre updated successfully.", "success")
 
     return redirect(url_for("librarian.genres"))
@@ -700,6 +714,7 @@ def books():
                 )
                 mysql.connection.commit()
 
+            system_log("Catalog", "INFO", "BookService", f"Book created (book_id={book_id}).")
             flash("Book created successfully.", "success")
 
         return redirect(url_for("librarian.books"))
@@ -871,6 +886,7 @@ def delete_book(book_id):
     cursor = get_cursor()
     cursor.execute("DELETE FROM Book WHERE book_id = %s", (book_id,))
     mysql.connection.commit()
+    system_log("Catalog", "INFO", "BookService", f"Book deleted (book_id={book_id}).")
     flash("Book deleted successfully.", "success")
 
     return redirect(url_for("librarian.books"))
@@ -969,6 +985,7 @@ def edit_book():
     )
 
     mysql.connection.commit()
+    system_log("Catalog", "INFO", "BookService", f"Book updated (book_id={book_id}).")
     flash("Book updated successfully.", "success")
 
     return redirect(url_for("librarian.books"))
@@ -1081,6 +1098,8 @@ def user_management():
             add_status, add_user_type, add_policy
         ))
         mysql.connection.commit()
+        new_user_id = cursor.lastrowid
+        system_log("Users", "INFO", "UserService", f"User created (user_id={new_user_id}).")
 
         flash("User created successfully.", "success")
         return redirect(url_for("librarian.user_management"))
@@ -1197,6 +1216,7 @@ def delete_user(user_id):
     cursor = get_cursor()
     cursor.execute("DELETE FROM User WHERE user_id = %s", (user_id,))
     mysql.connection.commit()
+    system_log("Users", "INFO", "UserService", f"User deleted (user_id={user_id}).")
     flash("User deleted successfully.", "success")
 
     return redirect(url_for("librarian.user_management"))
@@ -1302,5 +1322,6 @@ def edit_user():
     )
 
     mysql.connection.commit()
+    system_log("Users", "INFO", "UserService", f"User updated (user_id={user_id}).")
     flash("User updated successfully.", "success")
     return redirect(url_for("librarian.user_management"))

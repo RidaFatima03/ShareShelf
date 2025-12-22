@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from datetime import datetime, timedelta
 import MySQLdb.cursors
 from extensions import mysql
+from utils.system_log import system_log
 
 main_bp = Blueprint('main', __name__)
 
@@ -264,6 +265,7 @@ def reviews(book_id):
                 
             except Exception as e:
                 mysql.connection.rollback()
+                system_log("Reviews", "ERROR", "ReviewService", f"Review submission failed: {e}")
                 flash(f"Error submitting review: {str(e)}", "danger")
 
     cursor.execute("SELECT book_id, title FROM Book WHERE book_id = %s", (book_id,))
@@ -320,10 +322,12 @@ def borrow_book(copy_id):
         """, (user_id, copy_data['book_id']))
 
         mysql.connection.commit()
+        system_log("Requests", "INFO", "RequestService", "Borrow request created.")
         flash("Borrow request sent to Librarian for approval.", "success")
 
     except Exception as e:
         mysql.connection.rollback()
+        system_log("Requests", "ERROR", "RequestService", f"Borrow request failed: {e}")
         flash(f"Error sending request: {str(e)}", "danger")
 
     return redirect(request.referrer or url_for('main.main_page'))
@@ -369,10 +373,12 @@ def hold_book(book_id):
             """
             cursor.execute(insert_query, (user_id, book_id))
             mysql.connection.commit()
+            system_log("Requests", "INFO", "RequestService", "Hold request created.")
             flash("Hold placed successfully!", "success")
 
     except Exception as e:
         mysql.connection.rollback()
+        system_log("Requests", "ERROR", "RequestService", f"Hold request failed: {e}")
         print("Hold Error:", e)
         flash("An error occurred while placing hold.", "danger")
 
@@ -429,6 +435,7 @@ def add_book():
                 """, (user_id, material_id))
             
             mysql.connection.commit()
+            system_log("Requests", "INFO", "RequestService", "Donation request created.")
             flash("Donation request sent to Librarian for approval.", "success")
             return redirect(url_for('request.my_requests')) 
 
@@ -489,11 +496,13 @@ def add_book():
             """, (new_barcode, book_id, user_id))
             
             mysql.connection.commit()
+            system_log("Catalog", "INFO", "ExchangeService", "Exchange copy created.")
             flash("Book added to your Exchange list!", "success")
             return redirect(url_for('main.my_books'))
 
     except Exception as e:
         mysql.connection.rollback()
+        system_log("Catalog", "ERROR", "ExchangeService", f"Add book failed: {e}")
         flash(f"Error adding book: {str(e)}", "danger")
         print(f"DEBUG ADD BOOK ERROR: {e}")
 
@@ -616,6 +625,7 @@ def confirm_handoff(copy_id):
         cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", ("Exchange Complete", msg, partner_id))
 
         mysql.connection.commit()
+        system_log("Requests", "INFO", "ExchangeService", f"Exchange completed (request_id={request_id}).")
         flash("Exchange completed successfully!", "success")
         
     else:
@@ -623,6 +633,7 @@ def confirm_handoff(copy_id):
         cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", ("Handoff Update", msg, partner_id))
         
         mysql.connection.commit()
+        system_log("Requests", "INFO", "ExchangeService", f"Handoff confirmed (request_id={request_id}).")
         flash("Handoff confirmed. Notification sent to partner.", "info")
 
     return redirect(url_for('main.my_books'))
@@ -659,6 +670,7 @@ def remove_book(copy_id):
     cursor = get_cursor()
     cursor.execute("DELETE FROM Copy WHERE item_barcode = %s AND status = 'Available'", (copy_id,))
     mysql.connection.commit()
+    system_log("Catalog", "INFO", "ExchangeService", f"Exchange copy removed (barcode={copy_id}).")
     flash("Book removed.", "success")
     return redirect(url_for('main.my_books'))
 
@@ -699,10 +711,12 @@ def cancel_handoff(copy_id):
         cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", ("Handoff Cancelled", msg, partner_id))
 
         mysql.connection.commit()
+        system_log("Requests", "INFO", "ExchangeService", f"Handoff cancelled (request_id={request_id}).")
         flash("Handoff cancelled. Partner has been notified.", "warning")
     else:
         cursor.execute("UPDATE Copy SET status = 'Available' WHERE item_barcode = %s", (copy_id,))
         mysql.connection.commit()
+        system_log("Catalog", "INFO", "ExchangeService", f"Exchange copy status reset (barcode={copy_id}).")
         flash("Book status reset to Available.", "info")
 
     return redirect(url_for('main.my_books'))
@@ -773,6 +787,7 @@ def reader_reviews(reader_id):
                 flash("Review submitted successfully!", "success")
             except Exception as e:
                 mysql.connection.rollback()
+                system_log("Reviews", "ERROR", "ReaderReviewService", f"Reader review failed: {e}")
                 if "Duplicate entry" in str(e):
                     flash("You have already rated this user.", "info")
                 else:
@@ -857,10 +872,12 @@ def request_exchange(barcode):
         cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", (notif_subject, notif_msg, owner_id))
 
         mysql.connection.commit()
+        system_log("Requests", "INFO", "ExchangeService", "Exchange request created.")
         flash("Exchange request sent successfully!", "success")
 
     except Exception as e:
         mysql.connection.rollback()
+        system_log("Requests", "ERROR", "ExchangeService", f"Exchange request failed: {e}")
         flash(f"Error processing request: {str(e)}", "danger")
             
     return redirect(url_for('main.exchange_market'))
@@ -910,10 +927,12 @@ def reject_exchange(request_id):
         cursor.execute("UPDATE Request SET status = 'Rejected' WHERE request_id = %s", (request_id,))
         
         mysql.connection.commit()
+        system_log("Requests", "INFO", "ExchangeService", f"Exchange request rejected (request_id={request_id}).")
         flash("Request rejected. The user has been notified.", "info")
         
     except Exception as e:
         mysql.connection.rollback()
+        system_log("Requests", "ERROR", "ExchangeService", f"Reject exchange failed: {e}")
         flash(f"Error rejecting request: {str(e)}", "danger")
 
     return redirect(url_for('main.exchange_requests'))
@@ -948,6 +967,7 @@ def accept_exchange(request_id):
     cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", (notif_subject, notif_msg, requester_id))
 
     mysql.connection.commit()
+    system_log("Requests", "INFO", "ExchangeService", f"Exchange request approved (request_id={request_id}).")
     flash("Exchange accepted!", "success")
     return redirect(url_for('main.my_books'))
 
@@ -1006,10 +1026,12 @@ def renew_checkout(checkout_id):
         """, (new_due_date, checkout_id))
         
         mysql.connection.commit()
+        system_log("Checkouts", "INFO", "CheckoutService", f"Checkout renewed (checkout_id={checkout_id}).")
         flash(f"Book renewed successfully! New due date: {new_due_date.strftime('%Y-%m-%d')}.", "success")
 
     except Exception as e:
         mysql.connection.rollback()
+        system_log("Checkouts", "ERROR", "CheckoutService", f"Checkout renewal failed: {e}")
         print(f"Renewal Error: {e}")
         flash("An unexpected error occurred during renewal.", "danger")
 
@@ -1058,6 +1080,7 @@ def cancel_hold(request_id):
         if req and req['status'] == 'Pending':
             cursor.execute("DELETE FROM Request WHERE request_id = %s", (request_id,))
             mysql.connection.commit()
+            system_log("Requests", "INFO", "RequestService", f"Hold request cancelled (request_id={request_id}).")
             flash("Hold request cancelled successfully.", "success")
         elif req and req['status'] != 'Pending':
             flash("Cannot cancel this hold; it may already be processed or approved.", "warning")
@@ -1066,6 +1089,7 @@ def cancel_hold(request_id):
 
     except Exception as e:
         mysql.connection.rollback()
+        system_log("Requests", "ERROR", "RequestService", f"Cancel hold failed: {e}")
         flash(f"An error occurred: {str(e)}", "danger")
 
     return redirect(url_for('main.my_holds'))
@@ -1087,5 +1111,6 @@ def pay_fine():
     cursor.execute(query, (fine_id,))
     mysql.connection.commit()
     cursor.close()
+    system_log("Fines", "INFO", "FineService", f"Fine paid (fine_id={fine_id}).")
 
     return redirect(url_for('main.my_fines', success=1))

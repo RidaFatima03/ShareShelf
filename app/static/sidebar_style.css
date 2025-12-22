@@ -2373,14 +2373,34 @@ html.sidebar-closed-init .filters-results.main-content {
     border-bottom: none;
 }
 
-.request-status.pending {
+.request-status.rejected {
     background-color: #fdecea;
     color: #c62828;
+}
+
+.request-status.pending {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #8a6d00;
+}
+
+.request-status.expired {
+    background-color: rgba(96, 125, 139, 0.18);
+    color: #546e7a;
 }
 
 .request-status.approved {
     background-color: rgba(46, 125, 50, 0.15);
     color: #2e7d32;
+}
+
+.request-status.completed {
+    background-color: rgba(0, 150, 136, 0.18);
+    color: #00695c;
+}
+
+.request-status.cancelled {
+    background-color: rgba(158, 158, 158, 0.22);
+    color: #616161;
 }
 
 .cancel-request-btn {

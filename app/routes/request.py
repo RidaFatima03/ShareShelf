@@ -21,6 +21,8 @@ def my_requests():
     if active_tab not in tabs:
         active_tab = "borrows"
 
+    per_page = 10
+
     def get_tab_values(tab):
         title_val = (request.args.get(f"search_title_{tab}") or "").strip()
         author_val = (request.args.get(f"search_author_{tab}") or "").strip()
@@ -44,13 +46,23 @@ def my_requests():
             "status": status_val,
         }
 
+    def get_page(tab):
+        page_val = request.args.get(f"page_{tab}", 1, type=int)
+        return page_val if page_val and page_val > 0 else 1
+
+    def paginate_meta(page, total):
+        total_pages = max(1, (total + per_page - 1) // per_page) if total else 1
+        page = max(1, min(page, total_pages))
+        offset = (page - 1) * per_page
+        start_index = 0 if total == 0 else offset + 1
+        end_index = 0 if total == 0 else min(page * per_page, total)
+        return page, total_pages, offset, (page > 1), (page < total_pages), start_index, end_index
+
     search_values = {tab: get_tab_values(tab) for tab in tabs}
     active_values = search_values[active_tab]
+    page_values = {tab: get_page(tab) for tab in tabs}
 
-    def build_request_filters(title_col, author_col, values, apply_filters):
-        if not apply_filters:
-            return "", []
-
+    def build_request_filters(title_col, author_col, values):
         where = []
         params = []
 
@@ -73,53 +85,113 @@ def my_requests():
         where_sql = (" AND " + " AND ".join(where)) if where else ""
         return where_sql, params
 
+    def fetch_paginated(base_from, select_sql, group_by_sql, params, page):
+        count_query = f"SELECT COUNT(DISTINCT r.request_id) AS total {base_from}"
+        cursor.execute(count_query, params)
+        total = (cursor.fetchone() or {}).get("total", 0)
+
+        page, total_pages, offset, has_prev, has_next, start_index, end_index = paginate_meta(page, total)
+        data_query = f"{select_sql} {base_from} {group_by_sql} ORDER BY r.request_date DESC LIMIT %s OFFSET %s"
+        cursor.execute(data_query, params + [per_page, offset])
+        rows = cursor.fetchall()
+        return rows, {
+            "page": page,
+            "total_pages": total_pages,
+            "has_prev": has_prev,
+            "has_next": has_next,
+            "start_index": start_index,
+            "end_index": end_index,
+            "total_count": total,
+        }
+
     # HOLDS
-    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["holds"], active_tab == "holds")
-    cursor.execute(f"""
-        SELECT r.request_id, r.request_date, r.status, b.title AS item_title,
-               GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
+    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["holds"])
+    holds_from = f"""
         FROM Request r
         JOIN Book b ON r.book_id = b.book_id
         LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
         LEFT JOIN Author a ON ba.author_id = a.author_id
         WHERE r.reader_id = %s AND r.request_type = 'Hold'{where_sql}
-        GROUP BY r.request_id, b.title, r.request_date, r.status
-        ORDER BY r.request_date DESC
-    """, [user_id] + params)
-    holds = cursor.fetchall()
-
-    # BORROWS
-    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["borrows"], active_tab == "borrows")
-    cursor.execute(f"""
+    """
+    holds_select = """
         SELECT r.request_id, r.request_date, r.status, b.title AS item_title,
                GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
+    """
+    holds_group = "GROUP BY r.request_id, b.title, r.request_date, r.status"
+    holds, holds_pagination = fetch_paginated(
+        holds_from,
+        holds_select,
+        holds_group,
+        [user_id] + params,
+        page_values["holds"]
+    )
+
+    # BORROWS
+    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["borrows"])
+    borrows_from = f"""
         FROM Request r
         JOIN Book b ON r.book_id = b.book_id
         LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
         LEFT JOIN Author a ON ba.author_id = a.author_id
         WHERE r.reader_id = %s AND r.request_type = 'Borrow'{where_sql}
-        GROUP BY r.request_id, b.title, r.request_date, r.status
-        ORDER BY r.request_date DESC
-    """, [user_id] + params)
-    borrows = cursor.fetchall()
-
-    # EXCHANGES
-    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["exchanges"], active_tab == "exchanges")
-    cursor.execute(f"""
+    """
+    borrows_select = """
         SELECT r.request_id, r.request_date, r.status, b.title AS item_title,
                GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
+    """
+    borrows_group = "GROUP BY r.request_id, b.title, r.request_date, r.status"
+    borrows, borrows_pagination = fetch_paginated(
+        borrows_from,
+        borrows_select,
+        borrows_group,
+        [user_id] + params,
+        page_values["borrows"]
+    )
+
+    # EXCHANGES
+    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["exchanges"])
+    exchanges_from = f"""
         FROM Request r
         JOIN Book b ON r.book_id = b.book_id
         LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
         LEFT JOIN Author a ON ba.author_id = a.author_id
         WHERE r.reader_id = %s AND r.request_type = 'Exchange'{where_sql}
-        GROUP BY r.request_id, b.title, r.request_date, r.status
-        ORDER BY r.request_date DESC
-    """, [user_id] + params)
-    exchanges = cursor.fetchall()
+    """
+    exchanges_select = """
+        SELECT r.request_id, r.request_date, r.status, b.title AS item_title,
+               GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
+    """
+    exchanges_group = "GROUP BY r.request_id, b.title, r.request_date, r.status"
+    exchanges, exchanges_pagination = fetch_paginated(
+        exchanges_from,
+        exchanges_select,
+        exchanges_group,
+        [user_id] + params,
+        page_values["exchanges"]
+    )
+
+    # BOOK REQUESTS (Material)
+    where_sql, params = build_request_filters("m.title", "m.author", search_values["book_requests"])
+    book_requests_from = f"""
+        FROM Request r
+        JOIN Material m ON r.material_id = m.material_id
+        WHERE r.reader_id = %s AND r.request_type = 'Book Request'{where_sql}
+    """
+    book_requests_select = """
+        SELECT r.request_id, r.request_date, r.status, m.isbn, m.title AS item_title,
+               m.publisher, m.publication_date, m.author AS item_author
+    """
+    book_requests_group = ""
+    book_requests, book_requests_pagination = fetch_paginated(
+        book_requests_from,
+        book_requests_select,
+        book_requests_group,
+        [user_id] + params,
+        page_values["book_requests"]
+    )
 
     # DONATIONS (Book)
-    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["donations"], active_tab == "donations")
+    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["donations"])
     cursor.execute(f"""
         SELECT r.request_id, r.request_date, r.status, b.isbn, b.title AS item_title, b.publisher, b.publication_date,
                GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
@@ -133,9 +205,10 @@ def my_requests():
     donations_books = cursor.fetchall()
 
     # DONATIONS (Material)
-    where_sql, params = build_request_filters("m.title", "m.author", search_values["donations"], active_tab == "donations")
+    where_sql, params = build_request_filters("m.title", "m.author", search_values["donations"])
     cursor.execute(f"""
-        SELECT r.request_id, r.request_date, r.status, m.isbn, m.title AS item_title, m.publisher, m.publication_date, m.author AS item_author
+        SELECT r.request_id, r.request_date, r.status, m.isbn, m.title AS item_title, m.publisher, m.publication_date,
+               m.author AS item_author
         FROM Request r
         JOIN Material m ON r.material_id = m.material_id
         WHERE r.reader_id = %s AND r.request_type = 'Donation' AND r.material_id IS NOT NULL{where_sql}
@@ -144,26 +217,29 @@ def my_requests():
 
     donations = list(donations_books) + list(donations_materials)
     donations.sort(key=lambda x: x["request_date"], reverse=True)
-
-    # BOOK REQUESTS (Material)
-    where_sql, params = build_request_filters("m.title", "m.author", search_values["book_requests"], active_tab == "book_requests")
-    cursor.execute(f"""
-        SELECT r.request_id, r.request_date, r.status, m.isbn, m.title AS item_title, m.publisher, m.publication_date, m.author AS item_author
-        FROM Request r
-        JOIN Material m ON r.material_id = m.material_id
-        WHERE r.reader_id = %s AND r.request_type = 'Book Request'{where_sql}
-        ORDER BY r.request_date DESC
-    """, [user_id] + params)
-    book_requests = cursor.fetchall()
-
-    counts = {
-        "holds": len(holds),
-        "borrows": len(borrows),
-        "book_requests": len(book_requests),
-        "exchanges": len(exchanges),
-        "donations": len(donations),
+    donations_total = len(donations)
+    page, total_pages, offset, has_prev, has_next, start_index, end_index = paginate_meta(
+        page_values["donations"],
+        donations_total
+    )
+    donations = donations[offset:offset + per_page]
+    donations_pagination = {
+        "page": page,
+        "total_pages": total_pages,
+        "has_prev": has_prev,
+        "has_next": has_next,
+        "start_index": start_index,
+        "end_index": end_index,
+        "total_count": donations_total,
     }
-    active_count = counts.get(active_tab, 0)
+
+    pagination = {
+        "holds": holds_pagination,
+        "borrows": borrows_pagination,
+        "book_requests": book_requests_pagination,
+        "exchanges": exchanges_pagination,
+        "donations": donations_pagination,
+    }
 
     return render_template(
         "my-requests.html",
@@ -175,7 +251,8 @@ def my_requests():
         active_tab=active_tab,
         search_values=search_values,
         active_values=active_values,
-        total_count=active_count
+        page_values=page_values,
+        pagination=pagination
     )
 
 @request_bp.route("/new_request", methods=["POST"], endpoint="new_request")

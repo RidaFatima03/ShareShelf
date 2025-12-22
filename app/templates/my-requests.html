@@ -246,8 +246,420 @@
                     {% endif %}
                 </tbody>
             </form>
-    </table>
+</table>
 </div>
+
+{% set pag = pagination['borrows'] %}
+<nav class="pagination-container mt-4 {% if active_tab != 'borrows' %}hidden{% endif %}" data-tab-pagination="borrows">
+    <span class="pagination-summary">{{ pag.start_index }} to {{ pag.end_index }} of {{ pag.total_count }}</span>
+    <ul class="pagination">
+        <li class="page-item {% if not pag.has_prev %}disabled{% endif %}">
+            <a class="page-link"
+               href="{% if pag.has_prev %}{{ url_for('request.my_requests',
+                                                    tab='borrows',
+                                                    page_borrows=pag.page-1,
+                                                    search_title_borrows=search_values['borrows']['title'],
+                                                    search_author_borrows=search_values['borrows']['author'],
+                                                    search_date_borrows=search_values['borrows']['date'],
+                                                    search_status_borrows=search_values['borrows']['status']) }}{% else %}#{% endif %}">
+                Previous
+            </a>
+        </li>
+
+        {% if pag.total_pages <= 7 %}
+            {% for p in range(1, pag.total_pages + 1) %}
+                <li class="page-item {% if p == pag.page %}active{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('request.my_requests',
+                                        tab='borrows',
+                                        page_borrows=p,
+                                        search_title_borrows=search_values['borrows']['title'],
+                                        search_author_borrows=search_values['borrows']['author'],
+                                        search_date_borrows=search_values['borrows']['date'],
+                                        search_status_borrows=search_values['borrows']['status']) }}">
+                        {{ p }}
+                    </a>
+                </li>
+            {% endfor %}
+        {% else %}
+            {% set start_page = pag.page - 1 %}
+            {% set end_page = pag.page + 1 %}
+            {% if start_page < 2 %}{% set start_page = 2 %}{% endif %}
+            {% if end_page > pag.total_pages - 1 %}{% set end_page = pag.total_pages - 1 %}{% endif %}
+
+            <li class="page-item {% if pag.page == 1 %}active{% endif %}">
+                <a class="page-link"
+                   href="{{ url_for('request.my_requests',
+                                    tab='borrows',
+                                    page_borrows=1,
+                                    search_title_borrows=search_values['borrows']['title'],
+                                    search_author_borrows=search_values['borrows']['author'],
+                                    search_date_borrows=search_values['borrows']['date'],
+                                    search_status_borrows=search_values['borrows']['status']) }}">
+                    1
+                </a>
+            </li>
+
+            {% if start_page > 2 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+
+            {% for p in range(start_page, end_page + 1) %}
+                <li class="page-item {% if p == pag.page %}active{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('request.my_requests',
+                                        tab='borrows',
+                                        page_borrows=p,
+                                        search_title_borrows=search_values['borrows']['title'],
+                                        search_author_borrows=search_values['borrows']['author'],
+                                        search_date_borrows=search_values['borrows']['date'],
+                                        search_status_borrows=search_values['borrows']['status']) }}">
+                        {{ p }}
+                    </a>
+                </li>
+            {% endfor %}
+
+            {% if end_page < pag.total_pages - 1 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+
+            <li class="page-item {% if pag.page == pag.total_pages %}active{% endif %}">
+                <a class="page-link"
+                   href="{{ url_for('request.my_requests',
+                                    tab='borrows',
+                                    page_borrows=pag.total_pages,
+                                    search_title_borrows=search_values['borrows']['title'],
+                                    search_author_borrows=search_values['borrows']['author'],
+                                    search_date_borrows=search_values['borrows']['date'],
+                                    search_status_borrows=search_values['borrows']['status']) }}">
+                    {{ pag.total_pages }}
+                </a>
+            </li>
+        {% endif %}
+
+        <li class="page-item {% if not pag.has_next %}disabled{% endif %}">
+            <a class="page-link"
+               href="{% if pag.has_next %}{{ url_for('request.my_requests',
+                                                    tab='borrows',
+                                                    page_borrows=pag.page+1,
+                                                    search_title_borrows=search_values['borrows']['title'],
+                                                    search_author_borrows=search_values['borrows']['author'],
+                                                    search_date_borrows=search_values['borrows']['date'],
+                                                    search_status_borrows=search_values['borrows']['status']) }}{% else %}#{% endif %}">
+                Next
+            </a>
+        </li>
+    </ul>
+</nav>
+
+{% set pag = pagination['book_requests'] %}
+<nav class="pagination-container mt-4 {% if active_tab != 'book_requests' %}hidden{% endif %}" data-tab-pagination="book_requests">
+    <span class="pagination-summary">{{ pag.start_index }} to {{ pag.end_index }} of {{ pag.total_count }}</span>
+    <ul class="pagination">
+        <li class="page-item {% if not pag.has_prev %}disabled{% endif %}">
+            <a class="page-link"
+               href="{% if pag.has_prev %}{{ url_for('request.my_requests',
+                                                    tab='book_requests',
+                                                    page_book_requests=pag.page-1,
+                                                    search_title_book_requests=search_values['book_requests']['title'],
+                                                    search_author_book_requests=search_values['book_requests']['author'],
+                                                    search_date_book_requests=search_values['book_requests']['date'],
+                                                    search_status_book_requests=search_values['book_requests']['status']) }}{% else %}#{% endif %}">
+                Previous
+            </a>
+        </li>
+
+        {% if pag.total_pages <= 7 %}
+            {% for p in range(1, pag.total_pages + 1) %}
+                <li class="page-item {% if p == pag.page %}active{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('request.my_requests',
+                                        tab='book_requests',
+                                        page_book_requests=p,
+                                        search_title_book_requests=search_values['book_requests']['title'],
+                                        search_author_book_requests=search_values['book_requests']['author'],
+                                        search_date_book_requests=search_values['book_requests']['date'],
+                                        search_status_book_requests=search_values['book_requests']['status']) }}">
+                        {{ p }}
+                    </a>
+                </li>
+            {% endfor %}
+        {% else %}
+            {% set start_page = pag.page - 1 %}
+            {% set end_page = pag.page + 1 %}
+            {% if start_page < 2 %}{% set start_page = 2 %}{% endif %}
+            {% if end_page > pag.total_pages - 1 %}{% set end_page = pag.total_pages - 1 %}{% endif %}
+
+            <li class="page-item {% if pag.page == 1 %}active{% endif %}">
+                <a class="page-link"
+                   href="{{ url_for('request.my_requests',
+                                    tab='book_requests',
+                                    page_book_requests=1,
+                                    search_title_book_requests=search_values['book_requests']['title'],
+                                    search_author_book_requests=search_values['book_requests']['author'],
+                                    search_date_book_requests=search_values['book_requests']['date'],
+                                    search_status_book_requests=search_values['book_requests']['status']) }}">
+                    1
+                </a>
+            </li>
+
+            {% if start_page > 2 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+
+            {% for p in range(start_page, end_page + 1) %}
+                <li class="page-item {% if p == pag.page %}active{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('request.my_requests',
+                                        tab='book_requests',
+                                        page_book_requests=p,
+                                        search_title_book_requests=search_values['book_requests']['title'],
+                                        search_author_book_requests=search_values['book_requests']['author'],
+                                        search_date_book_requests=search_values['book_requests']['date'],
+                                        search_status_book_requests=search_values['book_requests']['status']) }}">
+                        {{ p }}
+                    </a>
+                </li>
+            {% endfor %}
+
+            {% if end_page < pag.total_pages - 1 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+
+            <li class="page-item {% if pag.page == pag.total_pages %}active{% endif %}">
+                <a class="page-link"
+                   href="{{ url_for('request.my_requests',
+                                    tab='book_requests',
+                                    page_book_requests=pag.total_pages,
+                                    search_title_book_requests=search_values['book_requests']['title'],
+                                    search_author_book_requests=search_values['book_requests']['author'],
+                                    search_date_book_requests=search_values['book_requests']['date'],
+                                    search_status_book_requests=search_values['book_requests']['status']) }}">
+                    {{ pag.total_pages }}
+                </a>
+            </li>
+        {% endif %}
+
+        <li class="page-item {% if not pag.has_next %}disabled{% endif %}">
+            <a class="page-link"
+               href="{% if pag.has_next %}{{ url_for('request.my_requests',
+                                                    tab='book_requests',
+                                                    page_book_requests=pag.page+1,
+                                                    search_title_book_requests=search_values['book_requests']['title'],
+                                                    search_author_book_requests=search_values['book_requests']['author'],
+                                                    search_date_book_requests=search_values['book_requests']['date'],
+                                                    search_status_book_requests=search_values['book_requests']['status']) }}{% else %}#{% endif %}">
+                Next
+            </a>
+        </li>
+    </ul>
+</nav>
+
+{% set pag = pagination['exchanges'] %}
+<nav class="pagination-container mt-4 {% if active_tab != 'exchanges' %}hidden{% endif %}" data-tab-pagination="exchanges">
+    <span class="pagination-summary">{{ pag.start_index }} to {{ pag.end_index }} of {{ pag.total_count }}</span>
+    <ul class="pagination">
+        <li class="page-item {% if not pag.has_prev %}disabled{% endif %}">
+            <a class="page-link"
+               href="{% if pag.has_prev %}{{ url_for('request.my_requests',
+                                                    tab='exchanges',
+                                                    page_exchanges=pag.page-1,
+                                                    search_title_exchanges=search_values['exchanges']['title'],
+                                                    search_author_exchanges=search_values['exchanges']['author'],
+                                                    search_date_exchanges=search_values['exchanges']['date'],
+                                                    search_status_exchanges=search_values['exchanges']['status']) }}{% else %}#{% endif %}">
+                Previous
+            </a>
+        </li>
+
+        {% if pag.total_pages <= 7 %}
+            {% for p in range(1, pag.total_pages + 1) %}
+                <li class="page-item {% if p == pag.page %}active{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('request.my_requests',
+                                        tab='exchanges',
+                                        page_exchanges=p,
+                                        search_title_exchanges=search_values['exchanges']['title'],
+                                        search_author_exchanges=search_values['exchanges']['author'],
+                                        search_date_exchanges=search_values['exchanges']['date'],
+                                        search_status_exchanges=search_values['exchanges']['status']) }}">
+                        {{ p }}
+                    </a>
+                </li>
+            {% endfor %}
+        {% else %}
+            {% set start_page = pag.page - 1 %}
+            {% set end_page = pag.page + 1 %}
+            {% if start_page < 2 %}{% set start_page = 2 %}{% endif %}
+            {% if end_page > pag.total_pages - 1 %}{% set end_page = pag.total_pages - 1 %}{% endif %}
+
+            <li class="page-item {% if pag.page == 1 %}active{% endif %}">
+                <a class="page-link"
+                   href="{{ url_for('request.my_requests',
+                                    tab='exchanges',
+                                    page_exchanges=1,
+                                    search_title_exchanges=search_values['exchanges']['title'],
+                                    search_author_exchanges=search_values['exchanges']['author'],
+                                    search_date_exchanges=search_values['exchanges']['date'],
+                                    search_status_exchanges=search_values['exchanges']['status']) }}">
+                    1
+                </a>
+            </li>
+
+            {% if start_page > 2 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+
+            {% for p in range(start_page, end_page + 1) %}
+                <li class="page-item {% if p == pag.page %}active{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('request.my_requests',
+                                        tab='exchanges',
+                                        page_exchanges=p,
+                                        search_title_exchanges=search_values['exchanges']['title'],
+                                        search_author_exchanges=search_values['exchanges']['author'],
+                                        search_date_exchanges=search_values['exchanges']['date'],
+                                        search_status_exchanges=search_values['exchanges']['status']) }}">
+                        {{ p }}
+                    </a>
+                </li>
+            {% endfor %}
+
+            {% if end_page < pag.total_pages - 1 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+
+            <li class="page-item {% if pag.page == pag.total_pages %}active{% endif %}">
+                <a class="page-link"
+                   href="{{ url_for('request.my_requests',
+                                    tab='exchanges',
+                                    page_exchanges=pag.total_pages,
+                                    search_title_exchanges=search_values['exchanges']['title'],
+                                    search_author_exchanges=search_values['exchanges']['author'],
+                                    search_date_exchanges=search_values['exchanges']['date'],
+                                    search_status_exchanges=search_values['exchanges']['status']) }}">
+                    {{ pag.total_pages }}
+                </a>
+            </li>
+        {% endif %}
+
+        <li class="page-item {% if not pag.has_next %}disabled{% endif %}">
+            <a class="page-link"
+               href="{% if pag.has_next %}{{ url_for('request.my_requests',
+                                                    tab='exchanges',
+                                                    page_exchanges=pag.page+1,
+                                                    search_title_exchanges=search_values['exchanges']['title'],
+                                                    search_author_exchanges=search_values['exchanges']['author'],
+                                                    search_date_exchanges=search_values['exchanges']['date'],
+                                                    search_status_exchanges=search_values['exchanges']['status']) }}{% else %}#{% endif %}">
+                Next
+            </a>
+        </li>
+    </ul>
+</nav>
+
+{% set pag = pagination['donations'] %}
+<nav class="pagination-container mt-4 {% if active_tab != 'donations' %}hidden{% endif %}" data-tab-pagination="donations">
+    <span class="pagination-summary">{{ pag.start_index }} to {{ pag.end_index }} of {{ pag.total_count }}</span>
+    <ul class="pagination">
+        <li class="page-item {% if not pag.has_prev %}disabled{% endif %}">
+            <a class="page-link"
+               href="{% if pag.has_prev %}{{ url_for('request.my_requests',
+                                                    tab='donations',
+                                                    page_donations=pag.page-1,
+                                                    search_title_donations=search_values['donations']['title'],
+                                                    search_author_donations=search_values['donations']['author'],
+                                                    search_date_donations=search_values['donations']['date'],
+                                                    search_status_donations=search_values['donations']['status']) }}{% else %}#{% endif %}">
+                Previous
+            </a>
+        </li>
+
+        {% if pag.total_pages <= 7 %}
+            {% for p in range(1, pag.total_pages + 1) %}
+                <li class="page-item {% if p == pag.page %}active{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('request.my_requests',
+                                        tab='donations',
+                                        page_donations=p,
+                                        search_title_donations=search_values['donations']['title'],
+                                        search_author_donations=search_values['donations']['author'],
+                                        search_date_donations=search_values['donations']['date'],
+                                        search_status_donations=search_values['donations']['status']) }}">
+                        {{ p }}
+                    </a>
+                </li>
+            {% endfor %}
+        {% else %}
+            {% set start_page = pag.page - 1 %}
+            {% set end_page = pag.page + 1 %}
+            {% if start_page < 2 %}{% set start_page = 2 %}{% endif %}
+            {% if end_page > pag.total_pages - 1 %}{% set end_page = pag.total_pages - 1 %}{% endif %}
+
+            <li class="page-item {% if pag.page == 1 %}active{% endif %}">
+                <a class="page-link"
+                   href="{{ url_for('request.my_requests',
+                                    tab='donations',
+                                    page_donations=1,
+                                    search_title_donations=search_values['donations']['title'],
+                                    search_author_donations=search_values['donations']['author'],
+                                    search_date_donations=search_values['donations']['date'],
+                                    search_status_donations=search_values['donations']['status']) }}">
+                    1
+                </a>
+            </li>
+
+            {% if start_page > 2 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+
+            {% for p in range(start_page, end_page + 1) %}
+                <li class="page-item {% if p == pag.page %}active{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('request.my_requests',
+                                        tab='donations',
+                                        page_donations=p,
+                                        search_title_donations=search_values['donations']['title'],
+                                        search_author_donations=search_values['donations']['author'],
+                                        search_date_donations=search_values['donations']['date'],
+                                        search_status_donations=search_values['donations']['status']) }}">
+                        {{ p }}
+                    </a>
+                </li>
+            {% endfor %}
+
+            {% if end_page < pag.total_pages - 1 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+
+            <li class="page-item {% if pag.page == pag.total_pages %}active{% endif %}">
+                <a class="page-link"
+                   href="{{ url_for('request.my_requests',
+                                    tab='donations',
+                                    page_donations=pag.total_pages,
+                                    search_title_donations=search_values['donations']['title'],
+                                    search_author_donations=search_values['donations']['author'],
+                                    search_date_donations=search_values['donations']['date'],
+                                    search_status_donations=search_values['donations']['status']) }}">
+                    {{ pag.total_pages }}
+                </a>
+            </li>
+        {% endif %}
+
+        <li class="page-item {% if not pag.has_next %}disabled{% endif %}">
+            <a class="page-link"
+               href="{% if pag.has_next %}{{ url_for('request.my_requests',
+                                                    tab='donations',
+                                                    page_donations=pag.page+1,
+                                                    search_title_donations=search_values['donations']['title'],
+                                                    search_author_donations=search_values['donations']['author'],
+                                                    search_date_donations=search_values['donations']['date'],
+                                                    search_status_donations=search_values['donations']['status']) }}{% else %}#{% endif %}">
+                Next
+            </a>
+        </li>
+    </ul>
+</nav>
 
 <!-- New Request Modal -->
 <div id="newRequestModal" class="custom-modal">
@@ -367,6 +779,7 @@
     const tabButtons = document.querySelectorAll('.request-tab-pill');
     const activeTabInput = document.getElementById('active_tab');
     const panels = document.querySelectorAll('[data-tab-panel]');
+    const paginationPanels = document.querySelectorAll('[data-tab-pagination]');
     const form = document.getElementById('requestSearchForm');
     const clearBtn = document.getElementById('clearFiltersBtn');
 
@@ -431,6 +844,13 @@
 
             panels.forEach(panel => {
                 if (panel.getAttribute('data-tab-panel') === target) {
+                    panel.classList.remove('hidden');
+                } else {
+                    panel.classList.add('hidden');
+                }
+            });
+            paginationPanels.forEach(panel => {
+                if (panel.getAttribute('data-tab-pagination') === target) {
                     panel.classList.remove('hidden');
                 } else {
                     panel.classList.add('hidden');

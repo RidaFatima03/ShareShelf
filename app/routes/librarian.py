@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
+from datetime import datetime, timedelta
 import MySQLdb.cursors
 from extensions import mysql
 from routes.notifications import NotificationService
@@ -368,7 +369,11 @@ def complete_request(request_id):
         return check
 
     cursor = get_cursor()
-    cursor.execute("SELECT status FROM Request WHERE request_id = %s", (request_id,))
+    cursor.execute("""
+        SELECT status, request_type, reader_id, book_id
+        FROM Request
+        WHERE request_id = %s
+    """, (request_id,))
     req = cursor.fetchone()
 
     if not req:
@@ -376,6 +381,41 @@ def complete_request(request_id):
     elif req["status"] != "Approved":
         flash("Only approved requests can be completed.", "warning")
     else:
+        if req["request_type"] == "Borrow":
+            cursor.execute("""
+                SELECT item_barcode
+                FROM Copy
+                WHERE book_id = %s AND status = 'Available'
+                ORDER BY added_date
+                LIMIT 1
+            """, (req["book_id"],))
+            copy_row = cursor.fetchone()
+
+            if not copy_row:
+                flash("No available copy found for this book.", "danger")
+                return redirect(request.referrer or url_for("librarian.requests"))
+
+            cursor.execute("""
+                SELECT p.loan_period_days
+                FROM Reader r
+                LEFT JOIN Policy p ON p.policy_id = r.policy_id
+                WHERE r.reader_id = %s
+            """, (req["reader_id"],))
+            policy_row = cursor.fetchone() or {}
+            loan_days = policy_row.get("loan_period_days") or 14
+            due_date = datetime.now() + timedelta(days=loan_days)
+
+            cursor.execute("""
+                INSERT INTO Checkout (checkout_date, due_date, reader_id, copy_id)
+                VALUES (NOW(), %s, %s, %s)
+            """, (due_date, req["reader_id"], copy_row["item_barcode"]))
+
+            cursor.execute("""
+                UPDATE Copy
+                SET status = 'On Loan'
+                WHERE item_barcode = %s
+            """, (copy_row["item_barcode"],))
+
         cursor.execute("UPDATE Request SET status = 'Completed' WHERE request_id = %s", (request_id,))
         mysql.connection.commit()
         system_log("Requests", "INFO", "RequestService", f"Request completed (request_id={request_id}).")
@@ -1164,6 +1204,7 @@ def user_management():
     # Load all policies for dropdown
     cursor.execute("SELECT policy_id, name FROM Policy ORDER BY name")
     all_policies = cursor.fetchall()
+    default_policy_id = all_policies[0]["policy_id"] if all_policies else None
 
     # ---------- CREATE (POST) ----------
     if request.method == "POST":
@@ -1205,9 +1246,12 @@ def user_management():
         if not add_user_type:
             flash("User type is required.", "danger")
             return redirect(url_for("librarian.user_management"))
-        if not add_policy:
-            flash("Policy is required.", "danger")
-            return redirect(url_for("librarian.user_management"))
+        if add_user_type == "Reader" and not add_policy:
+            if default_policy_id:
+                add_policy = str(default_policy_id)
+            else:
+                flash("At least one policy is required for readers.", "danger")
+                return redirect(url_for("librarian.user_management"))
 
         # Duplicate checks (like your register)
         cursor.execute("SELECT 1 FROM User WHERE user_email = %s", (add_email,))
@@ -1226,16 +1270,22 @@ def user_management():
             INSERT INTO User (
                 user_first_name, user_middle_name, user_last_name,
                 user_phone_number, user_email, user_password,
-                status, user_type, policy_id
+                status, user_type
             )
-            VALUES (%s, %s, %s, %s, %s, SHA2(%s, 256), %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, SHA2(%s, 256), %s, %s)
         """, (
             add_first_name, add_middle_name, add_last_name,
             add_phone_number, add_email, add_password,
-            add_status, add_user_type, add_policy
+            add_status, add_user_type
         ))
         mysql.connection.commit()
         new_user_id = cursor.lastrowid
+        if add_user_type == "Reader":
+            cursor.execute(
+                "INSERT INTO Reader (reader_id, policy_id) VALUES (%s, %s)",
+                (new_user_id, add_policy)
+            )
+            mysql.connection.commit()
         system_log("Users", "INFO", "UserService", f"User created (user_id={new_user_id}).")
 
         flash("User created successfully.", "success")
@@ -1276,7 +1326,7 @@ def user_management():
         params.append(search_user_type)
 
     if search_policy:
-        where.append("p.policy_id = %s")
+        where.append("r.policy_id = %s")
         params.append(search_policy)
 
     where_sql = " WHERE " + " AND ".join(where) if where else ""
@@ -1284,7 +1334,8 @@ def user_management():
     count_sql = f"""
     SELECT COUNT(DISTINCT u.user_id) AS total
     FROM User u
-    LEFT JOIN Policy p ON p.policy_id = u.policy_id
+    LEFT JOIN Reader r ON r.reader_id = u.user_id AND u.user_type = 'Reader'
+    LEFT JOIN Policy p ON p.policy_id = r.policy_id
     {where_sql}
     """
 
@@ -1311,10 +1362,11 @@ def user_management():
             u.user_email,
             u.status,
             u.user_type,
-            u.policy_id,
+            r.policy_id,
             p.name AS policy_name
         FROM User u
-        LEFT JOIN Policy p ON p.policy_id = u.policy_id
+        LEFT JOIN Reader r ON r.reader_id = u.user_id AND u.user_type = 'Reader'
+        LEFT JOIN Policy p ON p.policy_id = r.policy_id
         {where_sql}
         ORDER BY u.user_id
         LIMIT %s OFFSET %s
@@ -1344,6 +1396,7 @@ def user_management():
             search_user_type=search_user_type,
             search_policy=search_policy,
             all_policies=all_policies,
+            default_policy_id=default_policy_id,
             total_count=total,
             start_index=start_index,
             end_index=end_index,
@@ -1404,8 +1457,8 @@ def edit_user():
     if not user_type:
         flash("User type is required.", "danger")
         return redirect(url_for("librarian.user_management"))
-    if not policy_id:
-        flash("Policy is required.", "danger")
+    if user_type == "Reader" and not policy_id:
+        flash("Policy is required for readers.", "danger")
         return redirect(url_for("librarian.user_management"))
 
     # If password was provided, validate it
@@ -1440,10 +1493,9 @@ def edit_user():
                 user_phone_number=%s,
                 status=%s,
                 user_type=%s,
-                user_password=SHA2(%s, 256),
-                policy_id=%s
+                user_password=SHA2(%s, 256)
             WHERE user_id=%s
-        """, (first_name, middle_name, last_name, phone_number, status, user_type, password, policy_id, user_id))
+        """, (first_name, middle_name, last_name, phone_number, status, user_type, password, user_id))
     else:
         cursor.execute("""
             UPDATE User
@@ -1452,10 +1504,22 @@ def edit_user():
                 user_last_name=%s,
                 user_phone_number=%s,
                 status=%s,
-                user_type=%s,
-                policy_id=%s
+                user_type=%s
             WHERE user_id=%s
-        """, (first_name, middle_name, last_name, phone_number, status, user_type, policy_id, user_id))
+        """, (first_name, middle_name, last_name, phone_number, status, user_type, user_id))
+
+    if user_type == "Reader":
+        cursor.execute("SELECT 1 FROM Reader WHERE reader_id = %s", (user_id,))
+        if cursor.fetchone():
+            cursor.execute(
+                "UPDATE Reader SET policy_id=%s WHERE reader_id=%s",
+                (policy_id, user_id)
+            )
+        else:
+            cursor.execute(
+                "INSERT INTO Reader (reader_id, policy_id) VALUES (%s, %s)",
+                (user_id, policy_id)
+            )
 
     user_log_activity(
         session.get("userid"),

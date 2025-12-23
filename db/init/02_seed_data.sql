@@ -1,16 +1,16 @@
 INSERT INTO Policy (
   name, loan_period_days, renewals_allowed, fine_per_day,
-  max_concurrent_loans, holds_limit_reservation, applies_to_role
+  max_concurrent_loans, holds_limit_reservation
 ) VALUES
-('Standard Policy', 14, 2, 0.5, 5, 5, 'Reader');
+('Standard Policy', 14, 2, 0.5, 5, 5);
 
 INSERT INTO User (
     user_first_name, user_middle_name, user_last_name,
     user_phone_number, user_email, user_password,
-    status, user_type, policy_id
+    status, user_type
 ) VALUES
 -- Reader
-('Melisa', '', 'Tanrikulu', '5555556666', 'melisa.tanrikulu@example.com', SHA2('melisatanrikulu', 256), 'Active', 'Reader', 1);
+('Melisa', '', 'Tanrikulu', '5555556666', 'melisa.tanrikulu@example.com', SHA2('melisatanrikulu', 256), 'Active', 'Reader');
 
 INSERT INTO User (
     user_first_name, user_middle_name, user_last_name,
@@ -22,11 +22,10 @@ INSERT INTO User (
 -- Admin
 ('Admin', '', 'Admin', '5555656565', 'admin.admin@example.com', SHA2('adminadmin', 256), 'Active', 'Admin');
 
-INSERT INTO Reader (reader_id)
+INSERT INTO Reader (reader_id, policy_id)
 VALUES
-(1);
+(1, 1);
 
-/*
 INSERT INTO Author (author_name) VALUES
 ('Andy Weir'),
 ('Harper Lee'),
@@ -129,20 +128,21 @@ INSERT INTO Copy (
     item_barcode, material_type, call_number, acquisition_type,
     status, added_date, book_id, location_id
 ) VALUES
-('BC001', 'Book', 'FIC-WEI-TM', 'Purchase', 'On Loan', '2023-11-01 10:15:00', 1, 1),
+('BC001', 'Book', 'FIC-WEI-TM', 'Purchase', 'Available', '2023-11-01 10:15:00', 1, 1),
 ('BC013', 'Book', 'FIC-WEI-TM', 'Purchase', 'Available', '2023-11-01 10:15:00', 1, 1),
-('BC002', 'Book', 'FIC-WEI-TM', 'Donation', 'On Loan', '2023-11-05 14:20:00', 1, 2),
+('BC002', 'Book', 'FIC-WEI-TM', 'Donation', 'Available', '2023-11-05 14:20:00', 1, 2),
 ('BC003', 'Book', 'FIC-LEE-TKM', 'Purchase', 'Available', '2023-10-20 09:30:00', 2, 4),
-('BC004', 'Book', 'FIC-ROW-HP4', 'Purchase', 'On Hold', '2023-11-02 13:40:00', 3, 8),
+('BC004', 'Book', 'FIC-ROW-HP4', 'Purchase', 'Available', '2023-11-02 13:40:00', 3, 8),
 ('BC005', 'Book', 'FIC-ROW-HP4', 'Donation', 'Available', '2023-11-06 15:10:00', 3, 9),
 ('BC006', 'Book', 'MYS-LAR-GDT', 'Purchase', 'Available', '2023-10-28 11:00:00', 4, 6),
-('BC007', 'Book', 'MYS-BRO-INF', 'Purchase', 'On Loan', '2023-11-04 17:25:00', 5, 7),
+('BC007', 'Book', 'MYS-BRO-INF', 'Purchase', 'Available', '2023-11-04 17:25:00', 5, 7),
 ('BC008', 'Book', 'HIS-HAN-NI', 'Donation', 'Available', '2023-11-10 11:55:00', 6, 5),
 ('BC009', 'Book', 'CLA-ORW-1984', 'Purchase', 'Available', '2023-10-15 09:00:00', 7, 3),
-('BC010', 'Book', 'THR-FLY-GG', 'Purchase', 'Lost', '2023-09-30 12:00:00', 8, 4),
+('BC010', 'Book', 'THR-FLY-GG', 'Purchase', 'Available', '2023-09-30 12:00:00', 8, 4),
 ('BC011', 'Book', 'SCI-MCC-ROAD', 'Purchase', 'Available', '2023-11-09 13:45:00', 9, 2),
 ('BC012', 'Book', 'FAN-ROW-HP1', 'Purchase', 'Available', '2023-11-08 10:10:00', 10, 8);
 
+/*
 -- --- EXCHANGE COPIES (User Owned) ---
 -- These show up in "My Books" for the owner and "Exchange Market" for others
 INSERT INTO Copy (

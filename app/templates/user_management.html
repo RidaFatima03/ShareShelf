@@ -66,7 +66,7 @@
                                 <option value="">All</option>
                                 {% for p in all_policies %}
                                 <option value="{{ p.policy_id }}"
-                                    {% if search_policy == p.name|string %}selected{% endif %}>
+                                    {% if search_policy == p.policy_id|string %}selected{% endif %}>
                                     {{ p.name }}
                                 </option>
                                 {% endfor %}
@@ -93,7 +93,7 @@
                         <td>{{ u.user_email }}</td>
                         <td>{{ u.status }}</td>
                         <td>{{ u.user_type }}</td>
-                        <td>{{ u.policy_name }}</td>
+                        <td>{{ u.policy_name or '-' }}</td>
                         <td>
                             <div class="manage-btns">
                                 <button type="button"
@@ -301,9 +301,11 @@
 
             <div class="filter-input-group">
                 <label for="add_policy" class="filter-label">Policy:</label>
-                <select id="add_policy" name="add_policy" class="form-control filter-input" required>
+                <select id="add_policy" name="add_policy" class="form-control filter-input">
                     {% for p in all_policies %}
-                    <option value="{{ p.policy_id }}">{{ p.name }}</option>
+                    <option value="{{ p.policy_id }}" {% if default_policy_id == p.policy_id %}selected{% endif %}>
+                        {{ p.name }}
+                    </option>
                     {% endfor %}
                 </select>
             </div>
@@ -385,7 +387,7 @@
 
     <div class="filter-input-group">
         <label for="edit_policy" class="filter-label">Policy:</label>
-        <select id="edit_policy" name="policy_id" class="form-control filter-input" required>
+        <select id="edit_policy" name="policy_id" class="form-control filter-input">
             <option value="" selected>None</option>
             {% for p in all_policies %}
             <option value="{{ p.policy_id }}">{{ p.name }}</option>

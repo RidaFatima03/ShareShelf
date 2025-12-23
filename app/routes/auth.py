@@ -134,10 +134,22 @@ def register():
             return render_template('register.html', message=message)
 
         
-        cursor.execute('INSERT INTO User (user_first_name, user_middle_name, user_last_name, user_phone_number, user_email, user_password) ' \
-        '     VALUES (% s, %s, %s, %s, %s, SHA2(%s, 256))',
-             (user_first_name, user_middle_name, user_last_name, user_phone_number, user_email, user_password))
+        cursor.execute("SELECT policy_id FROM Policy ORDER BY policy_id LIMIT 1")
+        policy_row = cursor.fetchone()
+        if not policy_row:
+            message = 'No policy found. Please contact a librarian.'
+            return render_template('register.html', message=message)
+
+        cursor.execute(
+            'INSERT INTO User (user_first_name, user_middle_name, user_last_name, user_phone_number, user_email, user_password, status, user_type) '
+            'VALUES (%s, %s, %s, %s, %s, SHA2(%s, 256), %s, %s)',
+            (user_first_name, user_middle_name, user_last_name, user_phone_number, user_email, user_password, 'Active', 'Reader')
+        )
         new_user_id = cursor.lastrowid
+        cursor.execute(
+            "INSERT INTO Reader (reader_id, policy_id) VALUES (%s, %s)",
+            (new_user_id, policy_row["policy_id"])
+        )
         mysql.connection.commit()
         system_log("Auth", "INFO", "RegistrationService", f"User created (user_id={new_user_id}).")
         message = 'User successfully created!'

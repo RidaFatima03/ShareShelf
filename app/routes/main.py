@@ -1047,13 +1047,13 @@ def renew_checkout(checkout_id):
         cursor.execute("""
             SELECT 
                 c.checkout_id, c.renew_count, c.due_date, c.copy_id, 
-                b.book_id, u.user_type,
+                b.book_id,
                 p.loan_period_days, p.renewals_allowed
             FROM Checkout c
             JOIN Copy cp ON c.copy_id = cp.item_barcode
             JOIN Book b ON cp.book_id = b.book_id
-            JOIN User u ON c.reader_id = u.user_id
-            JOIN Policy p ON p.applies_to_role = u.user_type
+            JOIN Reader r ON c.reader_id = r.reader_id
+            JOIN Policy p ON p.policy_id = r.policy_id
             WHERE c.checkout_id = %s AND c.reader_id = %s AND c.returned_date IS NULL
         """, (checkout_id, user_id))
         loan = cursor.fetchone()

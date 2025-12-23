@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session,flash
+import MySQLdb
 import MySQLdb.cursors
 from extensions import mysql
 from utils.system_log import system_log
@@ -14,14 +15,28 @@ def policy():
         return redirect(url_for('auth.login'))
     
     cursor = get_cursor()
-    if session.get("user_type") == "Reader":
-        cursor.execute("SELECT * FROM Policy WHERE applies_to_role = 'Reader'")
-    elif session.get("user_type") == "Admin":
-        cursor.execute("SELECT * FROM Policy WHERE applies_to_role = 'Admin'")
-    else:
-        cursor.execute("SELECT * FROM Policy")
-    policies = cursor.fetchall()
     role = session.get('user_type')
+    if role == "Reader":
+        cursor.execute(
+            """
+            SELECT p.*
+            FROM Reader r
+            JOIN Policy p ON p.policy_id = r.policy_id
+            WHERE r.reader_id = %s
+            """,
+            (session.get("userid"),)
+        )
+        policies = cursor.fetchall()
+    elif role == "Librarian":
+        cursor.execute(
+            """
+            SELECT *
+            FROM Policy
+            """
+        )
+        policies = cursor.fetchall()
+    else:
+        policies = []
 
     return render_template("policy.html", data=policies, role=role)
 
@@ -79,14 +94,13 @@ def add_policy():
         fine = request.form['fine_per_day']
         max_loans = request.form['max_concurrent_loans']
         holds = request.form['holds_limit_reservation']
-        applies = request.form['applies_to_role']
 
         cursor.execute("""
             INSERT INTO Policy (name, loan_period_days, renewals_allowed,
                                 fine_per_day, max_concurrent_loans,
-                                holds_limit_reservation, applies_to_role)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (name, period, renewals, fine, max_loans, holds, applies))
+                                holds_limit_reservation)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (name, period, renewals, fine, max_loans, holds))
 
         mysql.connection.commit()
         policy_id = cursor.lastrowid
@@ -102,10 +116,28 @@ def delete_policy(id):
     if session.get('user_type') != 'Librarian':
         return "Unauthorized", 403
 
+    if id == 1:
+        flash("Default policy cannot be deleted.", "danger")
+        return redirect(url_for('policy.policy'))
+
     cursor = get_cursor()
-    cursor.execute("DELETE FROM Policy WHERE policy_id = %s", (id,))
-    mysql.connection.commit()
-    system_log("Policy", "INFO", "PolicyService", f"Policy deleted (policy_id={id}).")
+    try:
+        cursor.execute("DELETE FROM Policy WHERE policy_id = %s", (id,))
+        mysql.connection.commit()
+        system_log("Policy", "INFO", "PolicyService", f"Policy deleted (policy_id={id}).")
+        flash("Policy deleted successfully.", "success")
+    except MySQLdb.IntegrityError:
+        mysql.connection.rollback()
+        system_log(
+            "Policy",
+            "WARN",
+            "PolicyService",
+            f"Policy delete blocked by foreign key (policy_id={id})."
+        )
+        flash(
+            "This policy is assigned to one or more readers. Reassign them before deleting.",
+            "danger"
+        )
 
     return redirect(url_for('policy.policy'))
 

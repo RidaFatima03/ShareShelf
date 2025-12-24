@@ -817,6 +817,27 @@ def books():
         page = total_pages
 
     offset = (page - 1) * per_page
+
+    if total:
+        start_item = (page - 1) * per_page + 1
+        end_item = min(total, page * per_page)
+    else:
+        start_item = 0
+        end_item = 0
+
+    if total:
+        start_item = (page - 1) * per_page + 1
+        end_item = min(total, page * per_page)
+    else:
+        start_item = 0
+        end_item = 0
+
+    if total:
+        start_item = (page - 1) * per_page + 1
+        end_item = min(total, page * per_page)
+    else:
+        start_item = 0
+        end_item = 0
     
 
     # data query
@@ -1024,6 +1045,8 @@ def user_management():
     # Load all policies for dropdown
     cursor.execute("SELECT policy_id, name FROM Policy ORDER BY name")
     all_policies = cursor.fetchall()
+    start_item = 0
+    end_item = 0
 
     # ---------- CREATE (POST) ----------
     if request.method == "POST":
@@ -1166,6 +1189,13 @@ def user_management():
         page = total_pages
 
     offset = (page - 1) * per_page
+
+    if total:
+        start_item = (page - 1) * per_page + 1
+        end_item = min(total, page * per_page)
+    else:
+        start_item = 0
+        end_item = 0
     
     # data query
     data_sql = f"""
@@ -1209,7 +1239,10 @@ def user_management():
             search_status=search_status,
             search_user_type=search_user_type,
             search_policy=search_policy,
-            all_policies=all_policies
+            all_policies=all_policies,
+            total_count=total,
+            start_item=start_item,
+            end_item=end_item
         )
 
 @librarian_bp.route("/user_management/delete/<int:user_id>", methods=["POST"], endpoint="delete_user")

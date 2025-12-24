@@ -379,6 +379,14 @@
     width: 140px;
 }
 
+.logs-table .col-log-node {
+    width: 160px;
+}
+
+.logs-table .col-log-node .filter-input {
+    width: 150px;
+}
+
 .col-actions {
     text-align: right;
     width: 120px;

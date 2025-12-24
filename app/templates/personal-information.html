@@ -36,6 +36,7 @@
                     <span class="status-badge {{ myaccount.status|lower }}">{{ myaccount.status }}</span>
                 </div>
                 
+                {% if session.get('user_type') in ['Reader'] %}
                 <div class="info-item">
                     <span class="info-label">Total Fine Balance:</span>
                     <span class="info-value">${{ fine.amount }}</span>
@@ -50,6 +51,7 @@
                         {{ exchange_count }}
                     </span>
                 </div>
+                {% endif %}
             </div>
             
             <a href="{{ url_for('profile.updateprofile') }}" class="edit-profile-button">Edit Profile</a>

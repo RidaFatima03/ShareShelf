@@ -341,7 +341,6 @@
 .table-date-range {
     display: flex;
     gap: 8px;
-    margin-top: 6px;
 }
 
 .table-filter-actions {
@@ -364,6 +363,20 @@
 
 .col-user-id .filter-input {
     width: 100%;
+}
+
+.date-range-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.activity-table-compact .col-date-range {
+    width: 300px;
+}
+
+.activity-table-compact .date-range-field .filter-input {
+    width: 140px;
 }
 
 .col-actions {

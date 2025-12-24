@@ -33,7 +33,7 @@ def system_logs():
     start_date = request.args.get('start_date') or ''
     end_date = request.args.get('end_date') or ''
     page = request.args.get('page', default=1, type=int)
-    per_page = 20
+    per_page = 10
     if page < 1:
         page = 1
 
@@ -99,6 +99,13 @@ def system_logs():
     cursor.execute(query, tuple(params_with_page))
     logs = cursor.fetchall()
 
+    if total_count:
+        start_item = (page - 1) * per_page + 1
+        end_item = min(total_count, page * per_page)
+    else:
+        start_item = 0
+        end_item = 0
+
     return render_template(
         'system_logs.html',
         logs=logs,
@@ -113,7 +120,10 @@ def system_logs():
         page=page,
         total_pages=total_pages,
         has_prev=page > 1,
-        has_next=page < total_pages
+        has_next=page < total_pages,
+        total_count=total_count,
+        start_item=start_item,
+        end_item=end_item
     )
 
 
@@ -131,7 +141,7 @@ def user_activity():
     start_date = request.args.get('start_date') or ''
     end_date = request.args.get('end_date') or ''
     page = request.args.get('page', default=1, type=int)
-    per_page = 20
+    per_page = 10
     if page < 1:
         page = 1
 
@@ -195,6 +205,13 @@ def user_activity():
     cursor.execute(query, params_with_page)
     logs = cursor.fetchall()
 
+    if total_count:
+        start_item = (page - 1) * per_page + 1
+        end_item = min(total_count, page * per_page)
+    else:
+        start_item = 0
+        end_item = 0
+
     cursor.execute("""
         UPDATE User
         SET status = 'INACTIVE'
@@ -223,7 +240,10 @@ def user_activity():
         page=page,
         total_pages=total_pages,
         has_prev=page > 1,
-        has_next=page < total_pages
+        has_next=page < total_pages,
+        total_count=total_count,
+        start_item=start_item,
+        end_item=end_item
     )
 
 

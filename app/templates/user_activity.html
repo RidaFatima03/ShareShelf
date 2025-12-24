@@ -1,27 +1,38 @@
 {% extends "sidebar.html" %}
 
 {% block content %}
-<div class="activity-page">
+<div>
 
-    <h1 class="page-title">User Activity</h1>
+    <div class="manage-header">
+        <h1 class="page-title">User Activity</h1>
+    </div>
 
     <!-- Table -->
     <div class="table-wrapper table-wrapper-scroll">
         <form method="get" class="table-filter-form">
-            <table class="activity-table">
+            <table class="activity-table activity-table-compact">
                 <thead>
                     <tr>
-                        <th>
-                            Timestamp<br>
+                        <th class="col-date-range">
                             <div class="table-date-range">
-                                <input type="date"
-                                       name="start_date"
-                                       class="filter-input filter-input-manage"
-                                       value="{{ start_date }}">
-                                <input type="date"
-                                       name="end_date"
-                                       class="filter-input filter-input-manage"
-                                       value="{{ end_date }}">
+                                <div class="date-range-field">
+                                    From
+                                    <input type="date"
+                                           id="start_date"
+                                           name="start_date"
+                                           style="100%;"
+                                           class="filter-input filter-input-manage"
+                                           value="{{ start_date }}">
+                                </div>
+                                <div class="date-range-field">
+                                    To
+                                    <input type="date"
+                                           id="end_date"
+                                           name="end_date"
+                                           style="100%;"
+                                           class="filter-input filter-input-manage"
+                                           value="{{ end_date }}">
+                                </div>
                             </div>
                         </th>
                         <th class="col-user-id">
@@ -96,6 +107,7 @@
         </form>
 
         <p class="logs-footer">Recent activities, sorted by date.</p>
+        <p class="logs-footer">{{ start_item }} to {{ end_item }} of {{ total_count }}</p>
     </div>
 
     <nav class="pagination-container mt-4">
@@ -107,14 +119,42 @@
                 </a>
             </li>
 
-            {% for p in range(1, total_pages + 1) %}
-            <li class="page-item {% if p == page %}active{% endif %}">
-                <a class="page-link"
-                    href="{{ url_for('admin.user_activity', page=p, action_type=selected_action, user_query=user_query, description_query=description_query, start_date=start_date, end_date=end_date) }}">
-                    {{ p }}
-                </a>
-            </li>
-            {% endfor %}
+            {% if total_pages > 0 %}
+                <li class="page-item {% if page == 1 %}active{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('admin.user_activity', page=1, action_type=selected_action, user_query=user_query, description_query=description_query, start_date=start_date, end_date=end_date) }}">
+                        1
+                    </a>
+                </li>
+
+                {% if page - 2 > 1 %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+
+                {% set start = 2 if page - 1 < 2 else page - 1 %}
+                {% set end = total_pages - 1 if page + 1 > total_pages - 1 else page + 1 %}
+                {% for p in range(start, end + 1) %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link"
+                            href="{{ url_for('admin.user_activity', page=p, action_type=selected_action, user_query=user_query, description_query=description_query, start_date=start_date, end_date=end_date) }}">
+                            {{ p }}
+                        </a>
+                    </li>
+                {% endfor %}
+
+                {% if page + 2 < total_pages %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+
+                {% if total_pages > 1 %}
+                    <li class="page-item {% if page == total_pages %}active{% endif %}">
+                        <a class="page-link"
+                            href="{{ url_for('admin.user_activity', page=total_pages, action_type=selected_action, user_query=user_query, description_query=description_query, start_date=start_date, end_date=end_date) }}">
+                            {{ total_pages }}
+                        </a>
+                    </li>
+                {% endif %}
+            {% endif %}
 
             <li class="page-item {% if not has_next %}disabled{% endif %}">
                 <a class="page-link"

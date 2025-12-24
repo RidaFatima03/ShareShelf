@@ -14,14 +14,20 @@ def policy():
         return redirect(url_for('auth.login'))
     
     cursor = get_cursor()
-    if session.get("user_type") == "Reader":
-        cursor.execute("SELECT * FROM Policy WHERE applies_to_role = 'Reader'")
-    elif session.get("user_type") == "Admin":
-        cursor.execute("SELECT * FROM Policy WHERE applies_to_role = 'Admin'")
-    else:
+    user_type = session.get("user_type")
+    if user_type == "Reader":
+        cursor.execute("""
+            SELECT p.*
+            FROM Policy p
+            JOIN Reader r ON r.policy_id = p.policy_id
+            WHERE r.reader_id = %s
+        """, (session.get("userid"),))
+    elif user_type == "Librarian":
         cursor.execute("SELECT * FROM Policy")
+    else:
+        return "Unauthorized", 403
     policies = cursor.fetchall()
-    role = session.get('user_type')
+    role = user_type
 
     return render_template("policy.html", data=policies, role=role)
 
@@ -79,14 +85,13 @@ def add_policy():
         fine = request.form['fine_per_day']
         max_loans = request.form['max_concurrent_loans']
         holds = request.form['holds_limit_reservation']
-        applies = request.form['applies_to_role']
 
         cursor.execute("""
             INSERT INTO Policy (name, loan_period_days, renewals_allowed,
                                 fine_per_day, max_concurrent_loans,
-                                holds_limit_reservation, applies_to_role)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (name, period, renewals, fine, max_loans, holds, applies))
+                                holds_limit_reservation)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (name, period, renewals, fine, max_loans, holds))
 
         mysql.connection.commit()
         policy_id = cursor.lastrowid

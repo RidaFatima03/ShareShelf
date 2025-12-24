@@ -325,33 +325,17 @@
                                                 formaction="{{ url_for('librarian.reject_request', request_id=req.request_id) }}">
                                             Reject
                                         </button>
-                                    {% elif req.status == 'Approved' %}
-                                        <button data-confirm="Mark this request as completed?" type="submit"
-                                                class="action-button primary btn-apply"
-                                                formmethod="post"
-                                                formaction="{{ url_for('librarian.complete_request', request_id=req.request_id) }}">
-                                            Complete
-                                        </button>
-                                        <button data-confirm="Cancel this request?" type="submit"
-                                                class="logout-link btn-cancel"
-                                                formmethod="post"
-                                                formaction="{{ url_for('librarian.cancel_request', request_id=req.request_id) }}">
-                                            Cancel
-                                        </button>
                                     {% else %}
                                         <span class="no-action">N/A</span>
                                     {% endif %}
-                                    <span class="info-wrapper"  data-request-id="{{ req.request_id }}"
-                                                                data-request-type="Exchange"
-                                                                data-user-id="{{ req.user_id }}"
-                                                                data-user-name="{{ req.user_full_name | e }}"
-                                                                data-isbn="{{ req.isbn }}"
-                                                                data-title="{{ req.item_title | e }}"
-                                                                data-publisher="{{ req.publisher | e }}"
-                                                                data-publication-date="{{ req.publication_date }}"
-                                                                data-author="{{ req.item_author | e }}"
-                                                                data-date="{{ req.request_date }}"
-                                                                data-status="{{ req.status }}">
+                                    <span class="info-wrapper" data-request-id="{{ req.request_id }}"
+                                          data-request-type="Exchange"
+                                          data-user-id="{{ req.user_id }}"
+                                          data-user-name="{{ req.user_full_name | e }}"
+                                          data-title="{{ req.item_title | e }}"
+                                          data-author="{{ req.item_author | e }}"
+                                          data-date="{{ req.request_date }}"
+                                          data-status="{{ req.status }}">
                                         <button class="info-btn" type="button">
                                             i
                                         </button>
@@ -361,7 +345,7 @@
                         </tr>
                         {% endfor %}
                     {% else %}
-                        <tr><td colspan="7" style="text-align:center; padding: 20px; color: #888;">No exchange requests.</td></tr>
+                        <tr><td colspan="7" style="text-align:center; padding: 20px; color: #888;">No exchange approvals.</td></tr>
                     {% endif %}
                 </tbody>
             </form>

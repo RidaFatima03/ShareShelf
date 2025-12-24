@@ -79,7 +79,8 @@ def my_requests():
         SELECT r.request_id, r.request_date, r.status, b.title AS item_title,
                GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
         FROM Request r
-        JOIN Book b ON r.book_id = b.book_id
+        JOIN Copy cp ON r.copy_id = cp.item_barcode
+        JOIN Book b ON cp.book_id = b.book_id
         LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
         LEFT JOIN Author a ON ba.author_id = a.author_id
         WHERE r.reader_id = %s AND r.request_type = 'Hold'{where_sql}
@@ -94,7 +95,8 @@ def my_requests():
         SELECT r.request_id, r.request_date, r.status, b.title AS item_title,
                GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
         FROM Request r
-        JOIN Book b ON r.book_id = b.book_id
+        JOIN Copy cp ON r.copy_id = cp.item_barcode
+        JOIN Book b ON cp.book_id = b.book_id
         LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
         LEFT JOIN Author a ON ba.author_id = a.author_id
         WHERE r.reader_id = %s AND r.request_type = 'Borrow'{where_sql}
@@ -106,43 +108,28 @@ def my_requests():
     # EXCHANGES
     where_sql, params = build_request_filters("b.title", "a.author_name", search_values["exchanges"], active_tab == "exchanges")
     cursor.execute(f"""
-        SELECT r.request_id, r.request_date, r.status, b.title AS item_title,
+        SELECT r.exchange_request_id AS request_id, r.request_date, r.status, b.title AS item_title,
                GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
-        FROM Request r
-        JOIN Book b ON r.book_id = b.book_id
+        FROM Exchange_Request r
+        JOIN Copy cp ON r.owner_copy_id = cp.item_barcode
+        JOIN Book b ON cp.book_id = b.book_id
         LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
         LEFT JOIN Author a ON ba.author_id = a.author_id
-        WHERE r.reader_id = %s AND r.request_type = 'Exchange'{where_sql}
-        GROUP BY r.request_id, b.title, r.request_date, r.status
+        WHERE r.requester_id = %s{where_sql}
+        GROUP BY r.exchange_request_id, b.title, r.request_date, r.status
         ORDER BY r.request_date DESC
     """, [user_id] + params)
     exchanges = cursor.fetchall()
 
-    # DONATIONS (Book)
-    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["donations"], active_tab == "donations")
-    cursor.execute(f"""
-        SELECT r.request_id, r.request_date, r.status, b.isbn, b.title AS item_title, b.publisher, b.publication_date,
-               GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
-        FROM Request r
-        JOIN Book b ON r.book_id = b.book_id
-        LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
-        LEFT JOIN Author a ON ba.author_id = a.author_id
-        WHERE r.reader_id = %s AND r.request_type = 'Donation' AND r.book_id IS NOT NULL{where_sql}
-        GROUP BY r.request_id, b.title, r.request_date, r.status
-    """, [user_id] + params)
-    donations_books = cursor.fetchall()
-
-    # DONATIONS (Material)
+    # DONATIONS (Material only)
     where_sql, params = build_request_filters("m.title", "m.author", search_values["donations"], active_tab == "donations")
     cursor.execute(f"""
         SELECT r.request_id, r.request_date, r.status, m.isbn, m.title AS item_title, m.publisher, m.publication_date, m.author AS item_author
         FROM Request r
         JOIN Material m ON r.material_id = m.material_id
-        WHERE r.reader_id = %s AND r.request_type = 'Donation' AND r.material_id IS NOT NULL{where_sql}
+        WHERE r.reader_id = %s AND r.request_type = 'Donation'{where_sql}
     """, [user_id] + params)
-    donations_materials = cursor.fetchall()
-
-    donations = list(donations_books) + list(donations_materials)
+    donations = cursor.fetchall()
     donations.sort(key=lambda x: x["request_date"], reverse=True)
 
     # BOOK REQUESTS (Material)

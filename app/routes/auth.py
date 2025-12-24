@@ -290,7 +290,7 @@ def user_log_activity(user_id, action_type, details):
     cursor = get_cursor()
     cursor.execute(
         '''
-        INSERT INTO user_activity_log (action_type, details, user_id)
+        INSERT INTO User_Activity_Log (action_type, details, user_id)
         VALUES (%s, %s, %s)
         ''',
         (action_type, details, user_id)

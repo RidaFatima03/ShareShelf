@@ -23,12 +23,33 @@
         .mark-read-btn:hover {
             background-color: #f5e6d3;
         }
+        .mark-all-read-btn {
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #5c4033;
+            background-color: #fff;
+            border: 1px solid #d8c7b2;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mark-all-read-btn:hover {
+            background-color: #f5e6d3;
+        }
     </style>
 
     <div class="notifications-page">
         <h1 class="page-title">Notifications</h1>
 
         <section class="notifications-card">
+            {% if notifications %}
+                <form action="{{ url_for('main.mark_all_notifications_read') }}" method="POST" style="margin-bottom: 16px; text-align: right;">
+                    <button type="submit" class="mark-all-read-btn">
+                        <i class="fa-regular fa-circle-check"></i> Mark All as Read
+                    </button>
+                </form>
+            {% endif %}
             {% if notifications %}
                 {% for notif in notifications %}
                 <div class="notification-item {% if notif.is_read %}read{% else %}unread{% endif %}">

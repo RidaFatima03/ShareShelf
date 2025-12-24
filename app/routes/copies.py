@@ -53,7 +53,6 @@ def list_copies():
 
     if request.method == "POST":
         item_barcode = (request.form.get("item_barcode") or "").strip()
-        material_type = (request.form.get("material_type") or "").strip()
         call_number = (request.form.get("call_number") or "").strip()
         acquisition_type = (request.form.get("acquisition_type") or "").strip()
         status = (request.form.get("status") or "").strip()
@@ -63,9 +62,6 @@ def list_copies():
 
         if not item_barcode:
             flash("Barcode is required.", "danger")
-            return redirect(url_for("copies.list"))
-        if not material_type:
-            flash("Material type is required.", "danger")
             return redirect(url_for("copies.list"))
         if not acquisition_type:
             flash("Acquisition type is required.", "danger")
@@ -79,13 +75,12 @@ def list_copies():
 
         cursor.execute("""
             INSERT INTO Copy (
-                item_barcode, material_type, call_number, acquisition_type, status,
+                item_barcode, call_number, acquisition_type, status,
                 book_id, location_id, owner_id
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """, (
             item_barcode,
-            material_type,
             call_number or None,
             acquisition_type,
             status,
@@ -130,7 +125,7 @@ def list_copies():
         where.append("c.acquisition_type = %s")
         params.append(search_acquisition)
     if search_material:
-        where.append("c.material_type LIKE %s")
+        where.append("b.material_type LIKE %s")
         params.append(f"%{search_material}%")
     if search_call_number:
         where.append("c.call_number LIKE %s")
@@ -159,7 +154,7 @@ def list_copies():
     cursor.execute(f"""
         SELECT
             c.item_barcode,
-            c.material_type,
+            b.material_type AS material_type,
             c.call_number,
             c.acquisition_type,
             c.status,
@@ -211,7 +206,6 @@ def edit_copy():
     cursor = get_cursor()
 
     item_barcode = (request.form.get("item_barcode") or "").strip()
-    material_type = (request.form.get("material_type") or "").strip()
     call_number = (request.form.get("call_number") or "").strip()
     acquisition_type = (request.form.get("acquisition_type") or "").strip()
     status = (request.form.get("status") or "").strip()
@@ -225,8 +219,7 @@ def edit_copy():
 
     cursor.execute("""
         UPDATE Copy
-        SET material_type = %s,
-            call_number = %s,
+        SET call_number = %s,
             acquisition_type = %s,
             status = %s,
             book_id = %s,
@@ -234,7 +227,6 @@ def edit_copy():
             owner_id = %s
         WHERE item_barcode = %s
     """, (
-        material_type,
         call_number or None,
         acquisition_type,
         status,

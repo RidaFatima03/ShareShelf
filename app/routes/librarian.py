@@ -123,7 +123,8 @@ def requests():
                GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
         FROM Request r
         JOIN User u ON r.reader_id = u.user_id
-        JOIN Book b ON r.book_id = b.book_id
+        JOIN Copy cp ON r.copy_id = cp.item_barcode
+        JOIN Book b ON cp.book_id = b.book_id
         LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
         LEFT JOIN Author a ON ba.author_id = a.author_id
         WHERE r.request_type = 'Borrow'{where_sql}
@@ -142,7 +143,8 @@ def requests():
                GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
         FROM Request r
         JOIN User u ON r.reader_id = u.user_id
-        JOIN Book b ON r.book_id = b.book_id
+        JOIN Copy cp ON r.copy_id = cp.item_barcode
+        JOIN Book b ON cp.book_id = b.book_id
         LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
         LEFT JOIN Author a ON ba.author_id = a.author_id
         WHERE r.request_type = 'Exchange'{where_sql}
@@ -152,25 +154,7 @@ def requests():
     """, params)
     exchanges = cursor.fetchall()
 
-    # DONATIONS (Book)
-    where_sql, params = build_request_filters("b.title", "a.author_name", search_values["donations"], active_tab == "donations")
-    cursor.execute(f"""
-        SELECT r.request_id, r.request_date, r.status, r.reader_id AS user_id,
-               CONCAT_WS(' ', u.user_first_name, u.user_middle_name, u.user_last_name) AS user_full_name,
-               b.isbn, b.title AS item_title, b.publisher, b.publication_date,
-               GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
-        FROM Request r
-        JOIN User u ON r.reader_id = u.user_id
-        JOIN Book b ON r.book_id = b.book_id
-        LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
-        LEFT JOIN Author a ON ba.author_id = a.author_id
-        WHERE r.request_type = 'Donation' AND r.book_id IS NOT NULL{where_sql}
-        GROUP BY r.request_id, r.reader_id, u.user_first_name, u.user_middle_name, u.user_last_name,
-                 b.title, r.request_date, r.status
-    """, params)
-    donations_books = cursor.fetchall()
-
-    # DONATIONS (Material)
+    # DONATIONS (Material only)
     where_sql, params = build_request_filters("m.title", "m.author", search_values["donations"], active_tab == "donations")
     cursor.execute(f"""
         SELECT r.request_id, r.request_date, r.status, r.reader_id AS user_id,
@@ -179,11 +163,9 @@ def requests():
         FROM Request r
         JOIN User u ON r.reader_id = u.user_id
         JOIN Material m ON r.material_id = m.material_id
-        WHERE r.request_type = 'Donation' AND r.material_id IS NOT NULL{where_sql}
+        WHERE r.request_type = 'Donation'{where_sql}
     """, params)
-    donations_materials = cursor.fetchall()
-
-    donations = list(donations_books) + list(donations_materials)
+    donations = cursor.fetchall()
     donations.sort(key=lambda x: x["request_date"], reverse=True)
 
     # BOOK REQUESTS (Material)
@@ -218,7 +200,7 @@ def approve_request(request_id):
         return check
 
     cursor = get_cursor()
-    cursor.execute("SELECT status FROM Request WHERE request_id = %s", (request_id,))
+    cursor.execute("SELECT status, request_type, copy_id FROM Request WHERE request_id = %s", (request_id,))
     req = cursor.fetchone()
 
     if not req:
@@ -226,7 +208,11 @@ def approve_request(request_id):
     elif req["status"] != "Pending":
         flash("Only pending requests can be approved.", "warning")
     else:
-        cursor.execute("UPDATE Request SET status = 'Approved' WHERE request_id = %s", (request_id,))
+        if req["request_type"] == "Exchange":
+            cursor.execute("UPDATE Copy SET status = 'Available' WHERE item_barcode = %s", (req["copy_id"],))
+            cursor.execute("UPDATE Request SET status = 'Completed' WHERE request_id = %s", (request_id,))
+        else:
+            cursor.execute("UPDATE Request SET status = 'Approved' WHERE request_id = %s", (request_id,))
         mysql.connection.commit()
         system_log("Requests", "INFO", "RequestService", f"Request approved (request_id={request_id}).")
         flash("Request approved successfully.", "success")
@@ -240,7 +226,7 @@ def reject_request(request_id):
         return check
 
     cursor = get_cursor()
-    cursor.execute("SELECT status FROM Request WHERE request_id = %s", (request_id,))
+    cursor.execute("SELECT status, request_type, copy_id FROM Request WHERE request_id = %s", (request_id,))
     req = cursor.fetchone()
 
     if not req:
@@ -248,10 +234,16 @@ def reject_request(request_id):
     elif req["status"] != "Pending":
         flash("Only pending requests can be rejected.", "warning")
     else:
-        cursor.execute("UPDATE Request SET status = 'Rejected' WHERE request_id = %s", (request_id,))
-        mysql.connection.commit()
-        system_log("Requests", "INFO", "RequestService", f"Request rejected (request_id={request_id}).")
-        flash("Request rejected successfully.", "success")
+        if req["request_type"] == "Exchange":
+            cursor.execute("DELETE FROM Copy WHERE item_barcode = %s", (req["copy_id"],))
+            mysql.connection.commit()
+            system_log("Requests", "INFO", "RequestService", f"Exchange approval rejected (request_id={request_id}).")
+            flash("Exchange approval rejected. Copy removed.", "success")
+        else:
+            cursor.execute("UPDATE Request SET status = 'Rejected' WHERE request_id = %s", (request_id,))
+            mysql.connection.commit()
+            system_log("Requests", "INFO", "RequestService", f"Request rejected (request_id={request_id}).")
+            flash("Request rejected successfully.", "success")
 
     return redirect(request.referrer or url_for("librarian.requests"))
 
@@ -262,7 +254,7 @@ def complete_request(request_id):
         return check
 
     cursor = get_cursor()
-    cursor.execute("SELECT status FROM Request WHERE request_id = %s", (request_id,))
+    cursor.execute("SELECT status, request_type, copy_id FROM Request WHERE request_id = %s", (request_id,))
     req = cursor.fetchone()
 
     if not req:
@@ -270,6 +262,8 @@ def complete_request(request_id):
     elif req["status"] != "Approved":
         flash("Only approved requests can be completed.", "warning")
     else:
+        if req["request_type"] == "Exchange":
+            cursor.execute("UPDATE Copy SET status = 'Available' WHERE item_barcode = %s", (req["copy_id"],))
         cursor.execute("UPDATE Request SET status = 'Completed' WHERE request_id = %s", (request_id,))
         mysql.connection.commit()
         system_log("Requests", "INFO", "RequestService", f"Request completed (request_id={request_id}).")
@@ -1071,8 +1065,8 @@ def user_management():
         if not add_user_type:
             flash("User type is required.", "danger")
             return redirect(url_for("librarian.user_management"))
-        if not add_policy:
-            flash("Policy is required.", "danger")
+        if add_user_type == "Reader" and not add_policy:
+            flash("Policy is required for readers.", "danger")
             return redirect(url_for("librarian.user_management"))
 
         # Duplicate checks (like your register)
@@ -1092,16 +1086,22 @@ def user_management():
             INSERT INTO User (
                 user_first_name, user_middle_name, user_last_name,
                 user_phone_number, user_email, user_password,
-                status, user_type, policy_id
+                status, user_type
             )
-            VALUES (%s, %s, %s, %s, %s, SHA2(%s, 256), %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, SHA2(%s, 256), %s, %s)
         """, (
             add_first_name, add_middle_name, add_last_name,
             add_phone_number, add_email, add_password,
-            add_status, add_user_type, add_policy
+            add_status, add_user_type
         ))
         mysql.connection.commit()
         new_user_id = cursor.lastrowid
+        if add_user_type == "Reader":
+            cursor.execute(
+                "INSERT INTO Reader (reader_id, policy_id) VALUES (%s, %s)",
+                (new_user_id, add_policy)
+            )
+            mysql.connection.commit()
         system_log("Users", "INFO", "UserService", f"User created (user_id={new_user_id}).")
 
         flash("User created successfully.", "success")
@@ -1150,7 +1150,8 @@ def user_management():
     count_sql = f"""
     SELECT COUNT(DISTINCT u.user_id) AS total
     FROM User u
-    LEFT JOIN Policy p ON p.policy_id = u.policy_id
+    LEFT JOIN Reader r ON r.reader_id = u.user_id
+    LEFT JOIN Policy p ON p.policy_id = r.policy_id
     {where_sql}
     """
 
@@ -1177,10 +1178,11 @@ def user_management():
             u.user_email,
             u.status,
             u.user_type,
-            u.policy_id,
+            r.policy_id,
             p.name AS policy_name
         FROM User u
-        LEFT JOIN Policy p ON p.policy_id = u.policy_id
+        LEFT JOIN Reader r ON r.reader_id = u.user_id
+        LEFT JOIN Policy p ON p.policy_id = r.policy_id
         {where_sql}
         ORDER BY u.user_id
         LIMIT %s OFFSET %s
@@ -1265,8 +1267,8 @@ def edit_user():
     if not user_type:
         flash("User type is required.", "danger")
         return redirect(url_for("librarian.user_management"))
-    if not policy_id:
-        flash("Policy is required.", "danger")
+    if user_type == "Reader" and not policy_id:
+        flash("Policy is required for readers.", "danger")
         return redirect(url_for("librarian.user_management"))
 
     # If password was provided, validate it
@@ -1301,10 +1303,9 @@ def edit_user():
                 user_phone_number=%s,
                 status=%s,
                 user_type=%s,
-                user_password=SHA2(%s, 256),
-                policy_id=%s
+                user_password=SHA2(%s, 256)
             WHERE user_id=%s
-        """, (first_name, middle_name, last_name, phone_number, status, user_type, password, policy_id, user_id))
+        """, (first_name, middle_name, last_name, phone_number, status, user_type, password, user_id))
     else:
         cursor.execute("""
             UPDATE User
@@ -1313,10 +1314,16 @@ def edit_user():
                 user_last_name=%s,
                 user_phone_number=%s,
                 status=%s,
-                user_type=%s,
-                policy_id=%s
+                user_type=%s
             WHERE user_id=%s
-        """, (first_name, middle_name, last_name, phone_number, status, user_type, policy_id, user_id))
+        """, (first_name, middle_name, last_name, phone_number, status, user_type, user_id))
+
+    if user_type == "Reader":
+        cursor.execute("""
+            INSERT INTO Reader (reader_id, policy_id)
+            VALUES (%s, %s)
+            ON DUPLICATE KEY UPDATE policy_id = VALUES(policy_id)
+        """, (user_id, policy_id))
 
     user_log_activity(
         session.get("userid"),

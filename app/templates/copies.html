@@ -123,7 +123,6 @@
                                     <button type="button"
                                             class="btn-edit"
                                             data-item-barcode="{{ c.item_barcode }}"
-                                            data-material-type="{{ c.material_type }}"
                                             data-call-number="{{ c.call_number }}"
                                             data-acquisition-type="{{ c.acquisition_type }}"
                                             data-status="{{ c.status }}"
@@ -227,10 +226,6 @@
                 <input type="text" id="item_barcode" name="item_barcode" class="form-control filter-input" required>
             </div>
             <div class="filter-input-group">
-                <label for="material_type" class="filter-label">Material type:</label>
-                <input type="text" id="material_type" name="material_type" class="form-control filter-input" required>
-            </div>
-            <div class="filter-input-group">
                 <label for="call_number" class="filter-label">Call number:</label>
                 <input type="text" id="call_number" name="call_number" class="form-control filter-input">
             </div>
@@ -297,10 +292,6 @@
 
         <form method="POST" action="{{ url_for('copies.edit') }}">
             <input type="hidden" id="edit_item_barcode" name="item_barcode">
-            <div class="filter-input-group">
-                <label for="edit_material_type" class="filter-label">Material type:</label>
-                <input type="text" id="edit_material_type" name="material_type" class="form-control filter-input" required>
-            </div>
             <div class="filter-input-group">
                 <label for="edit_call_number" class="filter-label">Call number:</label>
                 <input type="text" id="edit_call_number" name="call_number" class="form-control filter-input">
@@ -380,7 +371,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const editCloseElems = document.querySelectorAll('.close-edit-copy-modal');
 
     const editBarcode = document.getElementById('edit_item_barcode');
-    const editMaterial = document.getElementById('edit_material_type');
     const editCall = document.getElementById('edit_call_number');
     const editAcq = document.getElementById('edit_acquisition_type');
     const editStatus = document.getElementById('edit_status');
@@ -392,7 +382,6 @@ document.addEventListener('DOMContentLoaded', function () {
     editButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             if (editBarcode) editBarcode.value = btn.dataset.itemBarcode || '';
-            if (editMaterial) editMaterial.value = btn.dataset.materialType || '';
             if (editCall) editCall.value = btn.dataset.callNumber || '';
             if (editAcq) editAcq.value = btn.dataset.acquisitionType || '';
                 const statusValue = btn.dataset.status || '';

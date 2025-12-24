@@ -3,11 +3,20 @@ from datetime import datetime, timedelta
 import MySQLdb.cursors
 from extensions import mysql
 from utils.system_log import system_log
+from routes.notifications import NotificationService
 
 main_bp = Blueprint('main', __name__)
 
 def get_cursor():
     return mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+def notify_librarians(subject, details):
+    cursor = get_cursor()
+    cursor.execute("SELECT user_id FROM User WHERE user_type = 'Librarian'")
+    librarians = cursor.fetchall()
+    service = NotificationService(mysql.connection)
+    for librarian in librarians:
+        service.add_notification(librarian["user_id"], subject, details)
 
 @main_bp.route('/main', methods=['GET'], endpoint='main_page')
 def main_page():
@@ -189,6 +198,17 @@ def mark_notification_read(notification_id):
     
     return redirect(url_for('main.notifications'))
 
+@main_bp.route('/mark-all-notifications-read', methods=['POST'], endpoint='mark_all_notifications_read')
+def mark_all_notifications_read():
+    if 'loggedin' not in session: return redirect(url_for('auth.login'))
+    user_id = session['userid']
+
+    cursor = get_cursor()
+    cursor.execute("UPDATE Notification SET is_read = TRUE WHERE user_id = %s AND is_read = FALSE", (user_id,))
+    mysql.connection.commit()
+
+    return redirect(url_for('main.notifications'))
+
 @main_bp.route('/book-details/<int:book_id>', endpoint='book_details')
 def book_details(book_id):
     if 'loggedin' not in session: return redirect(url_for('auth.login'))
@@ -199,6 +219,7 @@ def book_details(book_id):
         SELECT 
             b.book_id, b.title, b.isbn, b.publisher, b.publication_date, 
             b.language, b.physical_description, b.summary, b.average_rating,
+            b.material_type,
             GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS authors,
             GROUP_CONCAT(DISTINCT g.genre_name SEPARATOR ', ') AS genres
         FROM Book b
@@ -216,7 +237,7 @@ def book_details(book_id):
 
     query_copies = """
         SELECT 
-            c.item_barcode, c.material_type, c.call_number, 
+            c.item_barcode, c.call_number, 
             l.direction, l.collection, l.shelf_row,
             c.status, c.acquisition_type
         FROM Copy c
@@ -307,9 +328,11 @@ def borrow_book(copy_id):
             return redirect(request.referrer)
 
         cursor.execute("""
-            SELECT request_id FROM Request 
-            WHERE reader_id = %s AND book_id = %s AND request_type = 'Borrow'
-              AND status IN ('Pending', 'Approved')
+            SELECT r.request_id
+            FROM Request r
+            JOIN Copy cp ON r.copy_id = cp.item_barcode
+            WHERE r.reader_id = %s AND cp.book_id = %s AND r.request_type = 'Borrow'
+              AND r.status IN ('Pending', 'Approved')
         """, (user_id, copy_data['book_id']))
         
         if cursor.fetchone():
@@ -317,9 +340,9 @@ def borrow_book(copy_id):
             return redirect(request.referrer)
 
         cursor.execute("""
-            INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id)
+            INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, copy_id)
             VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Borrow', 'Pending', %s, %s)
-        """, (user_id, copy_data['book_id']))
+        """, (user_id, copy_id))
         request_id = cursor.lastrowid
 
         mysql.connection.commit()
@@ -327,7 +350,7 @@ def borrow_book(copy_id):
             "Requests",
             "INFO",
             "RequestService",
-            f"Borrow request created (request_id={request_id}, book_id={copy_data['book_id']})."
+            f"Borrow request created (request_id={request_id}, copy_id={copy_id})."
         )
         flash("Borrow request sent to Librarian for approval.", "success")
 
@@ -362,10 +385,24 @@ def hold_book(book_id):
             flash("You cannot place a hold on a book you currently have checked out.", "warning")
             return redirect(request.referrer)
 
+        cursor.execute("""
+            SELECT item_barcode
+            FROM Copy
+            WHERE book_id = %s AND acquisition_type != 'Exchange'
+            ORDER BY CASE WHEN status = 'Available' THEN 0 ELSE 1 END, added_date
+            LIMIT 1
+        """, (book_id,))
+        copy_row = cursor.fetchone()
+        if not copy_row:
+            flash("No copies found for this book.", "danger")
+            return redirect(request.referrer)
+
         check_hold_query = """
-            SELECT request_id FROM Request 
-            WHERE reader_id = %s AND book_id = %s 
-            AND request_type = 'Hold' AND status IN ('Pending', 'Approved')
+            SELECT r.request_id
+            FROM Request r
+            JOIN Copy cp ON r.copy_id = cp.item_barcode
+            WHERE r.reader_id = %s AND cp.book_id = %s
+              AND r.request_type = 'Hold' AND r.status IN ('Pending', 'Approved')
         """
         cursor.execute(check_hold_query, (user_id, book_id))
         existing_hold = cursor.fetchone()
@@ -374,17 +411,17 @@ def hold_book(book_id):
             flash("You already have an active hold on this book.", "warning")
         else:
             insert_query = """
-                INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id)
+                INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, copy_id)
                 VALUES (NOW(), NULL, 'Hold', 'Pending', %s, %s)
             """
-            cursor.execute(insert_query, (user_id, book_id))
+            cursor.execute(insert_query, (user_id, copy_row['item_barcode']))
             request_id = cursor.lastrowid
             mysql.connection.commit()
             system_log(
                 "Requests",
                 "INFO",
                 "RequestService",
-                f"Hold request created (request_id={request_id}, book_id={book_id})."
+                f"Hold request created (request_id={request_id}, copy_id={copy_row['item_barcode']})."
             )
             flash("Hold placed successfully!", "success")
 
@@ -408,22 +445,33 @@ def add_book():
     try:
         if acquisition_type == 'Donation':
             request_id = None
+            material_id = None
             if mode == 'existing':
                 book_id = request.form.get('book_id')
                 cursor.execute("""
-                    SELECT request_id FROM Request
-                    WHERE reader_id = %s AND book_id = %s AND request_type = 'Donation'
-                      AND status IN ('Pending', 'Approved')
-                """, (user_id, book_id))
-                if cursor.fetchone():
-                    flash("You already have an active donation request for this book.", "warning")
+                    SELECT b.isbn, b.title, b.publisher, b.publication_date,
+                           COALESCE(GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', '), 'Unknown') AS author
+                    FROM Book b
+                    LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
+                    LEFT JOIN Author a ON ba.author_id = a.author_id
+                    WHERE b.book_id = %s
+                    GROUP BY b.book_id, b.isbn, b.title, b.publisher, b.publication_date
+                """, (book_id,))
+                book = cursor.fetchone()
+                if not book:
+                    flash("Book not found.", "danger")
                     return redirect(request.referrer)
 
-                cursor.execute("""
-                    INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id) 
-                    VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Donation', 'Pending', %s, %s)
-                """, (user_id, book_id))
-                request_id = cursor.lastrowid
+                cursor.execute("SELECT material_id FROM Material WHERE isbn = %s", (book["isbn"],))
+                existing_material = cursor.fetchone()
+                if existing_material:
+                    material_id = existing_material["material_id"]
+                else:
+                    cursor.execute("""
+                        INSERT INTO Material (isbn, title, publisher, publication_date, author)
+                        VALUES (%s, %s, %s, %s, %s)
+                    """, (book["isbn"], book["title"], book["publisher"], book["publication_date"], book["author"]))
+                    material_id = cursor.lastrowid
                 
             elif mode == 'manual':
                 isbn = request.form.get('isbn')
@@ -442,29 +490,34 @@ def add_book():
                         VALUES (%s, %s, %s, %s, NOW())
                     """, (isbn, title, publisher, author))
                     material_id = cursor.lastrowid
-                
-                cursor.execute("""
-                    INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, material_id) 
-                    VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Donation', 'Pending', %s, %s)
-                """, (user_id, material_id))
-                request_id = cursor.lastrowid
+
+            if not material_id:
+                flash("Donation requires valid material details.", "danger")
+                return redirect(request.referrer)
+
+            cursor.execute("""
+                SELECT request_id FROM Request
+                WHERE reader_id = %s AND material_id = %s AND request_type = 'Donation'
+                  AND status IN ('Pending', 'Approved')
+            """, (user_id, material_id))
+            if cursor.fetchone():
+                flash("You already have an active donation request for this material.", "warning")
+                return redirect(request.referrer)
+
+            cursor.execute("""
+                INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, material_id) 
+                VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Donation', 'Pending', %s, %s)
+            """, (user_id, material_id))
+            request_id = cursor.lastrowid
             
             mysql.connection.commit()
             if request_id:
-                if mode == "existing":
-                    system_log(
-                        "Requests",
-                        "INFO",
-                        "RequestService",
-                        f"Donation request created (request_id={request_id}, book_id={book_id})."
-                    )
-                else:
-                    system_log(
-                        "Requests",
-                        "INFO",
-                        "RequestService",
-                        f"Donation request created (request_id={request_id}, material_id={material_id})."
-                    )
+                system_log(
+                    "Requests",
+                    "INFO",
+                    "RequestService",
+                    f"Donation request created (request_id={request_id}, material_id={material_id})."
+                )
             flash("Donation request sent to Librarian for approval.", "success")
             return redirect(url_for('request.my_requests')) 
 
@@ -520,9 +573,14 @@ def add_book():
             new_barcode = f"EXCH{random.randint(10000,99999)}"
             
             cursor.execute("""
-                INSERT INTO Copy (item_barcode, material_type, acquisition_type, status, book_id, owner_id) 
-                VALUES (%s, 'Book', 'Exchange', 'Available', %s, %s)
+                INSERT INTO Copy (item_barcode, acquisition_type, status, book_id, owner_id)
+                VALUES (%s, 'Exchange', 'Pending Approval', %s, %s)
             """, (new_barcode, book_id, user_id))
+
+            cursor.execute("""
+                INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, copy_id)
+                VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Exchange', 'Pending', %s, %s)
+            """, (user_id, new_barcode))
             
             mysql.connection.commit()
             system_log(
@@ -531,7 +589,11 @@ def add_book():
                 "ExchangeService",
                 f"Exchange copy created (barcode={new_barcode}, book_id={book_id})."
             )
-            flash("Book added to your Exchange list!", "success")
+            notify_librarians(
+                "New exchange copy approval",
+                f"User {user_id} submitted an exchange copy ({new_barcode}) for approval."
+            )
+            flash("Exchange copy submitted for librarian approval.", "success")
             return redirect(url_for('main.my_books'))
 
     except Exception as e:
@@ -565,21 +627,23 @@ def my_books():
         
         if book['status'] == 'Pending Handoff':
             cursor.execute("""
-                SELECT request_id, requester_confirmed, owner_confirmed, reader_id 
-                FROM Request WHERE book_id = %s AND status = 'Approved'
-            """, (book['book_id'],))
+                SELECT exchange_request_id, requester_confirmed, owner_confirmed, requester_id
+                FROM Exchange_Request
+                WHERE owner_copy_id = %s AND status = 'Approved'
+            """, (book['item_barcode'],))
             req_as_owner = cursor.fetchone()
 
             cursor.execute("""
-                SELECT request_id, requester_confirmed, owner_confirmed, reader_id 
-                FROM Request WHERE exchange_book_id = %s AND status = 'Approved'
+                SELECT exchange_request_id, requester_confirmed, owner_confirmed, requester_id
+                FROM Exchange_Request
+                WHERE requester_copy_id = %s AND status = 'Approved'
             """, (book['item_barcode'],))
             req_as_requester = cursor.fetchone()
 
             if req_as_owner:
                 if req_as_owner['owner_confirmed'] == 1 and req_as_owner['requester_confirmed'] == 0:
                     book['waiting_for_other'] = True
-            
+
             elif req_as_requester:
                 if req_as_requester['requester_confirmed'] == 1 and req_as_requester['owner_confirmed'] == 0:
                     book['waiting_for_other'] = True
@@ -607,18 +671,18 @@ def confirm_handoff(copy_id):
     cursor = get_cursor()
     
     cursor.execute("""
-        SELECT request_id, reader_id, book_id, exchange_book_id, requester_confirmed, owner_confirmed
-        FROM Request 
-        WHERE book_id = (SELECT book_id FROM Copy WHERE item_barcode=%s) 
-          AND status='Approved'
+        SELECT exchange_request_id, requester_id, owner_copy_id, requester_copy_id,
+               requester_confirmed, owner_confirmed
+        FROM Exchange_Request
+        WHERE owner_copy_id = %s AND status = 'Approved'
     """, (copy_id,))
     req_owner = cursor.fetchone()
-    
+
     cursor.execute("""
-        SELECT request_id, reader_id, book_id, exchange_book_id, requester_confirmed, owner_confirmed
-        FROM Request 
-        WHERE exchange_book_id = %s 
-          AND status='Approved'
+        SELECT exchange_request_id, requester_id, owner_copy_id, requester_copy_id,
+               requester_confirmed, owner_confirmed
+        FROM Exchange_Request
+        WHERE requester_copy_id = %s AND status = 'Approved'
     """, (copy_id,))
     req_requester = cursor.fetchone()
 
@@ -628,31 +692,33 @@ def confirm_handoff(copy_id):
         flash("Error: Could not find active exchange request to confirm.", "danger")
         return redirect(url_for('main.my_books'))
 
-    request_id = req['request_id']
+    request_id = req['exchange_request_id']
     partner_id = None
     
     if req_owner:
-        cursor.execute("UPDATE Request SET owner_confirmed = TRUE WHERE request_id = %s", (request_id,))
-        partner_id = req['reader_id'] 
+        cursor.execute("UPDATE Exchange_Request SET owner_confirmed = TRUE WHERE exchange_request_id = %s", (request_id,))
+        partner_id = req['requester_id']
     elif req_requester:
-        cursor.execute("SELECT owner_id FROM Copy WHERE book_id = %s LIMIT 1", (req['book_id'],))
+        cursor.execute("SELECT owner_id FROM Copy WHERE item_barcode = %s", (req['owner_copy_id'],))
         book_owner_data = cursor.fetchone()
         partner_id = book_owner_data['owner_id']
-        cursor.execute("UPDATE Request SET requester_confirmed = TRUE WHERE request_id = %s", (request_id,))
+        cursor.execute("UPDATE Exchange_Request SET requester_confirmed = TRUE WHERE exchange_request_id = %s", (request_id,))
     
     mysql.connection.commit()
 
-    cursor.execute("SELECT requester_confirmed, owner_confirmed FROM Request WHERE request_id = %s", (request_id,))
+    cursor.execute("""
+        SELECT requester_confirmed, owner_confirmed, owner_copy_id, requester_copy_id
+        FROM Exchange_Request
+        WHERE exchange_request_id = %s
+    """, (request_id,))
     updated_req = cursor.fetchone()
 
     if updated_req['requester_confirmed'] and updated_req['owner_confirmed']:
-        cursor.execute("UPDATE Request SET status = 'Completed' WHERE request_id = %s", (request_id,))
-        
-        cursor.execute("UPDATE Copy SET status = 'Exchanged' WHERE item_barcode = %s", (copy_id,))
-        if req['exchange_book_id']:
-             cursor.execute("UPDATE Copy SET status = 'Exchanged' WHERE item_barcode = %s", (req['exchange_book_id'],))
-        
-        cursor.execute("UPDATE Copy SET status = 'Exchanged' WHERE book_id = %s AND status = 'Pending Handoff'", (req['book_id'],))
+        cursor.execute("UPDATE Exchange_Request SET status = 'Completed' WHERE exchange_request_id = %s", (request_id,))
+
+        cursor.execute("UPDATE Copy SET status = 'Exchanged' WHERE item_barcode = %s", (updated_req['owner_copy_id'],))
+        if updated_req['requester_copy_id']:
+            cursor.execute("UPDATE Copy SET status = 'Exchanged' WHERE item_barcode = %s", (updated_req['requester_copy_id'],))
 
         msg = "Exchange Successful! Both parties have confirmed the handoff."
         cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", ("Exchange Complete", msg, user_id))
@@ -716,30 +782,30 @@ def cancel_handoff(copy_id):
     cursor = get_cursor()
     
     cursor.execute("""
-        SELECT request_id, reader_id, book_id, exchange_book_id 
-        FROM Request 
-        WHERE (book_id = (SELECT book_id FROM Copy WHERE item_barcode=%s) OR exchange_book_id = %s)
+        SELECT exchange_request_id, requester_id, owner_copy_id, requester_copy_id
+        FROM Exchange_Request
+        WHERE (owner_copy_id = %s OR requester_copy_id = %s)
           AND status='Approved'
     """, (copy_id, copy_id))
     req = cursor.fetchone()
     
     if req:
-        request_id = req['request_id']
+        request_id = req['exchange_request_id']
         
         partner_id = None
-        if req['reader_id'] == user_id:
-            cursor.execute("SELECT owner_id FROM Copy WHERE book_id = %s LIMIT 1", (req['book_id'],))
+        if req['requester_id'] == user_id:
+            cursor.execute("SELECT owner_id FROM Copy WHERE item_barcode = %s", (req['owner_copy_id'],))
             owner_data = cursor.fetchone()
             partner_id = owner_data['owner_id']
         else:
-            partner_id = req['reader_id']
+            partner_id = req['requester_id']
 
-        cursor.execute("UPDATE Request SET status = 'Rejected' WHERE request_id = %s", (request_id,))
+        cursor.execute("UPDATE Exchange_Request SET status = 'Rejected' WHERE exchange_request_id = %s", (request_id,))
         
         cursor.execute("UPDATE Copy SET status = 'Available' WHERE item_barcode = %s", (copy_id,))
-        if req['exchange_book_id']:
-            cursor.execute("UPDATE Copy SET status = 'Available' WHERE item_barcode = %s", (req['exchange_book_id'],))
-        cursor.execute("UPDATE Copy SET status = 'Available' WHERE book_id = %s AND status = 'Pending Handoff'", (req['book_id'],))
+        if req['requester_copy_id']:
+            cursor.execute("UPDATE Copy SET status = 'Available' WHERE item_barcode = %s", (req['requester_copy_id'],))
+        cursor.execute("UPDATE Copy SET status = 'Available' WHERE item_barcode = %s", (req['owner_copy_id'],))
 
         msg = "The exchange handoff was cancelled by the other user. Your book is now marked 'Available' again."
         cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", ("Handoff Cancelled", msg, partner_id))
@@ -876,9 +942,10 @@ def request_exchange(barcode):
             return redirect(url_for('main.exchange_market'))
 
         cursor.execute("""
-            SELECT request_id, status FROM Request 
-            WHERE reader_id = %s AND book_id = %s AND request_type = 'Exchange'
-        """, (user_id, copy['book_id']))
+            SELECT exchange_request_id, status
+            FROM Exchange_Request
+            WHERE requester_id = %s AND owner_copy_id = %s
+        """, (user_id, barcode))
         existing_req = cursor.fetchone()
 
         request_id = None
@@ -889,17 +956,17 @@ def request_exchange(barcode):
             
             else:
                 cursor.execute("""
-                    UPDATE Request 
-                    SET status = 'Pending', request_date = NOW(), 
-                        requester_confirmed = 0, owner_confirmed = 0, exchange_book_id = NULL
-                    WHERE request_id = %s
-                """, (existing_req['request_id'],))
-                request_id = existing_req['request_id']
+                    UPDATE Exchange_Request
+                    SET status = 'Pending', request_date = NOW(),
+                        requester_confirmed = 0, owner_confirmed = 0, requester_copy_id = NULL
+                    WHERE exchange_request_id = %s
+                """, (existing_req['exchange_request_id'],))
+                request_id = existing_req['exchange_request_id']
         else:
             cursor.execute("""
-                INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id) 
-                VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Exchange', 'Pending', %s, %s)
-            """, (user_id, copy['book_id']))
+                INSERT INTO Exchange_Request (request_date, status, owner_copy_id, requester_id)
+                VALUES (NOW(), 'Pending', %s, %s)
+            """, (barcode, user_id))
             request_id = cursor.lastrowid
         
         owner_id = copy['owner_id']
@@ -914,7 +981,7 @@ def request_exchange(barcode):
                 "Requests",
                 "INFO",
                 "ExchangeService",
-                f"Exchange request created (request_id={request_id}, book_id={copy['book_id']})."
+                f"Exchange request created (exchange_request_id={request_id}, owner_copy_id={barcode})."
             )
         flash("Exchange request sent successfully!", "success")
 
@@ -931,14 +998,15 @@ def exchange_requests():
     user_id = session['userid']
     cursor = get_cursor()
     query = """
-        SELECT r.request_id, r.request_date, b.title AS my_book_title, 
-               r.reader_id, CONCAT(u.user_first_name, ' ', u.user_last_name) AS requester_name
-        FROM Request r
-        JOIN Book b ON r.book_id = b.book_id
-        JOIN User u ON r.reader_id = u.user_id
-        JOIN Copy c ON c.book_id = b.book_id
-        WHERE r.request_type = 'Exchange' AND r.status = 'Pending' AND c.owner_id = %s
-        GROUP BY r.request_id, r.request_date, b.title, r.reader_id, requester_name
+        SELECT er.exchange_request_id AS request_id, er.request_date, b.title AS my_book_title,
+               er.requester_id AS reader_id,
+               CONCAT(u.user_first_name, ' ', u.user_last_name) AS requester_name
+        FROM Exchange_Request er
+        JOIN Copy c ON er.owner_copy_id = c.item_barcode
+        JOIN Book b ON c.book_id = b.book_id
+        JOIN User u ON er.requester_id = u.user_id
+        WHERE er.status = 'Pending' AND c.owner_id = %s
+        GROUP BY er.exchange_request_id, er.request_date, b.title, er.requester_id, requester_name
     """
     cursor.execute(query, (user_id,))
     requests = cursor.fetchall()
@@ -952,22 +1020,23 @@ def reject_exchange(request_id):
     
     try:
         cursor.execute("""
-            SELECT r.reader_id, b.title 
-            FROM Request r 
-            JOIN Book b ON r.book_id = b.book_id 
-            WHERE r.request_id = %s
+            SELECT er.requester_id, b.title
+            FROM Exchange_Request er
+            JOIN Copy c ON er.owner_copy_id = c.item_barcode
+            JOIN Book b ON c.book_id = b.book_id
+            WHERE er.exchange_request_id = %s
         """, (request_id,))
         req_data = cursor.fetchone()
         
         if req_data:
-            requester_id = req_data['reader_id']
+            requester_id = req_data['requester_id']
             book_title = req_data['title']
             
             subject = "Exchange Request Rejected"
             msg = f"Your request to exchange for '{book_title}' was declined by the owner."
             cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", (subject, msg, requester_id))
 
-        cursor.execute("UPDATE Request SET status = 'Rejected' WHERE request_id = %s", (request_id,))
+        cursor.execute("UPDATE Exchange_Request SET status = 'Rejected' WHERE exchange_request_id = %s", (request_id,))
         
         mysql.connection.commit()
         system_log("Requests", "INFO", "ExchangeService", f"Exchange request rejected (request_id={request_id}).")
@@ -995,16 +1064,23 @@ def accept_exchange(request_id):
     selected_barcode = request.form.get('selected_book_barcode')
     if not selected_barcode: return redirect(url_for('main.exchange_requests'))
 
-    cursor.execute("UPDATE Request SET status = 'Approved', exchange_book_id = %s WHERE request_id = %s", (selected_barcode, request_id))
+    cursor.execute("""
+        UPDATE Exchange_Request
+        SET status = 'Approved', requester_copy_id = %s
+        WHERE exchange_request_id = %s
+    """, (selected_barcode, request_id))
     cursor.execute("UPDATE Copy SET status = 'Pending Handoff' WHERE item_barcode = %s", (selected_barcode,))
-    cursor.execute("SELECT book_id, reader_id FROM Request WHERE request_id = %s", (request_id,))
+    cursor.execute("""
+        SELECT owner_copy_id, requester_id
+        FROM Exchange_Request
+        WHERE exchange_request_id = %s
+    """, (request_id,))
     req = cursor.fetchone()
     
-    cursor.execute("SELECT item_barcode FROM Copy WHERE book_id=%s AND owner_id=%s LIMIT 1", (req['book_id'], session['userid']))
-    my_copy = cursor.fetchone()
-    if my_copy: cursor.execute("UPDATE Copy SET status = 'Pending Handoff' WHERE item_barcode = %s", (my_copy['item_barcode'],))
+    if req and req.get("owner_copy_id"):
+        cursor.execute("UPDATE Copy SET status = 'Pending Handoff' WHERE item_barcode = %s", (req['owner_copy_id'],))
     
-    requester_id = req['reader_id']
+    requester_id = req['requester_id']
     notif_subject = "Exchange Accepted!"
     notif_msg = "Your exchange request has been accepted! Please coordinate the handoff."
     cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", (notif_subject, notif_msg, requester_id))
@@ -1029,8 +1105,8 @@ def renew_checkout(checkout_id):
             FROM Checkout c
             JOIN Copy cp ON c.copy_id = cp.item_barcode
             JOIN Book b ON cp.book_id = b.book_id
-            JOIN User u ON c.reader_id = u.user_id
-            JOIN Policy p ON p.applies_to_role = u.user_type
+            JOIN Reader r ON c.reader_id = r.reader_id
+            JOIN Policy p ON r.policy_id = p.policy_id
             WHERE c.checkout_id = %s AND c.reader_id = %s AND c.returned_date IS NULL
         """, (checkout_id, user_id))
         loan = cursor.fetchone()
@@ -1048,11 +1124,12 @@ def renew_checkout(checkout_id):
             return redirect(url_for('main.my_checkouts'))
 
         cursor.execute("""
-            SELECT COUNT(*) AS hold_count 
-            FROM Request 
-            WHERE book_id = %s 
-              AND request_type = 'Hold' 
-              AND status IN ('Pending', 'Approved')
+            SELECT COUNT(*) AS hold_count
+            FROM Request r
+            JOIN Copy cp ON r.copy_id = cp.item_barcode
+            WHERE cp.book_id = %s
+              AND r.request_type = 'Hold'
+              AND r.status IN ('Pending', 'Approved')
         """, (loan['book_id'],))
         holds = cursor.fetchone()
         
@@ -1088,14 +1165,15 @@ def my_holds():
     cursor = get_cursor()
 
     query_holds = """
-        SELECT 
-            r.request_id, 
-            r.request_date, 
-            r.status, 
+        SELECT
+            r.request_id,
+            r.request_date,
+            r.status,
             b.title AS item_title,
             GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
         FROM Request r
-        JOIN Book b ON r.book_id = b.book_id
+        JOIN Copy cp ON r.copy_id = cp.item_barcode
+        JOIN Book b ON cp.book_id = b.book_id
         LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
         LEFT JOIN Author a ON ba.author_id = a.author_id
         WHERE r.reader_id = %s AND r.request_type = 'Hold'

@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 import MySQLdb.cursors
 from extensions import mysql
+from utils.system_log import system_log
 
 profile_bp = Blueprint('profile', __name__)
 
@@ -41,12 +42,15 @@ def userprofile():
         fine = {'amount': 0.00}
 
     cursor.execute("""
-        SELECT COUNT(*) as count 
-        FROM Request 
-        WHERE status = 'Completed' 
-          AND (reader_id = %s OR 
-               book_id IN (SELECT book_id FROM Copy WHERE owner_id = %s))
-    """, (userid, userid))
+        SELECT COUNT(*) as count
+        FROM Exchange_Request er
+        WHERE er.status = 'Completed'
+          AND (
+              er.requester_id = %s OR
+              er.owner_copy_id IN (SELECT item_barcode FROM Copy WHERE owner_id = %s) OR
+              er.requester_copy_id IN (SELECT item_barcode FROM Copy WHERE owner_id = %s)
+          )
+    """, (userid, userid, userid))
     exchange_data = cursor.fetchone()
     exchange_count = exchange_data['count'] if exchange_data else 0
 
@@ -107,6 +111,10 @@ def updateprofile():
         if new_password != confirm_password:
             flash("New password does not match confirmation!", "danger")
             return redirect(url_for('profile.updateprofile'))
+
+        if len(new_password) < 8:
+            flash("New password must be at least 8 characters.", "danger")
+            return redirect(url_for('profile.updateprofile'))
             
         updates.append("user_password = SHA2(%s, 256)")
         values.append(new_password)
@@ -120,6 +128,7 @@ def updateprofile():
 
     cursor.execute(sql, tuple(values))
     mysql.connection.commit()
+    system_log("Profile", "INFO", "ProfileService", f"Profile updated (user_id={userid}).")
     cursor.close()
 
     flash("Profile updated successfully!", "success")

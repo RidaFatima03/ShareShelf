@@ -135,7 +135,7 @@ def user_activity():
     if page < 1:
         page = 1
 
-    cursor.execute("SELECT DISTINCT action_type FROM user_activity_log ORDER BY action_type;")
+    cursor.execute("SELECT DISTINCT action_type FROM User_Activity_Log ORDER BY action_type;")
     action_types = [row['action_type'] for row in cursor.fetchall()]
 
     query = """
@@ -145,13 +145,13 @@ def user_activity():
           u.user_id,
           l.action_type,
           l.details
-        FROM user_activity_log AS l
+        FROM User_Activity_Log AS l
         JOIN User AS u ON u.user_id = l.user_id
     """
 
     count_query = """
         SELECT COUNT(*) AS total
-        FROM user_activity_log AS l
+        FROM User_Activity_Log AS l
         JOIN User AS u ON u.user_id = l.user_id
     """
     conditions = []
@@ -202,7 +202,7 @@ def user_activity():
             SELECT user_id FROM (
                 SELECT u.user_id
                 FROM User u
-                LEFT JOIN user_activity_log l
+                LEFT JOIN User_Activity_Log l
                 ON u.user_id = l.user_id
                 AND l.action_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
                 GROUP BY u.user_id
@@ -251,7 +251,7 @@ def reports():
         SELECT u.user_id,
                CONCAT(u.user_first_name, ' ', u.user_last_name) AS user_name,
                COUNT(*) AS activity_count
-        FROM user_activity_log l
+        FROM User_Activity_Log l
         JOIN User u ON l.user_id = u.user_id
         GROUP BY u.user_id, u.user_first_name, u.user_last_name
         ORDER BY activity_count DESC

@@ -1,39 +1,37 @@
+CREATE TABLE Policy ( 
+policy_id INT NOT NULL AUTO_INCREMENT,
+name VARCHAR(100) NOT NULL,
+loan_period_days INT NOT NULL,
+renewals_allowed INT NOT NULL,
+fine_per_day DECIMAL(10,2) NOT NULL,
+max_concurrent_loans INT NOT NULL,
+holds_limit_reservation INT NOT NULL,
+PRIMARY KEY (policy_id)
+);
+
 CREATE TABLE IF NOT EXISTS User ( 
 user_id INT NOT NULL AUTO_INCREMENT,
 user_first_name VARCHAR(50) NOT NULL, 
-user_middle_name VARCHAR(50) NOT NULL,
+user_middle_name VARCHAR(50) DEFAULT '',
 user_last_name VARCHAR(50) NOT NULL,
-user_phone_number VARCHAR(15) UNIQUE,
-user_email VARCHAR(100) UNIQUE,
+user_phone_number VARCHAR(15) NOT NULL UNIQUE,
+user_email VARCHAR(100) NOT NULL UNIQUE,
 user_password VARCHAR(255) NOT NULL, 
-status VARCHAR(20),
+status ENUM('Active', 'Inactive', 'Blocked') NOT NULL,
 joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 user_type ENUM('Reader', 'Librarian', 'Admin') NOT NULL,
-PRIMARY KEY (user_id) 
+PRIMARY KEY (user_id)
 ); 
 
 CREATE TABLE IF NOT EXISTS Reader ( 
-reader_id INT NOT NULL, 
-is_approved BOOLEAN DEFAULT FALSE,
+reader_id INT NOT NULL,
+policy_id INT NOT NULL,
 PRIMARY KEY (reader_id),
 FOREIGN KEY (reader_id) REFERENCES User(user_id)
   ON DELETE CASCADE
-  ON UPDATE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Librarian ( 
-librarian_id INT NOT NULL, 
-PRIMARY KEY (librarian_id),
-FOREIGN KEY (librarian_id) REFERENCES User(user_id)
-  ON DELETE CASCADE
-  ON UPDATE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS Admin ( 
-admin_id INT NOT NULL, 
-PRIMARY KEY (admin_id),
-FOREIGN KEY (admin_id) REFERENCES User(user_id)
-  ON DELETE CASCADE
+  ON UPDATE CASCADE,
+FOREIGN KEY (policy_id) REFERENCES Policy(policy_id)
+  ON DELETE RESTRICT
   ON UPDATE CASCADE
 );
 
@@ -68,21 +66,6 @@ user_id INT NOT NULL,
 PRIMARY KEY (notification_id),
 FOREIGN KEY (user_id) REFERENCES User(user_id)
   ON DELETE CASCADE
-);
-
-CREATE TABLE Policy ( 
-policy_id INT NOT NULL AUTO_INCREMENT,
-name VARCHAR(100) NOT NULL,
-loan_period_days INT NOT NULL,
-renewals_allowed INT NOT NULL,
-fine_per_day DECIMAL(10,2) NOT NULL,
-max_concurrent_loans INT NOT NULL,
-holds_limit_reservation INT NOT NULL,
-applies_to_role ENUM('Reader', 'Librarian', 'Admin') NOT NULL,
-user_id INT,
-PRIMARY KEY (policy_id),
-FOREIGN KEY (user_id) REFERENCES User(user_id)
-  ON DELETE SET NULL
 );
 
 CREATE TABLE Reader_Rate ( 
@@ -229,12 +212,12 @@ CREATE TABLE Material (
   PRIMARY KEY (material_id) 
 );
 
-CREATE TABLE Request ( 
-  request_id INT NOT NULL AUTO_INCREMENT,
-  request_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-  request_type ENUM('Hold', 'Borrow', 'New Material', 'Exchange', 'Donation'),
-  expire_date DATETIME,
-  status ENUM('Pending', 'Approved', 'Rejected', 'Expired', 'Completed') DEFAULT 'Pending',
+  CREATE TABLE Request ( 
+    request_id INT NOT NULL AUTO_INCREMENT,
+    request_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    request_type ENUM('Hold', 'Borrow', 'Book Request', 'Exchange', 'Donation'),
+    expire_date DATETIME,
+    status ENUM('Pending', 'Approved', 'Rejected', 'Expired', 'Completed', 'Cancelled') DEFAULT 'Pending',
 
   material_id INT NULL,
   reader_id INT NOT NULL,
@@ -245,24 +228,62 @@ CREATE TABLE Request (
   owner_confirmed BOOLEAN DEFAULT FALSE,
 
   PRIMARY KEY (request_id),
-  UNIQUE (reader_id, book_id, request_type),
 
   FOREIGN KEY (material_id) REFERENCES Material(material_id) ON DELETE CASCADE,
   FOREIGN KEY (reader_id)  REFERENCES Reader(reader_id)     ON DELETE CASCADE,
   FOREIGN KEY (book_id)    REFERENCES Book(book_id)         ON DELETE CASCADE,
   FOREIGN KEY (exchange_book_id) REFERENCES Copy(item_barcode) ON DELETE SET NULL,
 
-  CHECK (
-    (request_type IN ('Hold','Borrow','Exchange') AND book_id IS NOT NULL AND material_id IS NULL)
-    OR
-    (request_type = 'New Material' AND material_id IS NOT NULL AND book_id IS NULL)
-    OR
-    (request_type = 'Donation' AND (
-        (book_id IS NOT NULL AND material_id IS NULL) OR 
-        (book_id IS NULL AND material_id IS NOT NULL)
-    ))
-  )
-);
+    CHECK (
+      (request_type IN ('Hold','Borrow','Exchange') AND book_id IS NOT NULL AND material_id IS NULL)
+      OR
+      (request_type = 'Book Request' AND material_id IS NOT NULL AND book_id IS NULL)
+      OR
+      (request_type = 'Donation' AND (
+          (book_id IS NOT NULL AND material_id IS NULL) OR 
+          (book_id IS NULL AND material_id IS NOT NULL)
+      ))
+    )
+  );
+
+  CREATE TABLE Request_Status_History (
+    history_id INT NOT NULL AUTO_INCREMENT,
+    request_id INT NOT NULL,
+    status ENUM('Pending', 'Approved', 'Rejected', 'Expired', 'Completed', 'Cancelled') NOT NULL,
+    changed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (history_id),
+    FOREIGN KEY (request_id) REFERENCES Request(request_id) ON DELETE CASCADE
+  );
+
+  DELIMITER //
+  CREATE TRIGGER request_status_history_insert
+  AFTER INSERT ON Request
+  FOR EACH ROW
+  BEGIN
+    INSERT INTO Request_Status_History (request_id, status, changed_at)
+    VALUES (NEW.request_id, NEW.status, NOW());
+  END//
+
+  CREATE TRIGGER request_status_history_update
+  AFTER UPDATE ON Request
+  FOR EACH ROW
+  BEGIN
+    IF NEW.status <> OLD.status THEN
+      INSERT INTO Request_Status_History (request_id, status, changed_at)
+      VALUES (NEW.request_id, NEW.status, NOW());
+    END IF;
+  END//
+  DELIMITER ;
+
+  -- Scheduled job to expire requests automatically (requires event scheduler enabled)
+  CREATE EVENT IF NOT EXISTS expire_requests
+  ON SCHEDULE EVERY 1 DAY
+  DO
+    UPDATE Request
+    SET status = 'Expired'
+    WHERE expire_date IS NOT NULL
+      AND expire_date <= NOW()
+      AND status IN ('Pending', 'Approved');
 
 CREATE TABLE PasswordResetToken (
   token_id VARCHAR(256) PRIMARY KEY,

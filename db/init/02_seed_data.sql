@@ -1,36 +1,30 @@
+INSERT INTO Policy (
+  name, loan_period_days, renewals_allowed, fine_per_day,
+  max_concurrent_loans, holds_limit_reservation
+) VALUES
+('Standard Policy', 14, 2, 0.5, 5, 5);
+
 INSERT INTO User (
     user_first_name, user_middle_name, user_last_name,
     user_phone_number, user_email, user_password,
-    status, joined_at, user_type
+    status, user_type
 ) VALUES
-('John', 'A.', 'Doe', '5551112222', 'john.doe@example.com', SHA2('password1', 256), 'ACTIVE', '2023-10-01 09:15:00', 'Reader'),
-('Jane', 'B.', 'Smith', '5553334444', 'jane.smith@example.com', SHA2('password2', 256), 'ACTIVE', '2023-09-20 10:30:00', 'Reader'),
-('Michael', 'C.', 'Brown', '5555556666', 'michael.brown@example.com', SHA2('password3', 256), 'ACTIVE', '2023-08-12 14:00:00', 'Reader'),
-('Sarah', 'D.', 'Miller', '5557778888', 'sarah.miller@example.com', SHA2('password4', 256), 'INACTIVE', '2023-07-01 11:45:00', 'Reader'),
+-- Reader
+('Melisa', '', 'Tanrikulu', '5555556666', 'melisa.tanrikulu@example.com', SHA2('melisatanrikulu', 256), 'Active', 'Reader');
 
-('Emily', 'E.', 'Johnson', '5559990000', 'emily.johnson@example.com', SHA2('password5', 256), 'ACTIVE', '2023-06-10 13:30:00', 'Librarian'),
-('Robert', 'F.', 'Wilson', '5551212121', 'robert.wilson@example.com', SHA2('password6', 256), 'ACTIVE', '2023-06-15 09:00:00', 'Librarian'),
+INSERT INTO User (
+    user_first_name, user_middle_name, user_last_name,
+    user_phone_number, user_email, user_password,
+    status, user_type
+) VALUES
+-- Librarian
+('Emily', 'E.', 'Johnson', '5559990000', 'emily.johnson@example.com', SHA2('password', 256), 'Active', 'Librarian'),
+-- Admin
+('Admin', '', 'Admin', '5555656565', 'admin.admin@example.com', SHA2('adminadmin', 256), 'Active', 'Admin');
 
-('Alice', 'G.', 'Taylor', '5553434343', 'alice.taylor@example.com', SHA2('password7', 256), 'ACTIVE', '2023-05-10 15:00:00', 'Admin'),
-('Melisa', '', 'Tanrikulu', '5369498281', 'melisatanrikulu07@gmail.com', SHA2('passwordMelisa99', 256), 'ACTIVE', '2023-05-15 12:30:00', 'Admin'),
-('David', 'H.', 'Anderson', '5555656565', 'david.anderson@example.com', SHA2('password8', 256), 'ACTIVE', '2023-05-15 12:30:00', 'Admin');
-
-INSERT INTO Reader (reader_id, is_approved)
+INSERT INTO Reader (reader_id, policy_id)
 VALUES
-(1, TRUE),
-(2, TRUE),
-(3, TRUE),
-(4, FALSE);
-
-INSERT INTO Librarian (librarian_id) 
-VALUES
-(5),
-(6);
-
-INSERT INTO Admin (admin_id)
-VALUES
-(7),
-(8);
+(1, 1);
 
 INSERT INTO Author (author_name) VALUES
 ('Andy Weir'),
@@ -134,20 +128,21 @@ INSERT INTO Copy (
     item_barcode, material_type, call_number, acquisition_type,
     status, added_date, book_id, location_id
 ) VALUES
-('BC001', 'Book', 'FIC-WEI-TM', 'Purchase', 'On Loan', '2023-11-01 10:15:00', 1, 1),
+('BC001', 'Book', 'FIC-WEI-TM', 'Purchase', 'Available', '2023-11-01 10:15:00', 1, 1),
 ('BC013', 'Book', 'FIC-WEI-TM', 'Purchase', 'Available', '2023-11-01 10:15:00', 1, 1),
-('BC002', 'Book', 'FIC-WEI-TM', 'Donation', 'On Loan', '2023-11-05 14:20:00', 1, 2),
+('BC002', 'Book', 'FIC-WEI-TM', 'Donation', 'Available', '2023-11-05 14:20:00', 1, 2),
 ('BC003', 'Book', 'FIC-LEE-TKM', 'Purchase', 'Available', '2023-10-20 09:30:00', 2, 4),
-('BC004', 'Book', 'FIC-ROW-HP4', 'Purchase', 'On Hold', '2023-11-02 13:40:00', 3, 8),
+('BC004', 'Book', 'FIC-ROW-HP4', 'Purchase', 'Available', '2023-11-02 13:40:00', 3, 8),
 ('BC005', 'Book', 'FIC-ROW-HP4', 'Donation', 'Available', '2023-11-06 15:10:00', 3, 9),
 ('BC006', 'Book', 'MYS-LAR-GDT', 'Purchase', 'Available', '2023-10-28 11:00:00', 4, 6),
-('BC007', 'Book', 'MYS-BRO-INF', 'Purchase', 'On Loan', '2023-11-04 17:25:00', 5, 7),
+('BC007', 'Book', 'MYS-BRO-INF', 'Purchase', 'Available', '2023-11-04 17:25:00', 5, 7),
 ('BC008', 'Book', 'HIS-HAN-NI', 'Donation', 'Available', '2023-11-10 11:55:00', 6, 5),
 ('BC009', 'Book', 'CLA-ORW-1984', 'Purchase', 'Available', '2023-10-15 09:00:00', 7, 3),
-('BC010', 'Book', 'THR-FLY-GG', 'Purchase', 'Lost', '2023-09-30 12:00:00', 8, 4),
+('BC010', 'Book', 'THR-FLY-GG', 'Purchase', 'Available', '2023-09-30 12:00:00', 8, 4),
 ('BC011', 'Book', 'SCI-MCC-ROAD', 'Purchase', 'Available', '2023-11-09 13:45:00', 9, 2),
 ('BC012', 'Book', 'FAN-ROW-HP1', 'Purchase', 'Available', '2023-11-08 10:10:00', 10, 8);
 
+/*
 -- --- EXCHANGE COPIES (User Owned) ---
 -- These show up in "My Books" for the owner and "Exchange Market" for others
 INSERT INTO Copy (
@@ -262,28 +257,28 @@ VALUES
 ('9780385472579', 'The Things They Carried', 'Houghton Mifflin', '1990-03-28', 'Tim O’Brien'),
 ('9780307474278', 'The Lost Symbol', 'Doubleday', '2009-09-15', 'Dan Brown');
 
-INSERT INTO Request (request_type, expire_date, status, material_id, reader_id, book_id, exchange_book_id)
+INSERT INTO Request (request_date, expire_date, request_type, status, material_id, reader_id, book_id, exchange_book_id)
 VALUES
--- Hold Requests (existing books)
-('Hold', '2025-11-20 23:59:59', 'Pending', NULL, 1, 3, NULL),
-('Hold', '2025-11-18 23:59:59', 'Approved', NULL, 2, 7, NULL),
-('Hold', '2025-11-25 23:59:59', 'Pending', NULL, 3, 1, NULL),
+-- Hold Requests (existing books) - no expiration
+('2025-11-06 09:00:00', NULL, 'Hold', 'Pending', NULL, 1, 3, NULL),
+('2025-11-06 10:15:00', NULL, 'Hold', 'Approved', NULL, 2, 7, NULL),
+('2025-11-07 14:30:00', NULL, 'Hold', 'Pending', NULL, 3, 1, NULL),
 
 -- Borrow Requests (existing books)
-('Borrow', '2025-11-30 23:59:59', 'Approved', NULL, 1, 2, NULL),
-('Borrow', '2025-11-28 23:59:59', 'Pending', NULL, 4, 6, NULL),
+('2025-11-05 12:00:00', '2025-11-19 12:00:00', 'Borrow', 'Approved', NULL, 1, 2, NULL),
+('2025-11-08 16:20:00', '2025-11-22 16:20:00', 'Borrow', 'Pending', NULL, 4, 6, NULL),
 
--- New Material Requests
-('New Material', NULL, 'Pending', 1, 2, NULL, NULL),
-('New Material', NULL, 'Approved', 2, 3, NULL, NULL),
-('New Material', NULL, 'Rejected', 3, 1, NULL, NULL),
-('New Material', NULL, 'Pending', 4, 4, NULL, NULL),
-('New Material', NULL, 'Approved', 5, 3, NULL, NULL),
+-- Book Request Requests
+('2025-11-04 09:45:00', '2025-11-18 09:45:00', 'Book Request', 'Pending', 1, 2, NULL, NULL),
+('2025-11-04 11:10:00', '2025-11-18 11:10:00', 'Book Request', 'Approved', 2, 3, NULL, NULL),
+('2025-11-04 13:30:00', '2025-11-18 13:30:00', 'Book Request', 'Rejected', 3, 1, NULL, NULL),
+('2025-11-05 10:05:00', '2025-11-19 10:05:00', 'Book Request', 'Pending', 4, 4, NULL, NULL),
+('2025-11-05 15:00:00', '2025-11-19 15:00:00', 'Book Request', 'Approved', 5, 3, NULL, NULL),
 
 -- **EXCHANGE REQUESTS**
 -- 1. Jane (Reader 2) requests John's "Fourth Wing" (Book 11). 
 --    This will show up as an "Incoming Request" when you log in as John.
-('Exchange', NULL, 'Pending', NULL, 2, 11, NULL); 
+('2025-11-06 18:00:00', '2025-11-20 18:00:00', 'Exchange', 'Pending', NULL, 2, 11, NULL);
 
 INSERT INTO Log (log_date, source, log_level, log_node, log_message)
 VALUES
@@ -295,7 +290,7 @@ VALUES
 ('2025-11-10 11:22:27', 'SystemMonitor', 'ERROR', 'DatabaseNode-1', 'Connection timeout detected. Reconnecting...'),
 ('2025-11-10 11:24:12', 'SystemMonitor', 'INFO', 'DatabaseNode-1', 'Database connection re-established successfully.'),
 ('2025-11-10 12:10:45', 'ExchangeModule', 'INFO', 'ExchangeService', 'Reader (ID: 1) exchanged "The Martian" (BC020) with Reader (ID: 2).'),
-('2025-11-10 13:05:33', 'RequestModule', 'INFO', 'RequestProcessor', 'Reader (ID: 4) requested new material "Dune".'),
+('2025-11-10 13:05:33', 'RequestModule', 'INFO', 'RequestProcessor', 'Reader (ID: 4) requested book "Dune".'),
 ('2025-11-10 13:20:17', 'Security', 'WARN', 'LoginGuard', 'Failed login attempt for user_email=jane.smith@email.com.'),
 ('2025-11-10 13:25:42', 'Security', 'INFO', 'LoginGuard', 'Account lockout triggered for user_email=jane.smith@email.com after 3 failed attempts.'),
 ('2025-11-10 14:01:09', 'AdminModule', 'INFO', 'BackupManager', 'System backup completed successfully. File: backup_2025_11_10.zip'),
@@ -343,7 +338,7 @@ VALUES
 ('Policy Update', '2025-11-09 22:15:10', 'Updated loan policy: Reader loan period set to 21 days.', 7),
 ('System Backup', '2025-11-10 02:00:00', 'Scheduled system backup completed successfully.', 7),
 ('Logout', '2025-11-10 02:10:00', 'Admin Robert White logged out.', 7);
-
+*/
 
 UPDATE Book b
 SET average_rating = (

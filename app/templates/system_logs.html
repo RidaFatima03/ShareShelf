@@ -1,103 +1,278 @@
 {% extends "sidebar.html" %}
 
 {% block content %}
-<div class="logs-page">
+<div>
 
-    <h1 class="page-title">System Logs</h1>
-
-    <!-- Filters bar -->
-    <form method="get" class="logs-filters">
-        <div class="filter-row">
-
-            <!-- Source -->
-            <div class="filter-group">
-                <label for="source">Source</label>
-                <select name="source" id="source">
-                    <option value="">All</option>
-                    {% for src in sources %}
-                        <option value="{{ src }}" {% if src == selected_source %}selected{% endif %}>
-                            {{ src }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Log Level -->
-            <div class="filter-group">
-                <label for="log_level">Log Level</label>
-                <select name="log_level" id="log_level">
-                    <option value="">All</option>
-                    {% for lvl in log_levels %}
-                        <option value="{{ lvl }}" {% if lvl == selected_level %}selected{% endif %}>
-                            {{ lvl }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Date Range -->
-            <div class="filter-group">
-                <label>Date Range</label>
-                <div class="date-range">
-                    <input type="date" name="start_date" value="{{ start_date }}">
-                    <span>–</span>
-                    <input type="date" name="end_date" value="{{ end_date }}">
-                </div>
-            </div>
-
-            <!-- Buttons -->
-            <div class="filter-actions">
-                <button type="submit" class="btn-search-submit">
-                    <i class="fa-solid fa-filter"></i> Apply Filters
-                </button>
-                
-                <button type="button" class="btn-filter-toggle" 
-                        onclick="window.location.href='{{ url_for('admin.system_logs') }}'">
-                    Clear Filters
-                </button>
-
-
-            </div>
-
-        </div>
-    </form>
+    <div class="manage-header">
+        <h1 class="page-title">System Logs</h1>
+    </div>
 
     <!-- Logs table -->
-    <div class="logs-table-wrapper">
-        <table class="logs-table">
-            <thead>
-                <tr>
-                    <th>Log Date</th>
-                    <th>Source</th>
-                    <th>Log Level</th>
-                    <th>Log Node</th>
-                    <th>Log Message</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if logs %}
-                    {% for log in logs %}
-                        <tr>
-                            <td>{{ log.log_date }}</td>
-                            <td>{{ log.source }}</td>
-                            <td>
-                                <span class="badge badge-{{ log.log_level | lower }}">
-                                    {{ log.log_level }}
-                                </span>
-                            </td>
-                            <td>{{ log.log_node }}</td>
-                            <td>{{ log.log_message }}</td>
-                        </tr>
-                    {% endfor %}
-                {% else %}
+    <div class="table-wrapper table-wrapper-scroll">
+        <form method="get" class="table-filter-form">
+            <table class="activity-table logs-table">
+                <thead>
                     <tr>
-                        <td colspan="5" class="no-logs">No logs found for the selected filters.</td>
+                        <th>
+                            Log Date<br>
+                            <div class="table-date-range">
+                                <input type="date"
+                                       name="start_date"
+                                       class="filter-input filter-input-manage"
+                                       value="{{ start_date }}">
+                                <input type="date"
+                                       name="end_date"
+                                       class="filter-input filter-input-manage"
+                                       value="{{ end_date }}">
+                            </div>
+                        </th>
+                        <th>
+                            Source<br>
+                            <select name="source" id="source" class="filter-input filter-input-manage">
+                                <option value="">All</option>
+                                {% for src in sources %}
+                                    <option value="{{ src }}" {% if src == selected_source %}selected{% endif %}>
+                                        {{ src }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </th>
+                        <th>
+                            Log Level<br>
+                            <select name="log_level" id="log_level" class="filter-input filter-input-manage">
+                                <option value="">All</option>
+                                {% for lvl in log_levels %}
+                                    <option value="{{ lvl }}" {% if lvl == selected_level %}selected{% endif %}>
+                                        {{ lvl }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </th>
+                        <th>
+                            Log Node<br>
+                            <input type="text"
+                                   name="node_query"
+                                   class="filter-input filter-input-manage"
+                                   placeholder="Search node..."
+                                   value="{{ node_query }}">
+                        </th>
+                        <th>
+                            Log Message<br>
+                            <input type="text"
+                                   name="message_query"
+                                   class="filter-input filter-input-manage"
+                                   placeholder="Search message..."
+                                   value="{{ message_query }}">
+                        </th>
+                        <th class="col-actions">
+                            Actions
+                            <div class="table-filter-actions">
+                                <button type="submit" class="logout-link btn-apply filter-action-btn">
+                                    Apply
+                                </button>
+                                <a href="{{ url_for('admin.system_logs') }}" class="logout-link btn-cancel filter-action-btn">
+                                    Clear
+                                </a>
+                            </div>
+                        </th>
                     </tr>
-                {% endif %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% if logs %}
+                        {% for log in logs %}
+                            <tr>
+                                <td>{{ log.log_date }}</td>
+                                <td>{{ log.source }}</td>
+                                <td>
+                                    <span class="badge badge-{{ log.log_level | lower }}">
+                                        {{ log.log_level }}
+                                    </span>
+                                </td>
+                                <td>{{ log.log_node }}</td>
+                                <td>{{ log.log_message }}</td>
+                                <td class="col-actions">
+                                    <div class="manage-btns">
+                                        <span class="info-wrapper"
+                                              data-log-id="{{ log.log_id }}"
+                                              data-log-date="{{ log.log_date }}"
+                                              data-log-source="{{ log.source | e }}"
+                                              data-log-level="{{ log.log_level | e }}"
+                                              data-log-node="{{ log.log_node | e }}"
+                                              data-log-message="{{ log.log_message | e }}">
+                                            <button class="info-btn" type="button">i</button>
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="no-logs">No logs found for the selected filters.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </form>
         <p class="logs-footer">Recent system logs, sorted by date.</p>
     </div>
 
+    <nav class="pagination-container mt-4">
+        <span class="pagination-summary">{{ start_index }} to {{ end_index }} of {{ total_count }}</span>
+        <ul class="pagination">
+            <li class="page-item {% if not has_prev %}disabled{% endif %}">
+                <a class="page-link"
+                    href="{% if has_prev %}{{ url_for('admin.system_logs', page=page-1, source=selected_source, log_level=selected_level, node_query=node_query, message_query=message_query, start_date=start_date, end_date=end_date) }}{% else %}#{% endif %}">
+                    Previous
+                </a>
+            </li>
+
+            {% if total_pages <= 7 %}
+              {% for p in range(1, total_pages + 1) %}
+              <li class="page-item {% if p == page %}active{% endif %}">
+                  <a class="page-link"
+                      href="{{ url_for('admin.system_logs', page=p, source=selected_source, log_level=selected_level, node_query=node_query, message_query=message_query, start_date=start_date, end_date=end_date) }}">
+                      {{ p }}
+                  </a>
+              </li>
+              {% endfor %}
+            {% else %}
+              {% set start_page = page - 1 %}
+              {% set end_page = page + 1 %}
+              {% if start_page < 2 %}{% set start_page = 2 %}{% endif %}
+              {% if end_page > total_pages - 1 %}{% set end_page = total_pages - 1 %}{% endif %}
+
+              <li class="page-item {% if page == 1 %}active{% endif %}">
+                <a class="page-link"
+                    href="{{ url_for('admin.system_logs', page=1, source=selected_source, log_level=selected_level, node_query=node_query, message_query=message_query, start_date=start_date, end_date=end_date) }}">
+                  1
+                </a>
+              </li>
+
+              {% if start_page > 2 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+              {% endif %}
+
+              {% for p in range(start_page, end_page + 1) %}
+              <li class="page-item {% if p == page %}active{% endif %}">
+                  <a class="page-link"
+                      href="{{ url_for('admin.system_logs', page=p, source=selected_source, log_level=selected_level, node_query=node_query, message_query=message_query, start_date=start_date, end_date=end_date) }}">
+                      {{ p }}
+                  </a>
+              </li>
+              {% endfor %}
+
+              {% if end_page < total_pages - 1 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+              {% endif %}
+
+              <li class="page-item {% if page == total_pages %}active{% endif %}">
+                <a class="page-link"
+                    href="{{ url_for('admin.system_logs', page=total_pages, source=selected_source, log_level=selected_level, node_query=node_query, message_query=message_query, start_date=start_date, end_date=end_date) }}">
+                  {{ total_pages }}
+                </a>
+              </li>
+            {% endif %}
+
+            <li class="page-item {% if not has_next %}disabled{% endif %}">
+                <a class="page-link"
+                    href="{% if has_next %}{{ url_for('admin.system_logs', page=page+1, source=selected_source, log_level=selected_level, node_query=node_query, message_query=message_query, start_date=start_date, end_date=end_date) }}{% else %}#{% endif %}">
+                    Next
+                </a>
+            </li>
+        </ul>
+    </nav>
+
 </div>
+
+<div id="viewLogModal" class="custom-modal" aria-hidden="true">
+  <div class="custom-modal-backdrop close-view-log-modal"></div>
+
+  <div class="custom-modal-dialog">
+    <div class="custom-modal-header">
+      <h5 class="filters-column-title pop-up-header">Log Details</h5>
+      <button type="button" class="custom-modal-close close-view-log-modal" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="filter-input-group">
+      <div class="view-row">
+        <span class="filter-label">Log ID:</span>
+        <span id="vl_id"></span>
+      </div>
+
+      <div class="view-row">
+        <span class="filter-label">Log Date:</span>
+        <span id="vl_date"></span>
+      </div>
+
+      <div class="view-row">
+        <span class="filter-label">Source:</span>
+        <span id="vl_source"></span>
+      </div>
+
+      <div class="view-row">
+        <span class="filter-label">Log Level:</span>
+        <span id="vl_level"></span>
+      </div>
+
+      <div class="view-row">
+        <span class="filter-label">Log Node:</span>
+        <span id="vl_node"></span>
+      </div>
+
+      <div class="view-row">
+        <span class="filter-label">Message:</span>
+        <span id="vl_message"></span>
+      </div>
+    </div>
+
+    <div class="custom-modal-footer">
+      <button type="button" class="logout-link btn-cancel close-view-log-modal">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('viewLogModal');
+  const closeElems = document.querySelectorAll('.close-view-log-modal');
+  const vlId = document.getElementById('vl_id');
+  const vlDate = document.getElementById('vl_date');
+  const vlSource = document.getElementById('vl_source');
+  const vlLevel = document.getElementById('vl_level');
+  const vlNode = document.getElementById('vl_node');
+  const vlMessage = document.getElementById('vl_message');
+
+  function openModal() {
+    modal.classList.add('show');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeModal() {
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  document.querySelectorAll('.info-wrapper .info-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const wrapper = e.currentTarget.closest('.info-wrapper');
+      if (!wrapper) return;
+
+      vlId.textContent = wrapper.dataset.logId || '-';
+      vlDate.textContent = wrapper.dataset.logDate || '-';
+      vlSource.textContent = wrapper.dataset.logSource || '-';
+      vlLevel.textContent = wrapper.dataset.logLevel || '-';
+      vlNode.textContent = wrapper.dataset.logNode || '-';
+      vlMessage.textContent = wrapper.dataset.logMessage || '-';
+
+      openModal();
+    });
+  });
+
+  closeElems.forEach(el => el.addEventListener('click', closeModal));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('show')) closeModal();
+  });
+});
+</script>
 {% endblock %}

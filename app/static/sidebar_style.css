@@ -663,6 +663,24 @@ body {
   transition: none !important;
 }
 
+html.sidebar-closed-init .sidebar {
+    transform: translateX(-100%);
+}
+
+html.sidebar-closed-init .main-content {
+    margin-left: 0;
+    width: 100%;
+}
+
+html.sidebar-closed-init .filters-column {
+    left: 0 !important;
+}
+
+html.sidebar-closed-init .filters-results.main-content {
+    margin-left: 300px !important;
+    width: calc(100% - 300px) !important;
+}
+
 
 .nav-item {
     display: flex;
@@ -698,6 +716,35 @@ body {
 
 .nav-item.active .nav-icon {
     stroke: #5c4033;
+}
+
+.filter-action-btn {
+    text-transform: none;
+}
+
+.nav-group {
+    display: block;
+}
+
+.nav-group summary {
+    list-style: none;
+}
+
+.nav-group summary::-webkit-details-marker {
+    display: none;
+}
+
+.nav-group summary .nav-caret {
+    margin-left: auto;
+    transition: transform 0.2s ease;
+}
+
+.nav-group[open] summary .nav-caret {
+    transform: rotate(90deg);
+}
+
+.nav-group .nav-item {
+    padding-left: 28px;
 }
 
 /* Main Content */
@@ -1986,6 +2033,20 @@ body {
     overflow-x: auto;
 }
 
+.table-wrapper-scroll {
+    overflow-x: auto;
+}
+
+.table-wrapper-scroll .activity-table {
+    width: max-content;
+    min-width: 100%;
+}
+
+.table-wrapper-scroll .activity-table th,
+.table-wrapper-scroll .activity-table td {
+    white-space: nowrap;
+}
+
 .checkouts-table,
 .fines-table,
 .requests-table {
@@ -2291,18 +2352,55 @@ body {
     display: inline-block;
     padding: 4px 12px;
     border-radius: 12px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
 }
 
-.request-status.pending {
+.request-timeline {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: #555555;
+}
+
+.request-timeline li {
+    padding: 4px 0;
+    border-bottom: 1px solid #f0ebe4;
+}
+
+.request-timeline li:last-child {
+    border-bottom: none;
+}
+
+.request-status.rejected {
     background-color: #fdecea;
     color: #c62828;
+}
+
+.request-status.pending {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #8a6d00;
+}
+
+.request-status.expired {
+    background-color: rgba(96, 125, 139, 0.18);
+    color: #546e7a;
 }
 
 .request-status.approved {
     background-color: rgba(46, 125, 50, 0.15);
     color: #2e7d32;
+}
+
+.request-status.completed {
+    background-color: rgba(0, 150, 136, 0.18);
+    color: #00695c;
+}
+
+.request-status.cancelled {
+    background-color: rgba(158, 158, 158, 0.22);
+    color: #616161;
 }
 
 .cancel-request-btn {

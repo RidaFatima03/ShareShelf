@@ -1,0 +1,498 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+<div>
+    
+    <div class="manage-header">
+        <h1 class="page-title">User Management System</h1>
+
+        <button type="button" id="openAddUserModal" class="logout-link btn-new">
+            Add New User
+        </button>
+    </div>
+
+    <div class="table-wrapper">
+        <form method="get" action="{{ url_for('librarian.user_management') }}">
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th class="col-id">
+                            ID<br>
+                            <input type="text"
+                                    name="search_id"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Search ID..."
+                                    value="{{ search_id }}">
+                        </th>
+                        <th>
+                            User Name<br>
+                            <input type="text"
+                                    name="search_full_name"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Search full name..."
+                                    value="{{ search_full_name }}">
+                        </th>
+                        <th>
+                            User Email<br>
+                            <input type="text"
+                                    name="search_email"
+                                    class="filter-input filter-input-manage"
+                                    placeholder="Search email..."
+                                    value="{{ search_email }}">
+                        </th>
+                        <th>
+                            Status<br>
+                            <select name="search_status"
+                                    class="filter-input filter-input-manage">
+                                <option value="">All</option>
+                                <option value="Active"   {% if search_status == 'Active' %}selected{% endif %}>Active</option>
+                                <option value="Inactive" {% if search_status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                                <option value="Blocked"  {% if search_status == 'Blocked' %}selected{% endif %}>Blocked</option>
+                            </select>
+                        </th>
+                        <th>
+                            User Type<br>
+                            <select name="search_user_type"
+                                    class="filter-input filter-input-manage">
+                                <option value="">All</option>
+                                <option value="Librarian"   {% if search_user_type == 'Librarian' %}selected{% endif %}>Librarian</option>
+                                <option value="Reader" {% if search_user_type == 'Reader' %}selected{% endif %}>Reader</option>
+                                <option value="Admin"  {% if search_user_type == 'Admin' %}selected{% endif %}>Admin</option>
+                            </select>
+                        </th>
+                        <th>
+                            Policy Name<br>
+                            <select name="search_policy" class="filter-input filter-input-manage">
+                                <option value="">All</option>
+                                {% for p in all_policies %}
+                                <option value="{{ p.policy_id }}"
+                                    {% if search_policy == p.policy_id|string %}selected{% endif %}>
+                                    {{ p.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </th>
+                        <th>
+                            <button type="submit" class="logout-link btn-apply filter-action-btn">Apply</button>
+                            <a href="{{ url_for('librarian.user_management') }}" class="logout-link btn-cancel filter-action-btn">Clear</a>
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td class="col-id">{{ u.user_id }}</td>
+                        <td>
+                            {{ u.user_first_name }}
+                            {% if u.user_middle_name %}
+                                {{ u.user_middle_name }}
+                            {% endif %}
+                            {{ u.user_last_name }}
+                        </td>
+                        <td>{{ u.user_email }}</td>
+                        <td>{{ u.status }}</td>
+                        <td>{{ u.user_type }}</td>
+                        <td>{{ u.policy_name or '-' }}</td>
+                        <td>
+                            <div class="manage-btns">
+                                <button type="button"
+                                class="btn-edit"
+                                data-user-id="{{ u.user_id }}"
+                                data-first-name="{{ u.user_first_name }}"
+                                data-middle-name="{{ u.user_middle_name }}"
+                                data-last-name="{{ u.user_last_name }}"
+                                data-phone-number="{{ u.user_phone_number }}"
+                                data-email="{{ u.user_email }}"
+                                data-status="{{ u.status }}"
+                                data-user-type="{{ u.user_type }}"
+                                data-policy-id="{{ u.policy_id or '' }}">
+                                <i class="bi bi-pencil-fill"></i>
+                                </button>
+
+                                <form method="POST"
+                                    action="{{ url_for('librarian.delete_user', user_id=u.user_id) }}"
+                                    onsubmit="return confirm('Delete this user?');"
+                                    class="d-inline">
+
+                                    <button type="submit" class="rounded-circle p-1 btn-delete">
+                                        <i class="bi bi-trash trash-can"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </form>
+    </div>
+
+
+    <nav class="pagination-container mt-4">
+        <span class="pagination-summary">{{ start_index }} to {{ end_index }} of {{ total_count }}</span>
+        <ul class="pagination">
+            <!-- Previous -->
+            <li class="page-item {% if not has_prev %}disabled{% endif %}">
+            <a class="page-link"
+                href="{% if has_prev %}{{ url_for('librarian.user_management', page=page-1,
+                                                    search_id=search_id,
+                                                    search_full_name=search_full_name,
+                                                    search_email=search_email,
+                                                    search_status=search_status,
+                                                    search_user_type=search_user_type,
+                                                    search_policy=search_policy) }}{% else %}#{% endif %}">
+                Previous
+                </a>
+            </li>
+
+            <!-- Page numbers -->
+            {% if total_pages <= 7 %}
+              {% for p in range(1, total_pages + 1) %}
+              <li class="page-item {% if p == page %}active{% endif %}">
+                  <a class="page-link"
+                  href="{{ url_for('librarian.user_management', page=p,
+                                      search_id=search_id,
+                                      search_full_name=search_full_name,
+                                      search_email=search_email,
+                                      search_status=search_status,
+                                      search_user_type=search_user_type,
+                                      search_policy=search_policy) }}">
+                  {{ p }}
+                  </a>
+              </li>
+              {% endfor %}
+            {% else %}
+              {% set start_page = page - 1 %}
+              {% set end_page = page + 1 %}
+              {% if start_page < 2 %}{% set start_page = 2 %}{% endif %}
+              {% if end_page > total_pages - 1 %}{% set end_page = total_pages - 1 %}{% endif %}
+
+              <li class="page-item {% if page == 1 %}active{% endif %}">
+                <a class="page-link"
+                href="{{ url_for('librarian.user_management', page=1,
+                                    search_id=search_id,
+                                    search_full_name=search_full_name,
+                                    search_email=search_email,
+                                    search_status=search_status,
+                                    search_user_type=search_user_type,
+                                    search_policy=search_policy) }}">
+                  1
+                </a>
+              </li>
+
+              {% if start_page > 2 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+              {% endif %}
+
+              {% for p in range(start_page, end_page + 1) %}
+              <li class="page-item {% if p == page %}active{% endif %}">
+                  <a class="page-link"
+                  href="{{ url_for('librarian.user_management', page=p,
+                                      search_id=search_id,
+                                      search_full_name=search_full_name,
+                                      search_email=search_email,
+                                      search_status=search_status,
+                                      search_user_type=search_user_type,
+                                      search_policy=search_policy) }}">
+                  {{ p }}
+                  </a>
+              </li>
+              {% endfor %}
+
+              {% if end_page < total_pages - 1 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+              {% endif %}
+
+              <li class="page-item {% if page == total_pages %}active{% endif %}">
+                <a class="page-link"
+                href="{{ url_for('librarian.user_management', page=total_pages,
+                                    search_id=search_id,
+                                    search_full_name=search_full_name,
+                                    search_email=search_email,
+                                    search_status=search_status,
+                                    search_user_type=search_user_type,
+                                    search_policy=search_policy) }}">
+                  {{ total_pages }}
+                </a>
+              </li>
+            {% endif %}
+
+            <!-- Next -->
+            <li class="page-item {% if not has_next %}disabled{% endif %}">
+                <a class="page-link"
+                href="{% if has_next %}{{ url_for('librarian.user_management', page=page+1,
+                                                    search_id=search_id,
+                                                    search_full_name=search_full_name,
+                                                    search_email=search_email,
+                                                    search_status=search_status,
+                                                    search_user_type=search_user_type,
+                                                    search_policy=search_policy) }}{% else %}#{% endif %}">
+                Next
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<!-- Add User Modal -->
+<div id="addUserModal" class="custom-modal">
+    <div class="custom-modal-backdrop close-add-user-modal"></div>
+
+    <div class="custom-modal-dialog scrollable-modal">
+        <div class="custom-modal-header">
+            <h5 class="filters-column-title pop-up-header">Add New User</h5>
+            <button type="button" class="custom-modal-close close-add-user-modal">&times;</button>
+        </div>
+
+        <form method="POST" action="{{ url_for('librarian.user_management') }}" id="addUserForm">
+            <div class="filter-input-group">
+                <label for="add_first_name" class="filter-label">First name:</label>
+                <input type="text" id="add_first_name" name="add_first_name" class="form-control filter-input" required>
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_middle_name" class="filter-label">Middle name:</label>
+                <input type="text" id="add_middle_name" name="add_middle_name" class="form-control filter-input">
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_last_name" class="filter-label">Last name:</label>
+                <input type="text" id="add_last_name" name="add_last_name" class="form-control filter-input" required>
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_phone_number" class="filter-label">Phone number:</label>
+                <input type="tel" id="add_phone_number" name="add_phone_number" class="form-control filter-input" placeholder="e.g. 09171234567" required>
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_email" class="filter-label">Email:</label>
+                <input type="email" id="add_email" name="add_email" class="form-control filter-input" required>
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_password" class="filter-label">Password:</label>
+                <input type="password" id="add_password" name="add_password" class="form-control filter-input" minlength="8" required>
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_confirm_password" class="filter-label">Confirm Password:</label>
+                <input type="password" id="add_confirm_password" name="add_confirm_password" class="form-control filter-input" minlength="8" required>
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_status" class="filter-label">Status:</label>
+                <select id="add_status" name="add_status" class="form-control filter-input" required>
+                    <option value="Active" selected>Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Blocked">Blocked</option>
+                </select>
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_user_type" class="filter-label">User Type:</label>
+                <select id="add_user_type" name="add_user_type" class="form-control filter-input" required>
+                    <option value="Reader" selected>Reader</option>
+                    <option value="Librarian">Librarian</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+
+            <div class="filter-input-group">
+                <label for="add_policy" class="filter-label">Policy:</label>
+                <select id="add_policy" name="add_policy" class="form-control filter-input">
+                    {% for p in all_policies %}
+                    <option value="{{ p.policy_id }}" {% if default_policy_id == p.policy_id %}selected{% endif %}>
+                        {{ p.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="custom-modal-footer">
+                <button type="button" class="logout-link btn-cancel close-add-user-modal">Cancel</button>
+                <button type="submit" class="logout-link btn-save">Create User</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- Edit User Modal -->
+<div id="editUserModal" class="custom-modal">
+    <div class="custom-modal-backdrop close-edit-user-modal"></div>
+
+  <div class="custom-modal-dialog scrollable-modal">
+    <div class="custom-modal-header">
+      <h5 class="filters-column-title pop-up-header">Edit User</h5>
+      <button type="button" class="custom-modal-close close-edit-user-modal">&times;</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('librarian.edit_user') }}">
+      <input type="hidden" id="edit_user_id" name="user_id">
+
+    <div class="filter-input-group">
+        <label for="edit_first_name" class="filter-label">First name:</label>
+        <input type="text" id="edit_first_name" name="first_name" class="form-control filter-input" required>
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_middle_name" class="filter-label">Middle name:</label>
+        <input type="text" id="edit_middle_name" name="middle_name" class="form-control filter-input">
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_last_name" class="filter-label">Last name:</label>
+        <input type="text" id="edit_last_name" name="last_name" class="form-control filter-input" required>
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_phone_number" class="filter-label">Phone number:</label>
+        <input type="tel" id="edit_phone_number" name="phone_number" class="form-control filter-input" placeholder="e.g. 09171234567" required>
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_email" class="filter-label">Email:</label>
+        <input type="text" id="edit_email" name="email" class="form-control filter-input" required>
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_password" class="filter-label">New Password:</label>
+        <input type="password" id="edit_password" name="password" class="form-control filter-input" placeholder="Leave blank to keep current password">
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_confirm_password" class="filter-label">Confirm New Password:</label>
+        <input type="password" id="edit_confirm_password" name="confirm_password" class="form-control filter-input" placeholder="Re-type new password">
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_status" class="filter-label">Status:</label>
+        <select id="edit_status" name="status" class="form-control filter-input" required>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Blocked">Blocked</option>
+        </select>
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_user_type" class="filter-label">User Type:</label>
+        <select id="edit_user_type" name="user_type" class="form-control filter-input" required>
+            <option value="Admin">Admin</option>
+            <option value="Librarian">Librarian</option>
+            <option value="Reader">Reader</option>
+        </select>
+    </div>
+
+    <div class="filter-input-group">
+        <label for="edit_policy" class="filter-label">Policy:</label>
+        <select id="edit_policy" name="policy_id" class="form-control filter-input">
+            <option value="" selected>None</option>
+            {% for p in all_policies %}
+            <option value="{{ p.policy_id }}">{{ p.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="custom-modal-footer">
+        <button type="button" class="logout-link btn-cancel close-edit-user-modal">Cancel</button>
+        <button type="submit" class="logout-link btn-save">Save Changes</button>
+    </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // ADD USER MODAL
+    const openAddBtn = document.getElementById('openAddUserModal');
+    const addModal = document.getElementById('addUserModal');
+    const addCloseElems = document.querySelectorAll('.close-add-user-modal');
+
+    const addForm = document.getElementById('addUserForm');
+    const addFirstName = document.getElementById('add_first_name');
+    const addPassword = document.getElementById('add_password');
+    const addConfirmPassword = document.getElementById('add_confirm_password');
+
+    if (openAddBtn && addModal) {
+        openAddBtn.addEventListener('click', () => {
+            addModal.classList.add('show');
+            
+            if (addForm) addForm.reset();
+            if (addFirstName) setTimeout(() => addFirstName.focus(), 100);
+        });
+
+        addCloseElems.forEach(el => {
+            el.addEventListener('click', () => {
+                addModal.classList.remove('show');
+            });
+        });
+    }
+
+    if (addForm) {
+        addForm.addEventListener('submit', (e) => {
+            if (addPassword && addConfirmPassword && addPassword.value !== addConfirmPassword.value) {
+                e.preventDefault();
+                alert("Passwords do not match.");
+                addConfirmPassword.focus();
+            }
+        });
+    }
+
+  // EDIT USER MODAL
+  const editModal = document.getElementById('editUserModal');
+  const editButtons = document.querySelectorAll('.btn-edit');
+  const editCloseElems = document.querySelectorAll('.close-edit-user-modal');
+  
+  const editIdInput = document.getElementById('edit_user_id');
+  const editFirstNameInput = document.getElementById('edit_first_name');
+  const editMiddleNameInput = document.getElementById('edit_middle_name');
+  const editLastNameInput = document.getElementById('edit_last_name');
+  const editPhoneNumberInput = document.getElementById('edit_phone_number');
+  const editEmailInput = document.getElementById('edit_email');
+  const editStatusInput = document.getElementById('edit_status');
+  const editUserTypeInput = document.getElementById('edit_user_type');
+  const editPasswordInput = document.getElementById('edit_password');
+  const editConfirmPasswordInput = document.getElementById('edit_confirm_password');
+  const editPolicyInput = document.getElementById('edit_policy');
+
+  if (editModal && editButtons.length > 0) {
+    editButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.userId;
+        const first_name = btn.dataset.firstName;
+        const middle_name = btn.dataset.middleName;
+        const last_name = btn.dataset.lastName;
+        const phone_number = btn.dataset.phoneNumber;
+        const email = btn.dataset.email;
+        const status = btn.dataset.status;
+        const user_type = btn.dataset.userType;
+        const policyId = btn.dataset.policyId;
+
+        if (editIdInput) editIdInput.value = id;
+        if (editFirstNameInput) editFirstNameInput.value = first_name;
+        if (editMiddleNameInput) editMiddleNameInput.value = middle_name;
+        if (editLastNameInput) editLastNameInput.value = last_name;
+        if (editPhoneNumberInput) editPhoneNumberInput.value = phone_number;
+        if (editEmailInput) editEmailInput.value = email;
+        if (editStatusInput) editStatusInput.value = status;
+        if (editUserTypeInput) editUserTypeInput.value = user_type;
+        if (editPasswordInput) editPasswordInput.value = "";
+        if (editConfirmPasswordInput) editConfirmPasswordInput.value = "";
+        if (editPolicyInput) editPolicyInput.value = policyId ? String(policyId) : "";
+
+        editModal.classList.add('show');
+      });
+    });
+
+    editCloseElems.forEach(el => {
+      el.addEventListener('click', () => {
+        editModal.classList.remove('show');
+      });
+    });
+  }
+});
+
+</script>
+{% endblock %}

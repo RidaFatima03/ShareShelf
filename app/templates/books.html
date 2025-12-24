@@ -11,8 +11,9 @@
         </button>
     </div>
 
-    <form method="get" action="{{ url_for('librarian.books') }}" class="table-filter-form">
-      <table class="activity-table">
+    <div class="table-wrapper table-wrapper-scroll">
+      <form method="get" action="{{ url_for('librarian.books') }}" class="table-filter-form">
+        <table class="activity-table">
         <thead>
           <tr>
             <th>
@@ -61,11 +62,14 @@
 
             <th>
               Language<br>
-              <input type="text"
-                    name="search_language"
-                    class="filter-input filter-input-manage"
-                    placeholder="Search language..."
-                    value="{{ search_language }}">
+              <select name="search_language" class="filter-input filter-input-manage">
+                <option value="">All</option>
+                {% for lang in all_languages %}
+                  <option value="{{ lang }}" {% if search_language == lang %}selected{% endif %}>
+                    {{ lang }}
+                  </option>
+                {% endfor %}
+              </select>
             </th>
 
             <th>
@@ -122,17 +126,16 @@
             </th>
 
             <th class="text-center">
-              <button type="submit" class="logout-link btn-apply mt-3">
+              <button type="submit" class="logout-link btn-apply mt-3 filter-action-btn">
                 Apply
               </button>
+              <a href="{{ url_for('librarian.books') }}" class="logout-link btn-cancel mt-3 filter-action-btn">
+                Clear
+              </a>
             </th>
           </tr>
         </thead>
-      </table>
-    </form>
-
-    <table class="activity-table">
-      <tbody>
+        <tbody>
         {% if books %}
           {% for b in books %}
             <tr>
@@ -170,7 +173,7 @@
                         onsubmit="return confirm('Delete this book?');"
                         class="d-inline">
                     <button type="submit" class="rounded-circle p-1 btn-delete">
-                      <i class="bi bi-trash"></i>
+                      <i class="bi bi-trash trash-can"></i>
                     </button>
                   </form>
                 </div>
@@ -184,11 +187,14 @@
             </td>
           </tr>
         {% endif %}
-      </tbody>
-    </table>
+        </tbody>
+        </table>
+      </form>
+    </div>
 
     <!-- Navigation -->
     <nav class="pagination-container mt-4">
+        <span class="pagination-summary">{{ start_index }} to {{ end_index }} of {{ total_count }}</span>
         <ul class="pagination">
             <!-- Previous -->
             <li class="page-item {% if not has_prev %}disabled{% endif %}">
@@ -210,10 +216,35 @@
             </li>
 
             <!-- Page numbers -->
-            {% for p in range(1, total_pages + 1) %}
-            <li class="page-item {% if p == page %}active{% endif %}">
+            {% if total_pages <= 7 %}
+              {% for p in range(1, total_pages + 1) %}
+                <li class="page-item {% if p == page %}active{% endif %}">
+                    <a class="page-link"
+                    href="{{ url_for('librarian.books', page=p,
+                                        search_id=search_id,
+                                        search_isbn=search_isbn,
+                                        search_title=search_title,
+                                        search_publisher=search_publisher,
+                                        search_publication_date=search_publication_date,
+                                        search_language=search_language,
+                                        search_physical_description=search_physical_description,
+                                        search_summary=search_summary,
+                                        search_page_number=search_page_number,
+                                        search_genre=search_genre,
+                                        search_author=search_author) }}">
+                    {{ p }}
+                    </a>
+                </li>
+              {% endfor %}
+            {% else %}
+              {% set start_page = page - 1 %}
+              {% set end_page = page + 1 %}
+              {% if start_page < 2 %}{% set start_page = 2 %}{% endif %}
+              {% if end_page > total_pages - 1 %}{% set end_page = total_pages - 1 %}{% endif %}
+
+              <li class="page-item {% if page == 1 %}active{% endif %}">
                 <a class="page-link"
-                href="{{ url_for('librarian.books', page=p,
+                href="{{ url_for('librarian.books', page=1,
                                     search_id=search_id,
                                     search_isbn=search_isbn,
                                     search_title=search_title,
@@ -225,10 +256,56 @@
                                     search_page_number=search_page_number,
                                     search_genre=search_genre,
                                     search_author=search_author) }}">
-                {{ p }}
+                  1
                 </a>
-            </li>
-            {% endfor %}
+              </li>
+
+              {% if start_page > 2 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+              {% endif %}
+
+              {% for p in range(start_page, end_page + 1) %}
+                <li class="page-item {% if p == page %}active{% endif %}">
+                    <a class="page-link"
+                    href="{{ url_for('librarian.books', page=p,
+                                        search_id=search_id,
+                                        search_isbn=search_isbn,
+                                        search_title=search_title,
+                                        search_publisher=search_publisher,
+                                        search_publication_date=search_publication_date,
+                                        search_language=search_language,
+                                        search_physical_description=search_physical_description,
+                                        search_summary=search_summary,
+                                        search_page_number=search_page_number,
+                                        search_genre=search_genre,
+                                        search_author=search_author) }}">
+                    {{ p }}
+                    </a>
+                </li>
+              {% endfor %}
+
+              {% if end_page < total_pages - 1 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+              {% endif %}
+
+              <li class="page-item {% if page == total_pages %}active{% endif %}">
+                <a class="page-link"
+                href="{{ url_for('librarian.books', page=total_pages,
+                                    search_id=search_id,
+                                    search_isbn=search_isbn,
+                                    search_title=search_title,
+                                    search_publisher=search_publisher,
+                                    search_publication_date=search_publication_date,
+                                    search_language=search_language,
+                                    search_physical_description=search_physical_description,
+                                    search_summary=search_summary,
+                                    search_page_number=search_page_number,
+                                    search_genre=search_genre,
+                                    search_author=search_author) }}">
+                  {{ total_pages }}
+                </a>
+              </li>
+            {% endif %}
 
             <!-- Next -->
             <li class="page-item {% if not has_next %}disabled{% endif %}">
@@ -285,7 +362,18 @@
 
       <div class="filter-input-group">
         <label for="language" class="filter-label">Language:</label>
-        <input type="text" id="language" name="language" class="form-control filter-input" required>
+        <select id="language" name="language" class="form-control filter-input" required>
+          <option value="">Select language...</option>
+          {% for lang in all_languages %}
+            <option value="{{ lang }}">{{ lang }}</option>
+          {% endfor %}
+          <option value="__other__">Other...</option>
+        </select>
+        <input type="text"
+               id="language_custom"
+               name="language_custom"
+               class="form-control filter-input hidden mt-2"
+               placeholder="Enter language...">
       </div>
 
       <div class="filter-input-group">
@@ -383,7 +471,18 @@
 
       <div class="filter-input-group">
         <label for="edit_language" class="filter-label">Language:</label>
-        <input type="text" id="edit_language" name="language" class="form-control filter-input" required>
+        <select id="edit_language" name="language" class="form-control filter-input" required>
+          <option value="">Select language...</option>
+          {% for lang in all_languages %}
+            <option value="{{ lang }}">{{ lang }}</option>
+          {% endfor %}
+          <option value="__other__">Other...</option>
+        </select>
+        <input type="text"
+               id="edit_language_custom"
+               name="language_custom"
+               class="form-control filter-input hidden mt-2"
+               placeholder="Enter language...">
       </div>
 
       <div class="filter-input-group">
@@ -478,7 +577,8 @@
   const editIsbnInput = document.getElementById('edit_isbn');
   const editPublisherInput = document.getElementById('edit_publisher');
   const editPubDateInput = document.getElementById('edit_publication_date');
-  const editLanguageInput = document.getElementById('edit_language');
+  const editLanguageSelect = document.getElementById('edit_language');
+  const editLanguageCustom = document.getElementById('edit_language_custom');
   const editPhysInput = document.getElementById('edit_physical_description');
   const editSummaryInput = document.getElementById('edit_summary');
   const editPageInput = document.getElementById('edit_page_number');
@@ -501,7 +601,25 @@
       if (editTitleInput) editTitleInput.value = btn.dataset.title || '';
       if (editIsbnInput) editIsbnInput.value = btn.dataset.isbn || '';
       if (editPublisherInput) editPublisherInput.value = btn.dataset.publisher || '';
-      if (editLanguageInput) editLanguageInput.value = btn.dataset.language || '';
+      if (editLanguageSelect) {
+        const langValue = btn.dataset.language || '';
+        const options = Array.from(editLanguageSelect.options).map(opt => opt.value);
+        if (langValue && options.includes(langValue)) {
+          editLanguageSelect.value = langValue;
+          if (editLanguageCustom) {
+            editLanguageCustom.value = '';
+            editLanguageCustom.classList.add('hidden');
+            editLanguageCustom.removeAttribute('required');
+          }
+        } else {
+          editLanguageSelect.value = '__other__';
+          if (editLanguageCustom) {
+            editLanguageCustom.value = langValue;
+            editLanguageCustom.classList.remove('hidden');
+            editLanguageCustom.setAttribute('required', 'required');
+          }
+        }
+      }
       if (editPhysInput) editPhysInput.value = btn.dataset.physicalDescription || '';
       if (editSummaryInput) editSummaryInput.value = btn.dataset.summary || '';
       if (editPageInput) editPageInput.value = btn.dataset.pageNumber || '';
@@ -548,6 +666,37 @@
   }
 });
 
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const languageSelect = document.getElementById('language');
+    const languageCustom = document.getElementById('language_custom');
+    const editLanguageSelect = document.getElementById('edit_language');
+    const editLanguageCustom = document.getElementById('edit_language_custom');
+
+    function toggleCustom(selectEl, customEl) {
+      if (!selectEl || !customEl) return;
+      if (selectEl.value === '__other__') {
+        customEl.classList.remove('hidden');
+        customEl.setAttribute('required', 'required');
+      } else {
+        customEl.classList.add('hidden');
+        customEl.removeAttribute('required');
+        customEl.value = '';
+      }
+    }
+
+    if (languageSelect) {
+      toggleCustom(languageSelect, languageCustom);
+      languageSelect.addEventListener('change', () => toggleCustom(languageSelect, languageCustom));
+    }
+
+    if (editLanguageSelect) {
+      toggleCustom(editLanguageSelect, editLanguageCustom);
+      editLanguageSelect.addEventListener('change', () => toggleCustom(editLanguageSelect, editLanguageCustom));
+    }
+  });
 </script>
 
 {% endblock %}

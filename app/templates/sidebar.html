@@ -4,6 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem('sidebarClosed') === 'true') {
+                    document.documentElement.classList.add('sidebar-closed-init');
+                }
+            } catch (e) {}
+        })();
+    </script>
     <title>ShareShelf</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='sidebar_style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -13,7 +22,7 @@
 
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body preload">
     <header class="dashboard-header">
         <div class="header-left">
             <button class="menu-toggle" id="menuToggle">
@@ -75,8 +84,8 @@
                     <span>My Fines</span>
                 </a>
 
-                <a href="{{ url_for('main.my_requests') }}"
-                    class="nav-item {% if request.endpoint == 'main.my_requests' %}active{% endif %}">
+                <a href="{{ url_for('request.my_requests') }}"
+                    class="nav-item {% if request.endpoint == 'request.my_requests' %}active{% endif %}">
                     <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
@@ -117,31 +126,50 @@
                 {% endif %}
 
                 {% if session.get('user_type') in ['Librarian'] %}
-                <a href="{{ url_for('librarian.authors') }}"
-                    class="nav-item {% if request.endpoint == 'librarian.authors' %}active{% endif %}">
+                <a href="{{ url_for('librarian.requests') }}"
+                    class="nav-item {% if request.endpoint == 'librarian.requests' %}active{% endif %}">
                     <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
-                    <span>Manage Authors</span>
+                    <span>All Requests</span>
+                </a>
 
-                <a href="{{ url_for('librarian.genres') }}"
-                    class="nav-item {% if request.endpoint == 'librarian.genres' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666"
-                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                    </svg>
-                    <span>Manage Genres</span>
-
-                <a href="{{ url_for('librarian.books') }}" 
-                   class="nav-item {% if request.endpoint == 'librarian.books' %}active{% endif %}">
-                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                    </svg>
-                    <span>Manage Books</span>
+                <details class="nav-group" {% if request.endpoint in ['copies.list','librarian.authors','librarian.genres','librarian.books'] %}open{% endif %}>
+                    <summary class="nav-item">
+                        <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                        <span>Manage Catalog</span>
+                        <svg class="nav-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666666"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </summary>
+                    <a href="{{ url_for('librarian.authors') }}"
+                        class="nav-item {% if request.endpoint == 'librarian.authors' %}active{% endif %}">
+                        <span>Manage Authors</span>
+                    </a>
+                    <a href="{{ url_for('librarian.books') }}" 
+                       class="nav-item {% if request.endpoint == 'librarian.books' %}active{% endif %}">
+                        <span>Manage Books</span>
+                    </a>
+                    <a href="{{ url_for('copies.list') }}"
+                        class="nav-item {% if request.endpoint == 'copies.list' %}active{% endif %}">
+                        <span>Manage Copies</span>
+                    </a>
+                    <a href="{{ url_for('librarian.genres') }}"
+                        class="nav-item {% if request.endpoint == 'librarian.genres' %}active{% endif %}">
+                        <span>Manage Genres</span>
+                    </a>
+                    <a href="{{ url_for('librarian.locations') }}"
+                        class="nav-item {% if request.endpoint == 'librarian.locations' %}active{% endif %}">
+                        <span>Manage Locations</span>
+                    </a>
+                </details>
 
                 <a href="{{ url_for('policy.policy') }}"
                     class="nav-item {% if request.endpoint == 'policy.policy' %}active{% endif %}">
@@ -151,6 +179,17 @@
                         <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
                     </svg>
                     <span>Manage Policy</span>
+                </a>
+                <a href="{{ url_for('librarian.user_management') }}"
+                    class="nav-item {% if request.endpoint == 'librarian.user_management' %}active{% endif %}">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span>User Management System</span>
                 </a>
                 {% endif %}
 
@@ -193,11 +232,37 @@
                     </svg>
                     <span>Policy</span>
                 </a>
-                <a href="{{ url_for('admin.system_logs') }}" class="nav-item">
+                <a href="{{ url_for('admin.system_logs') }}"
+                    class="nav-item {% if request.endpoint == 'admin.system_logs' %}active{% endif %}">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="8" y1="13" x2="16" y2="13"></line>
+                        <line x1="8" y1="17" x2="16" y2="17"></line>
+                    </svg>
                     <span>System Logs</span>
                 </a>
-                <a href="{{ url_for('admin.user_activity') }}" class="nav-item">
+                <a href="{{ url_for('admin.user_activity') }}"
+                    class="nav-item {% if request.endpoint == 'admin.user_activity' %}active{% endif %}">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <line x1="17" y1="8" x2="21" y2="8"></line>
+                        <line x1="19" y1="6" x2="19" y2="10"></line>
+                    </svg>
                     <span>User Activity</span>
+                </a>
+                <a href="{{ url_for('admin.reports') }}"
+                    class="nav-item {% if request.endpoint == 'admin.reports' %}active{% endif %}">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="20" x2="12" y2="10"></line>
+                        <line x1="18" y1="20" x2="18" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="16"></line>
+                    </svg>
+                    <span>Reports</span>
                 </a>
                 {% endif %}
             </nav>
@@ -242,6 +307,7 @@
 
         // Apply instantly (no transition because body has "preload")
         applySidebarState(isClosed);
+        document.documentElement.classList.remove('sidebar-closed-init');
 
         // Re-enable transitions for user interactions
         requestAnimationFrame(() => {
@@ -268,7 +334,6 @@
     });
     </script>
 
-    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>

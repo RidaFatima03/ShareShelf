@@ -2,11 +2,21 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from datetime import datetime, timedelta
 import MySQLdb.cursors
 from extensions import mysql
+from routes.notifications import NotificationService
+from utils.system_log import system_log
 
 main_bp = Blueprint('main', __name__)
 
 def get_cursor():
     return mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+def notify_librarians(subject, details):
+    cursor = get_cursor()
+    cursor.execute("SELECT user_id FROM User WHERE user_type = 'Librarian'")
+    librarians = cursor.fetchall()
+    service = NotificationService(mysql.connection)
+    for librarian in librarians:
+        service.add_notification(librarian["user_id"], subject, details)
 
 @main_bp.route('/main', methods=['GET'], endpoint='main_page')
 def main_page():
@@ -160,81 +170,6 @@ def my_fines():
         paid_fines=paid_fines
     )
 
-@main_bp.route('/my-requests', endpoint='my_requests')
-def my_requests():
-    if 'loggedin' not in session: return redirect(url_for('auth.login'))
-    user_id = session['userid']
-    cursor = get_cursor()
-
-    cursor.execute("""
-        SELECT r.request_id, r.request_date, r.status, b.title AS item_title, 
-               GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
-        FROM Request r
-        JOIN Book b ON r.book_id = b.book_id
-        LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
-        LEFT JOIN Author a ON ba.author_id = a.author_id
-        WHERE r.reader_id = %s AND r.request_type = 'Borrow'
-        GROUP BY r.request_id, b.title, r.request_date, r.status
-        ORDER BY r.request_date DESC
-    """, (user_id,))
-    borrows = cursor.fetchall()
-
-    cursor.execute("""
-        SELECT r.request_id, r.request_date, r.status, b.title AS item_title, 
-               GROUP_CONCAT(DISTINCT a.author_name SEPARATOR ', ') AS item_author
-        FROM Request r
-        JOIN Book b ON r.book_id = b.book_id
-        LEFT JOIN Book_Author ba ON b.book_id = ba.book_id
-        LEFT JOIN Author a ON ba.author_id = a.author_id
-        WHERE r.reader_id = %s AND r.request_type = 'Donation'
-        GROUP BY r.request_id, b.title, r.request_date, r.status
-    """, (user_id,))
-    donations_books = cursor.fetchall()
-
-    cursor.execute("""
-        SELECT r.request_id, r.request_date, r.status, m.title AS item_title, m.author AS item_author
-        FROM Request r
-        JOIN Material m ON r.material_id = m.material_id
-        WHERE r.reader_id = %s AND r.request_type = 'Donation'
-    """, (user_id,))
-    donations_materials = cursor.fetchall()
-    
-    donations = list(donations_books) + list(donations_materials)
-    donations.sort(key=lambda x: x['request_date'], reverse=True)
-
-    cursor.execute("""
-        SELECT r.request_id, r.request_date, r.status, m.title AS item_title, m.author AS item_author
-        FROM Request r
-        JOIN Material m ON r.material_id = m.material_id
-        WHERE r.reader_id = %s AND r.request_type = 'New Material'
-        ORDER BY r.request_date DESC
-    """, (user_id,))
-    new_books = cursor.fetchall()
-
-    return render_template('my-requests.html', 
-                           borrows=borrows, 
-                           donations=donations, 
-                           new_books=new_books)
-
-@main_bp.route('/cancel-request/<int:request_id>', methods=['POST'], endpoint='cancel_request')
-def cancel_request(request_id):
-    if 'loggedin' not in session: return redirect(url_for('auth.login'))
-    
-    cursor = get_cursor()
-    
-    cursor.execute("SELECT status FROM Request WHERE request_id = %s AND reader_id = %s", (request_id, session['userid']))
-    req = cursor.fetchone()
-    
-    if req and req['status'] == 'Pending':
-        cursor.execute("DELETE FROM Request WHERE request_id = %s", (request_id,))
-        
-        mysql.connection.commit()
-        flash("Request cancelled successfully.", "success")
-    else:
-        flash("Cannot cancel this request (it may already be processed).", "warning")
-        
-    return redirect(url_for('main.my_requests'))
-
 @main_bp.route('/notifications', endpoint='notifications')
 def notifications():
     if 'loggedin' not in session: return redirect(url_for('auth.login'))
@@ -339,6 +274,7 @@ def reviews(book_id):
                 
             except Exception as e:
                 mysql.connection.rollback()
+                system_log("Reviews", "ERROR", "ReviewService", f"Review submission failed: {e}")
                 flash(f"Error submitting review: {str(e)}", "danger")
 
     cursor.execute("SELECT book_id, title FROM Book WHERE book_id = %s", (book_id,))
@@ -381,23 +317,46 @@ def borrow_book(copy_id):
 
         cursor.execute("""
             SELECT request_id FROM Request 
-            WHERE reader_id = %s AND book_id = %s AND request_type = 'Borrow' AND status = 'Pending'
+            WHERE reader_id = %s AND book_id = %s AND request_type = 'Borrow'
+              AND status IN ('Pending', 'Approved')
         """, (user_id, copy_data['book_id']))
         
         if cursor.fetchone():
-            flash("You already have a pending borrow request for this book.", "warning")
+            flash("You already have an active borrow request for this book.", "warning")
             return redirect(request.referrer)
 
         cursor.execute("""
-            INSERT INTO Request (request_date, request_type, status, reader_id, book_id)
-            VALUES (NOW(), 'Borrow', 'Pending', %s, %s)
+            INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id)
+            VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Borrow', 'Pending', %s, %s)
         """, (user_id, copy_data['book_id']))
+        request_id = cursor.lastrowid
 
         mysql.connection.commit()
+        cursor.execute("""
+            SELECT CONCAT_WS(' ', user_first_name, user_middle_name, user_last_name) AS full_name
+            FROM User
+            WHERE user_id = %s
+        """, (user_id,))
+        user_row = cursor.fetchone() or {}
+        cursor.execute("SELECT title FROM Book WHERE book_id = %s", (copy_data['book_id'],))
+        book_row = cursor.fetchone() or {}
+        user_full_name = user_row.get("full_name") or f"User {user_id}"
+        book_title = book_row.get("title") or f"book {copy_data['book_id']}"
+        notify_librarians(
+            "New borrow request",
+            f"User {user_full_name} created a request to borrow {book_title}."
+        )
+        system_log(
+            "Requests",
+            "INFO",
+            "RequestService",
+            f"Borrow request created (request_id={request_id}, book_id={copy_data['book_id']})."
+        )
         flash("Borrow request sent to Librarian for approval.", "success")
 
     except Exception as e:
         mysql.connection.rollback()
+        system_log("Requests", "ERROR", "RequestService", f"Borrow request failed: {e}")
         flash(f"Error sending request: {str(e)}", "danger")
 
     return redirect(request.referrer or url_for('main.main_page'))
@@ -438,15 +397,23 @@ def hold_book(book_id):
             flash("You already have an active hold on this book.", "warning")
         else:
             insert_query = """
-                INSERT INTO Request (request_date, request_type, status, reader_id, book_id)
-                VALUES (NOW(), 'Hold', 'Pending', %s, %s)
+                INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id)
+                VALUES (NOW(), NULL, 'Hold', 'Pending', %s, %s)
             """
             cursor.execute(insert_query, (user_id, book_id))
+            request_id = cursor.lastrowid
             mysql.connection.commit()
+            system_log(
+                "Requests",
+                "INFO",
+                "RequestService",
+                f"Hold request created (request_id={request_id}, book_id={book_id})."
+            )
             flash("Hold placed successfully!", "success")
 
     except Exception as e:
         mysql.connection.rollback()
+        system_log("Requests", "ERROR", "RequestService", f"Hold request failed: {e}")
         print("Hold Error:", e)
         flash("An error occurred while placing hold.", "danger")
 
@@ -463,12 +430,23 @@ def add_book():
     
     try:
         if acquisition_type == 'Donation':
+            request_id = None
             if mode == 'existing':
                 book_id = request.form.get('book_id')
                 cursor.execute("""
-                    INSERT INTO Request (request_date, request_type, status, reader_id, book_id) 
-                    VALUES (NOW(), 'Donation', 'Pending', %s, %s)
+                    SELECT request_id FROM Request
+                    WHERE reader_id = %s AND book_id = %s AND request_type = 'Donation'
+                      AND status IN ('Pending', 'Approved')
                 """, (user_id, book_id))
+                if cursor.fetchone():
+                    flash("You already have an active donation request for this book.", "warning")
+                    return redirect(request.referrer)
+
+                cursor.execute("""
+                    INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id) 
+                    VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Donation', 'Pending', %s, %s)
+                """, (user_id, book_id))
+                request_id = cursor.lastrowid
                 
             elif mode == 'manual':
                 isbn = request.form.get('isbn')
@@ -489,13 +467,29 @@ def add_book():
                     material_id = cursor.lastrowid
                 
                 cursor.execute("""
-                    INSERT INTO Request (request_date, request_type, status, reader_id, material_id) 
-                    VALUES (NOW(), 'Donation', 'Pending', %s, %s)
+                    INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, material_id) 
+                    VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Donation', 'Pending', %s, %s)
                 """, (user_id, material_id))
+                request_id = cursor.lastrowid
             
             mysql.connection.commit()
+            if request_id:
+                if mode == "existing":
+                    system_log(
+                        "Requests",
+                        "INFO",
+                        "RequestService",
+                        f"Donation request created (request_id={request_id}, book_id={book_id})."
+                    )
+                else:
+                    system_log(
+                        "Requests",
+                        "INFO",
+                        "RequestService",
+                        f"Donation request created (request_id={request_id}, material_id={material_id})."
+                    )
             flash("Donation request sent to Librarian for approval.", "success")
-            return redirect(url_for('main.my_requests')) 
+            return redirect(url_for('request.my_requests')) 
 
         elif acquisition_type == 'Exchange':
             book_id = None
@@ -554,11 +548,18 @@ def add_book():
             """, (new_barcode, book_id, user_id))
             
             mysql.connection.commit()
+            system_log(
+                "Catalog",
+                "INFO",
+                "ExchangeService",
+                f"Exchange copy created (barcode={new_barcode}, book_id={book_id})."
+            )
             flash("Book added to your Exchange list!", "success")
             return redirect(url_for('main.my_books'))
 
     except Exception as e:
         mysql.connection.rollback()
+        system_log("Catalog", "ERROR", "ExchangeService", f"Add book failed: {e}")
         flash(f"Error adding book: {str(e)}", "danger")
         print(f"DEBUG ADD BOOK ERROR: {e}")
 
@@ -681,6 +682,7 @@ def confirm_handoff(copy_id):
         cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", ("Exchange Complete", msg, partner_id))
 
         mysql.connection.commit()
+        system_log("Requests", "INFO", "ExchangeService", f"Exchange completed (request_id={request_id}).")
         flash("Exchange completed successfully!", "success")
         
     else:
@@ -688,6 +690,7 @@ def confirm_handoff(copy_id):
         cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", ("Handoff Update", msg, partner_id))
         
         mysql.connection.commit()
+        system_log("Requests", "INFO", "ExchangeService", f"Handoff confirmed (request_id={request_id}).")
         flash("Handoff confirmed. Notification sent to partner.", "info")
 
     return redirect(url_for('main.my_books'))
@@ -724,6 +727,7 @@ def remove_book(copy_id):
     cursor = get_cursor()
     cursor.execute("DELETE FROM Copy WHERE item_barcode = %s AND status = 'Available'", (copy_id,))
     mysql.connection.commit()
+    system_log("Catalog", "INFO", "ExchangeService", f"Exchange copy removed (barcode={copy_id}).")
     flash("Book removed.", "success")
     return redirect(url_for('main.my_books'))
 
@@ -764,10 +768,12 @@ def cancel_handoff(copy_id):
         cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", ("Handoff Cancelled", msg, partner_id))
 
         mysql.connection.commit()
+        system_log("Requests", "INFO", "ExchangeService", f"Handoff cancelled (request_id={request_id}).")
         flash("Handoff cancelled. Partner has been notified.", "warning")
     else:
         cursor.execute("UPDATE Copy SET status = 'Available' WHERE item_barcode = %s", (copy_id,))
         mysql.connection.commit()
+        system_log("Catalog", "INFO", "ExchangeService", f"Exchange copy status reset (barcode={copy_id}).")
         flash("Book status reset to Available.", "info")
 
     return redirect(url_for('main.my_books'))
@@ -838,6 +844,7 @@ def reader_reviews(reader_id):
                 flash("Review submitted successfully!", "success")
             except Exception as e:
                 mysql.connection.rollback()
+                system_log("Reviews", "ERROR", "ReaderReviewService", f"Reader review failed: {e}")
                 if "Duplicate entry" in str(e):
                     flash("You have already rated this user.", "info")
                 else:
@@ -897,6 +904,7 @@ def request_exchange(barcode):
         """, (user_id, copy['book_id']))
         existing_req = cursor.fetchone()
 
+        request_id = None
         if existing_req:
             if existing_req['status'] in ['Pending', 'Approved']:
                 flash("You already have an active request for this book. Please wait for the owner to respond.", "info")
@@ -909,11 +917,13 @@ def request_exchange(barcode):
                         requester_confirmed = 0, owner_confirmed = 0, exchange_book_id = NULL
                     WHERE request_id = %s
                 """, (existing_req['request_id'],))
+                request_id = existing_req['request_id']
         else:
             cursor.execute("""
-                INSERT INTO Request (request_date, request_type, status, reader_id, book_id) 
-                VALUES (NOW(), 'Exchange', 'Pending', %s, %s)
+                INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, book_id) 
+                VALUES (NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY), 'Exchange', 'Pending', %s, %s)
             """, (user_id, copy['book_id']))
+            request_id = cursor.lastrowid
         
         owner_id = copy['owner_id']
         book_title = copy['title']
@@ -922,10 +932,18 @@ def request_exchange(barcode):
         cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", (notif_subject, notif_msg, owner_id))
 
         mysql.connection.commit()
+        if request_id:
+            system_log(
+                "Requests",
+                "INFO",
+                "ExchangeService",
+                f"Exchange request created (request_id={request_id}, book_id={copy['book_id']})."
+            )
         flash("Exchange request sent successfully!", "success")
 
     except Exception as e:
         mysql.connection.rollback()
+        system_log("Requests", "ERROR", "ExchangeService", f"Exchange request failed: {e}")
         flash(f"Error processing request: {str(e)}", "danger")
             
     return redirect(url_for('main.exchange_market'))
@@ -975,10 +993,12 @@ def reject_exchange(request_id):
         cursor.execute("UPDATE Request SET status = 'Rejected' WHERE request_id = %s", (request_id,))
         
         mysql.connection.commit()
+        system_log("Requests", "INFO", "ExchangeService", f"Exchange request rejected (request_id={request_id}).")
         flash("Request rejected. The user has been notified.", "info")
         
     except Exception as e:
         mysql.connection.rollback()
+        system_log("Requests", "ERROR", "ExchangeService", f"Reject exchange failed: {e}")
         flash(f"Error rejecting request: {str(e)}", "danger")
 
     return redirect(url_for('main.exchange_requests'))
@@ -1013,6 +1033,7 @@ def accept_exchange(request_id):
     cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", (notif_subject, notif_msg, requester_id))
 
     mysql.connection.commit()
+    system_log("Requests", "INFO", "ExchangeService", f"Exchange request approved (request_id={request_id}).")
     flash("Exchange accepted!", "success")
     return redirect(url_for('main.my_books'))
 
@@ -1026,13 +1047,13 @@ def renew_checkout(checkout_id):
         cursor.execute("""
             SELECT 
                 c.checkout_id, c.renew_count, c.due_date, c.copy_id, 
-                b.book_id, u.user_type,
+                b.book_id,
                 p.loan_period_days, p.renewals_allowed
             FROM Checkout c
             JOIN Copy cp ON c.copy_id = cp.item_barcode
             JOIN Book b ON cp.book_id = b.book_id
-            JOIN User u ON c.reader_id = u.user_id
-            JOIN Policy p ON p.applies_to_role = u.user_type
+            JOIN Reader r ON c.reader_id = r.reader_id
+            JOIN Policy p ON p.policy_id = r.policy_id
             WHERE c.checkout_id = %s AND c.reader_id = %s AND c.returned_date IS NULL
         """, (checkout_id, user_id))
         loan = cursor.fetchone()
@@ -1071,10 +1092,12 @@ def renew_checkout(checkout_id):
         """, (new_due_date, checkout_id))
         
         mysql.connection.commit()
+        system_log("Checkouts", "INFO", "CheckoutService", f"Checkout renewed (checkout_id={checkout_id}).")
         flash(f"Book renewed successfully! New due date: {new_due_date.strftime('%Y-%m-%d')}.", "success")
 
     except Exception as e:
         mysql.connection.rollback()
+        system_log("Checkouts", "ERROR", "CheckoutService", f"Checkout renewal failed: {e}")
         print(f"Renewal Error: {e}")
         flash("An unexpected error occurred during renewal.", "danger")
 
@@ -1123,6 +1146,7 @@ def cancel_hold(request_id):
         if req and req['status'] == 'Pending':
             cursor.execute("DELETE FROM Request WHERE request_id = %s", (request_id,))
             mysql.connection.commit()
+            system_log("Requests", "INFO", "RequestService", f"Hold request cancelled (request_id={request_id}).")
             flash("Hold request cancelled successfully.", "success")
         elif req and req['status'] != 'Pending':
             flash("Cannot cancel this hold; it may already be processed or approved.", "warning")
@@ -1131,6 +1155,7 @@ def cancel_hold(request_id):
 
     except Exception as e:
         mysql.connection.rollback()
+        system_log("Requests", "ERROR", "RequestService", f"Cancel hold failed: {e}")
         flash(f"An error occurred: {str(e)}", "danger")
 
     return redirect(url_for('main.my_holds'))
@@ -1152,5 +1177,6 @@ def pay_fine():
     cursor.execute(query, (fine_id,))
     mysql.connection.commit()
     cursor.close()
+    system_log("Fines", "INFO", "FineService", f"Fine paid (fine_id={fine_id}).")
 
     return redirect(url_for('main.my_fines', success=1))

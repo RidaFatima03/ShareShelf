@@ -9,6 +9,7 @@ from flask import (
 import MySQLdb.cursors
 
 from extensions import mysql
+from utils.system_log import system_log
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -29,7 +30,12 @@ def login():
 
         cursor = get_cursor()
         cursor.execute(
-            'SELECT * FROM User WHERE user_email = %s AND user_password = SHA2(%s, 256)',
+            """
+            SELECT * FROM User
+            WHERE user_email = %s
+              AND user_password = SHA2(%s, 256)
+              AND status = 'Active'
+            """,
             (email, password,)
         )
         user = cursor.fetchone()
@@ -54,10 +60,44 @@ def login():
                 'Login',
                 f"{session['user_type']} {session['username']} logged in."
             )
+            system_log(
+                "Auth",
+                "INFO",
+                "AuthService",
+                f"Login succeeded (user_id={session['userid']})."
+            )
 
             return redirect(url_for('main.main_page'))
         else:
-            flash('Incorrect email or password!', 'danger')
+            cursor.execute(
+                "SELECT user_id, status FROM User WHERE user_email = %s",
+                (email,)
+            )
+            status_row = cursor.fetchone()
+            if status_row and status_row.get('status') == 'Blocked':
+                system_log(
+                    "Auth",
+                    "WARN",
+                    "LoginGuard",
+                    f"Blocked login attempt (user_id={status_row.get('user_id')})."
+                )
+                flash('Your account is blocked. Please contact support.', 'danger')
+            elif status_row and status_row.get('status') == 'Inactive':
+                system_log(
+                    "Auth",
+                    "WARN",
+                    "LoginGuard",
+                    f"Inactive login attempt (user_id={status_row.get('user_id')})."
+                )
+                flash('Your account is inactive. Please contact support.', 'danger')
+            else:
+                system_log(
+                    "Auth",
+                    "WARN",
+                    "LoginGuard",
+                    "Failed login attempt."
+                )
+                flash('Incorrect email or password!', 'danger')
             return redirect(url_for('auth.login'))
 
     return render_template('login.html')
@@ -94,10 +134,24 @@ def register():
             return render_template('register.html', message=message)
 
         
-        cursor.execute('INSERT INTO User (user_first_name, user_middle_name, user_last_name, user_phone_number, user_email, user_password) ' \
-        '     VALUES (% s, %s, %s, %s, %s, SHA2(%s, 256))',
-             (user_first_name, user_middle_name, user_last_name, user_phone_number, user_email, user_password))
+        cursor.execute("SELECT policy_id FROM Policy ORDER BY policy_id LIMIT 1")
+        policy_row = cursor.fetchone()
+        if not policy_row:
+            message = 'No policy found. Please contact a librarian.'
+            return render_template('register.html', message=message)
+
+        cursor.execute(
+            'INSERT INTO User (user_first_name, user_middle_name, user_last_name, user_phone_number, user_email, user_password, status, user_type) '
+            'VALUES (%s, %s, %s, %s, %s, SHA2(%s, 256), %s, %s)',
+            (user_first_name, user_middle_name, user_last_name, user_phone_number, user_email, user_password, 'Active', 'Reader')
+        )
+        new_user_id = cursor.lastrowid
+        cursor.execute(
+            "INSERT INTO Reader (reader_id, policy_id) VALUES (%s, %s)",
+            (new_user_id, policy_row["policy_id"])
+        )
         mysql.connection.commit()
+        system_log("Auth", "INFO", "RegistrationService", f"User created (user_id={new_user_id}).")
         message = 'User successfully created!'
         return render_template('login.html', message = message)
 
@@ -133,6 +187,7 @@ def send_reset_link():
         """, (token, user_id))
 
         mysql.connection.commit()
+        system_log("Auth", "INFO", "PasswordReset", f"Password reset token created (user_id={user_id}).")
 
         # 4) Build reset URL and send it by email
         reset_url = url_for('auth.change_password', token=token, _external=True)
@@ -141,6 +196,7 @@ def send_reset_link():
         try:
             send_reset_email(email, reset_url)
         except Exception as e:
+            system_log("Auth", "ERROR", "EmailService", f"Password reset email failed: {e}")
             print("Error sending reset email:", e)
 
     flash("If that email exists, we'll send a reset link.", "info")
@@ -216,6 +272,7 @@ def change_password(token):
         """, (token,))
 
         mysql.connection.commit()
+        system_log("Auth", "INFO", "PasswordReset", f"Password reset completed (user_id={user_id}).")
 
         flash("Your password has been reset. You can now log in.", "success")
         return redirect(url_for('auth.login'))
@@ -230,6 +287,12 @@ def logout():
             session['userid'],
             'Logout',
             f"{session.get('user_type', '')} {session.get('username', '')} logged out."
+        )
+        system_log(
+            "Auth",
+            "INFO",
+            "AuthService",
+            f"Logout completed (user_id={session.get('userid')})."
         )
     session.clear()
     return redirect(url_for('auth.login'))

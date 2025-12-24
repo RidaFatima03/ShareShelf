@@ -1,27 +1,35 @@
 {% extends "sidebar.html" %}
 
 {% block content %}
-<div class="logs-page">
-
-    <h1 class="page-title">System Logs</h1>
+<div>
+    <div class="manage-header">
+        <h1 class="page-title">System Logs</h1>
+    </div>
 
     <!-- Logs table -->
     <div class="table-wrapper table-wrapper-scroll">
         <form method="get" class="table-filter-form">
-            <table class="activity-table logs-table">
+            <table class="activity-table logs-table activity-table-compact">
                 <thead>
                     <tr>
-                        <th>
-                            Log Date<br>
+                        <th class="col-date-range">
                             <div class="table-date-range">
-                                <input type="date"
-                                       name="start_date"
-                                       class="filter-input filter-input-manage"
-                                       value="{{ start_date }}">
-                                <input type="date"
-                                       name="end_date"
-                                       class="filter-input filter-input-manage"
-                                       value="{{ end_date }}">
+                                <div class="date-range-field">
+                                    From
+                                    <input type="datetime-local"
+                                           id="start_date"
+                                           name="start_date"
+                                           class="filter-input filter-input-manage"
+                                           value="{{ start_date }}">
+                                </div>
+                                <div class="date-range-field">
+                                    To
+                                    <input type="datetime-local"
+                                           id="end_date"
+                                           name="end_date"
+                                           class="filter-input filter-input-manage"
+                                           value="{{ end_date }}">
+                                </div>
                             </div>
                         </th>
                         <th>
@@ -46,7 +54,7 @@
                                 {% endfor %}
                             </select>
                         </th>
-                        <th>
+                        <th class="col-log-node">
                             Log Node<br>
                             <input type="text"
                                    name="node_query"

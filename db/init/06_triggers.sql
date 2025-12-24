@@ -28,4 +28,14 @@ BEGIN
     WHERE book_id = OLD.book_id;
 END //
 
+DROP TRIGGER IF EXISTS prevent_default_policy_delete //
+CREATE TRIGGER prevent_default_policy_delete
+BEFORE DELETE ON Policy
+FOR EACH ROW
+BEGIN
+    IF OLD.name = 'Standard Policy' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Default policy cannot be deleted';
+    END IF;
+END //
+
 DELIMITER ;

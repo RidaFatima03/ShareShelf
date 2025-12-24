@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session,flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+import MySQLdb
 import MySQLdb.cursors
 from extensions import mysql
 from utils.system_log import system_log
@@ -108,9 +109,24 @@ def delete_policy(id):
         return "Unauthorized", 403
 
     cursor = get_cursor()
-    cursor.execute("DELETE FROM Policy WHERE policy_id = %s", (id,))
-    mysql.connection.commit()
-    system_log("Policy", "INFO", "PolicyService", f"Policy deleted (policy_id={id}).")
+    cursor.execute("SELECT name FROM Policy WHERE policy_id = %s", (id,))
+    policy = cursor.fetchone()
+    if policy and policy.get("name") == "Standard Policy":
+        flash("Default policy cannot be deleted.", "danger")
+        return redirect(url_for('policy.policy'))
+
+    try:
+        cursor.execute("DELETE FROM Policy WHERE policy_id = %s", (id,))
+        mysql.connection.commit()
+        system_log("Policy", "INFO", "PolicyService", f"Policy deleted (policy_id={id}).")
+        flash("Policy deleted successfully.", "success")
+    except MySQLdb.IntegrityError:
+        mysql.connection.rollback()
+        flash("Policy cannot be deleted because it is in use.", "danger")
+    except Exception as exc:
+        mysql.connection.rollback()
+        system_log("Policy", "ERROR", "PolicyService", f"Policy delete failed (policy_id={id}): {exc}")
+        flash("Policy could not be deleted.", "danger")
 
     return redirect(url_for('policy.policy'))
 

@@ -3,6 +3,7 @@ import MySQLdb
 import MySQLdb.cursors
 from extensions import mysql
 from utils.system_log import system_log
+from routes.notifications import NotificationService
 
 policy_bp = Blueprint('policy', __name__)
 
@@ -57,6 +58,28 @@ def edit_policy(id):
 
         mysql.connection.commit()
         system_log("Policy", "INFO", "PolicyService", f"Policy updated (policy_id={id}).")
+
+        if session.get('user_type') == 'Librarian':
+            cursor.execute("""
+                SELECT r.reader_id, COUNT(rq.request_id) AS hold_count
+                FROM Reader r
+                LEFT JOIN Request rq
+                  ON rq.reader_id = r.reader_id
+                 AND rq.request_type = 'Hold'
+                 AND rq.status IN ('Pending', 'Approved')
+                WHERE r.policy_id = %s
+                GROUP BY r.reader_id
+                HAVING hold_count > %s
+            """, (id, holds))
+            over_limit = cursor.fetchall()
+            if over_limit:
+                service = NotificationService(mysql.connection)
+                for row in over_limit:
+                    service.add_notification(
+                        row["reader_id"],
+                        "Hold limit updated",
+                        f"Your policy hold limit is now {holds}. You currently have {row['hold_count']} active holds and cannot place new holds until you are within the limit."
+                    )
 
         return redirect(url_for('policy.policy'))
 

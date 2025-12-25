@@ -1159,6 +1159,9 @@ def user_management():
     # ---------- LIST + SEARCH (GET) ----------
     page = request.args.get("page", 1, type=int)
     per_page = 10
+    tab = (request.args.get("tab") or "readers").strip().lower()
+    if tab not in ("readers", "staff"):
+        tab = "readers"
 
     # make sure they are strings, not None
     search_id = (request.args.get("search_id") or "").strip()
@@ -1186,11 +1189,17 @@ def user_management():
         where.append("u.status = %s")
         params.append(search_status)
 
-    if search_user_type:
+    if tab == "readers":
+        where.append("u.user_type = %s")
+        params.append("Reader")
+    else:
+        where.append("u.user_type IN ('Admin', 'Librarian')")
+
+    if search_user_type and tab == "staff":
         where.append("u.user_type = %s")
         params.append(search_user_type)
 
-    if search_policy:
+    if search_policy and tab == "readers":
         where.append("p.policy_id = %s")
         params.append(search_policy)
 
@@ -1265,6 +1274,7 @@ def user_management():
             search_status=search_status,
             search_user_type=search_user_type,
             search_policy=search_policy,
+            active_tab=tab,
             all_policies=all_policies,
             total_count=total,
             start_item=start_item,

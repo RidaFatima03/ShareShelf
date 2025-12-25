@@ -1,0 +1,190 @@
+{% extends "sidebar.html" %}
+
+{% block content %}
+<div>
+    <div class="manage-header">
+        <h1 class="page-title">Manage Checkouts</h1>
+    </div>
+
+    <div class="table-wrapper">
+        <form id="checkoutFilters" method="get" action="{{ url_for('librarian.checkouts') }}"></form>
+        <table class="activity-table">
+            <thead>
+                <tr>
+                    <th class="col-id">
+                        Checkout ID<br>
+                        <input type="text"
+                               name="search_checkout_id"
+                               form="checkoutFilters"
+                               class="filter-input filter-input-manage"
+                               placeholder="Search ID..."
+                               value="{{ search_checkout_id }}">
+                    </th>
+                    <th class="col-id">
+                        User ID<br>
+                        <input type="text"
+                               name="search_user_id"
+                               form="checkoutFilters"
+                               class="filter-input filter-input-manage"
+                               placeholder="Search user ID..."
+                               value="{{ search_user_id }}">
+                    </th>
+                    <th>
+                        User Name<br>
+                    </th>
+                    <th>
+                        Book Title<br>
+                        <input type="text"
+                               name="search_title"
+                               form="checkoutFilters"
+                               class="filter-input filter-input-manage"
+                               placeholder="Search title..."
+                               value="{{ search_title }}">
+                    </th>
+                    <th>
+                        Barcode<br>
+                        <input type="text"
+                               name="search_barcode"
+                               form="checkoutFilters"
+                               class="filter-input filter-input-manage"
+                               placeholder="Search barcode..."
+                               value="{{ search_barcode }}">
+                    </th>
+                    <th>
+                        Status<br>
+                        <select name="search_status" form="checkoutFilters" class="filter-input filter-input-manage">
+                            <option value="">All</option>
+                            <option value="Active" {% if search_status == 'Active' %}selected{% endif %}>Active</option>
+                            <option value="Overdue" {% if search_status == 'Overdue' %}selected{% endif %}>Overdue</option>
+                            <option value="Returned" {% if search_status == 'Returned' %}selected{% endif %}>Returned</option>
+                        </select>
+                    </th>
+                    <th>
+                        <button type="submit" form="checkoutFilters" class="logout-link btn-apply filter-action-btn">Apply</button>
+                        <a href="{{ url_for('librarian.checkouts') }}" class="logout-link btn-cancel filter-action-btn">Clear</a>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if checkouts %}
+                    {% for c in checkouts %}
+                        <tr>
+                            <td class="col-id">{{ c.checkout_id }}</td>
+                            <td class="col-id">{{ c.user_id }}</td>
+                            <td>{{ c.user_name }}</td>
+                            <td>{{ c.book_title }}</td>
+                            <td>{{ c.copy_id }}</td>
+                            <td>
+                                <span class="request-status {{ c.status_label|lower }}">{{ c.status_label }}</span>
+                            </td>
+                            <td>
+                                <div class="manage-btns">
+                                    {% if not c.returned_date %}
+                                        <form method="POST"
+                                              action="{{ url_for('librarian.return_checkout', checkout_id=c.checkout_id) }}"
+                                              onsubmit="return confirm('Mark this checkout as returned?');"
+                                              class="d-inline">
+                                            <button type="submit" class="logout-link filter-action-btn request-handle-btn">
+                                                Mark Returned
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <span class="no-action">N/A</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-3">
+                            No checkouts found.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+        <p class="logs-footer">{{ start_item }} to {{ end_item }} of {{ total_count }}</p>
+    </div>
+
+    <nav class="pagination-container mt-4">
+        <ul class="pagination">
+            <li class="page-item {% if not has_prev %}disabled{% endif %}">
+                <a class="page-link"
+                   href="{% if has_prev %}{{ url_for('librarian.checkouts', page=page-1,
+                                                    search_checkout_id=search_checkout_id,
+                                                    search_user_id=search_user_id,
+                                                    search_title=search_title,
+                                                    search_barcode=search_barcode,
+                                                    search_status=search_status) }}{% else %}#{% endif %}">
+                    Previous
+                </a>
+            </li>
+
+            {% if total_pages > 0 %}
+                <li class="page-item {% if page == 1 %}active{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('librarian.checkouts', page=1,
+                                        search_checkout_id=search_checkout_id,
+                                        search_user_id=search_user_id,
+                                        search_title=search_title,
+                                        search_barcode=search_barcode,
+                                        search_status=search_status) }}">
+                        1
+                    </a>
+                </li>
+
+                {% if page - 2 > 1 %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+
+                {% set start = 2 if page - 1 < 2 else page - 1 %}
+                {% set end = total_pages - 1 if page + 1 > total_pages - 1 else page + 1 %}
+                {% for p in range(start, end + 1) %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link"
+                           href="{{ url_for('librarian.checkouts', page=p,
+                                            search_checkout_id=search_checkout_id,
+                                            search_user_id=search_user_id,
+                                            search_title=search_title,
+                                            search_barcode=search_barcode,
+                                            search_status=search_status) }}">
+                            {{ p }}
+                        </a>
+                    </li>
+                {% endfor %}
+
+                {% if page + 2 < total_pages %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% endif %}
+
+                {% if total_pages > 1 %}
+                    <li class="page-item {% if page == total_pages %}active{% endif %}">
+                        <a class="page-link"
+                           href="{{ url_for('librarian.checkouts', page=total_pages,
+                                            search_checkout_id=search_checkout_id,
+                                            search_user_id=search_user_id,
+                                            search_title=search_title,
+                                            search_barcode=search_barcode,
+                                            search_status=search_status) }}">
+                            {{ total_pages }}
+                        </a>
+                    </li>
+                {% endif %}
+            {% endif %}
+
+            <li class="page-item {% if not has_next %}disabled{% endif %}">
+                <a class="page-link"
+                   href="{% if has_next %}{{ url_for('librarian.checkouts', page=page+1,
+                                                    search_checkout_id=search_checkout_id,
+                                                    search_user_id=search_user_id,
+                                                    search_title=search_title,
+                                                    search_barcode=search_barcode,
+                                                    search_status=search_status) }}{% else %}#{% endif %}">
+                    Next
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+{% endblock %}

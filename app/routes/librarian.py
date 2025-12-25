@@ -192,6 +192,134 @@ def requests():
         active_values=active_values
     )
 
+@librarian_bp.route("/checkouts", methods=["GET"], endpoint="checkouts")
+def checkouts():
+    check = librarian_required()
+    if check:
+        return check
+
+    cursor = get_cursor()
+
+    page = request.args.get("page", 1, type=int)
+    per_page = 10
+
+    search_checkout_id = (request.args.get("search_checkout_id") or "").strip()
+    search_user_id = (request.args.get("search_user_id") or "").strip()
+    search_title = (request.args.get("search_title") or "").strip()
+    search_barcode = (request.args.get("search_barcode") or "").strip()
+    search_status = (request.args.get("search_status") or "").strip()
+
+    where = []
+    params = []
+
+    if search_checkout_id:
+        where.append("CAST(c.checkout_id AS CHAR) LIKE %s")
+        params.append(f"%{search_checkout_id}%")
+    if search_user_id:
+        where.append("CAST(u.user_id AS CHAR) LIKE %s")
+        params.append(f"%{search_user_id}%")
+    if search_title:
+        where.append("b.title LIKE %s")
+        params.append(f"%{search_title}%")
+    if search_barcode:
+        where.append("c.copy_id LIKE %s")
+        params.append(f"%{search_barcode}%")
+    if search_status == "Active":
+        where.append("c.returned_date IS NULL AND c.due_date >= NOW()")
+    elif search_status == "Overdue":
+        where.append("c.returned_date IS NULL AND c.due_date < NOW()")
+    elif search_status == "Returned":
+        where.append("c.returned_date IS NOT NULL")
+
+    where_sql = " WHERE " + " AND ".join(where) if where else ""
+
+    cursor.execute(f"""
+        SELECT COUNT(*) AS total
+        FROM Checkout c
+        JOIN Copy cp ON c.copy_id = cp.item_barcode
+        JOIN Book b ON cp.book_id = b.book_id
+        JOIN User u ON c.reader_id = u.user_id
+        {where_sql}
+    """, params)
+    total = (cursor.fetchone() or {}).get("total", 0)
+
+    page, total_pages, offset, has_prev, has_next = paginate(page, per_page, total)
+    if total:
+        start_item = (page - 1) * per_page + 1
+        end_item = min(total, page * per_page)
+    else:
+        start_item = 0
+        end_item = 0
+
+    cursor.execute(f"""
+        SELECT
+            c.checkout_id,
+            c.checkout_date,
+            c.due_date,
+            c.returned_date,
+            c.copy_id,
+            b.title AS book_title,
+            u.user_id,
+            CONCAT_WS(' ', u.user_first_name, u.user_middle_name, u.user_last_name) AS user_name,
+            CASE
+                WHEN c.returned_date IS NOT NULL THEN 'Returned'
+                WHEN c.due_date < NOW() THEN 'Overdue'
+                ELSE 'Active'
+            END AS status_label
+        FROM Checkout c
+        JOIN Copy cp ON c.copy_id = cp.item_barcode
+        JOIN Book b ON cp.book_id = b.book_id
+        JOIN User u ON c.reader_id = u.user_id
+        {where_sql}
+        ORDER BY c.checkout_date DESC
+        LIMIT %s OFFSET %s
+    """, params + [per_page, offset])
+    checkouts = cursor.fetchall()
+
+    return render_template(
+        "checkouts.html",
+        checkouts=checkouts,
+        page=page,
+        total_pages=total_pages,
+        has_prev=has_prev,
+        has_next=has_next,
+        total_count=total,
+        start_item=start_item,
+        end_item=end_item,
+        search_checkout_id=search_checkout_id,
+        search_user_id=search_user_id,
+        search_title=search_title,
+        search_barcode=search_barcode,
+        search_status=search_status,
+    )
+
+@librarian_bp.route("/checkouts/return/<int:checkout_id>", methods=["POST"], endpoint="return_checkout")
+def return_checkout(checkout_id):
+    check = librarian_required()
+    if check:
+        return check
+
+    cursor = get_cursor()
+    cursor.execute("""
+        SELECT c.copy_id, c.returned_date
+        FROM Checkout c
+        WHERE c.checkout_id = %s
+    """, (checkout_id,))
+    row = cursor.fetchone()
+    if not row:
+        flash("Checkout not found.", "danger")
+        return redirect(request.referrer or url_for("librarian.checkouts"))
+    if row["returned_date"]:
+        flash("Checkout already marked as returned.", "warning")
+        return redirect(request.referrer or url_for("librarian.checkouts"))
+
+    cursor.execute("UPDATE Checkout SET returned_date = NOW() WHERE checkout_id = %s", (checkout_id,))
+    cursor.execute("UPDATE Copy SET status = 'Available' WHERE item_barcode = %s", (row["copy_id"],))
+    mysql.connection.commit()
+    system_log("Checkouts", "INFO", "CheckoutService", f"Checkout returned (checkout_id={checkout_id}).")
+    flash("Checkout marked as returned.", "success")
+    return redirect(request.referrer or url_for("librarian.checkouts"))
+
 @librarian_bp.route("/requests/approve/<int:request_id>", methods=["POST"], endpoint="approve_request")
 def approve_request(request_id):
     check = librarian_required()

@@ -530,6 +530,12 @@ def locations():
     total = (cursor.fetchone() or {}).get("total", 0)
 
     page, total_pages, offset, has_prev, has_next = paginate(page, per_page, total)
+    if total:
+        start_item = (page - 1) * per_page + 1
+        end_item = min(total, page * per_page)
+    else:
+        start_item = 0
+        end_item = 0
 
     cursor.execute(f"""
         SELECT location_id, direction, collection, shelf_row
@@ -547,6 +553,9 @@ def locations():
         search_direction=v["search_direction"],
         search_collection=v["search_collection"],
         search_shelf_row=v["search_shelf_row"],
+        total_count=total,
+        start_item=start_item,
+        end_item=end_item,
     )
 
 

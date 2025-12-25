@@ -1089,7 +1089,6 @@ html.sidebar-closed-init .filters-results.main-content {
     align-items: flex-start;
     gap: 20px;
     transition: border-color 0.2s, box-shadow 0.2s;
-    cursor: pointer;
 }
 
 .book-result-card:hover {

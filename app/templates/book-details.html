@@ -106,11 +106,11 @@
                                 </span>
                             </td>
                             <td class="copy-actions">
-                                {% if copy.status == 'Available' %}
+                                {% if session.get('user_type') == 'Reader' and copy.status == 'Available' %}
                                     <form action="{{ url_for('main.borrow_book', copy_id=copy.item_barcode) }}" method="POST">
                                         <button type="submit" class="borrow-btn">Borrow</button>
                                     </form>
-                                {% elif copy.status == 'On Loan' %}
+                                {% elif session.get('user_type') == 'Reader' and copy.status == 'On Loan' %}
                                     <form action="{{ url_for('main.hold_book', copy_id=copy.item_barcode) }}" method="POST">
                                         <button type="submit" class="hold-btn">Hold</button>
                                     </form>

@@ -135,6 +135,17 @@
                     </svg>
                     <span>All Requests</span>
                 </a>
+                <a href="{{ url_for('librarian.checkouts') }}"
+                    class="nav-item {% if request.endpoint == 'librarian.checkouts' %}active{% endif %}">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16v16H4z"></path>
+                        <path d="M8 8h8"></path>
+                        <path d="M8 12h8"></path>
+                        <path d="M8 16h5"></path>
+                    </svg>
+                    <span>Manage Checkouts</span>
+                </a>
 
                 <details class="nav-group" {% if request.endpoint in ['copies.list','librarian.authors','librarian.genres','librarian.books','librarian.locations'] %}open{% endif %}>
                     <summary class="nav-item">

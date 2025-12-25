@@ -129,8 +129,7 @@ def my_requests():
         JOIN Material m ON r.material_id = m.material_id
         WHERE r.reader_id = %s AND r.request_type = 'Donation'{where_sql}
     """, [user_id] + params)
-    donations = cursor.fetchall()
-    donations.sort(key=lambda x: x["request_date"], reverse=True)
+    donations = sorted(cursor.fetchall(), key=lambda x: x["request_date"], reverse=True)
 
     # BOOK REQUESTS (Material)
     where_sql, params = build_request_filters("m.title", "m.author", search_values["book_requests"], active_tab == "book_requests")

@@ -153,6 +153,7 @@
                 </tbody>
             </table>
         </form>
+        <p class="logs-footer">{{ start_item }} to {{ end_item }} of {{ total_count }}</p>
     </div>
 
     <nav class="pagination-container mt-4">
@@ -173,7 +174,30 @@
                 </a>
             </li>
 
-            {% for p in range(1, total_pages + 1) %}
+            {% if total_pages > 0 %}
+            <li class="page-item {% if page == 1 %}active{% endif %}">
+                <a class="page-link"
+                    href="{{ url_for('copies.list', page=1,
+                                search_barcode=search_barcode,
+                                search_title=search_title,
+                                search_book_id=search_book_id,
+                                search_status=search_status,
+                                search_acquisition=search_acquisition,
+                                search_material=search_material,
+                                search_call_number=search_call_number,
+                                search_location=search_location,
+                                search_owner=search_owner) }}">
+                    1
+                </a>
+            </li>
+
+            {% if page - 2 > 1 %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+
+            {% set start = 2 if page - 1 < 2 else page - 1 %}
+            {% set end = total_pages - 1 if page + 1 > total_pages - 1 else page + 1 %}
+            {% for p in range(start, end + 1) %}
             <li class="page-item {% if p == page %}active{% endif %}">
                 <a class="page-link"
                     href="{{ url_for('copies.list', page=p,
@@ -190,6 +214,29 @@
                 </a>
             </li>
             {% endfor %}
+
+            {% if page + 2 < total_pages %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+
+            {% if total_pages > 1 %}
+            <li class="page-item {% if page == total_pages %}active{% endif %}">
+                <a class="page-link"
+                    href="{{ url_for('copies.list', page=total_pages,
+                                search_barcode=search_barcode,
+                                search_title=search_title,
+                                search_book_id=search_book_id,
+                                search_status=search_status,
+                                search_acquisition=search_acquisition,
+                                search_material=search_material,
+                                search_call_number=search_call_number,
+                                search_location=search_location,
+                                search_owner=search_owner) }}">
+                    {{ total_pages }}
+                </a>
+            </li>
+            {% endif %}
+            {% endif %}
 
             <li class="page-item {% if not has_next %}disabled{% endif %}">
                 <a class="page-link"

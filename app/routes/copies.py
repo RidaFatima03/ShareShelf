@@ -150,6 +150,12 @@ def list_copies():
     total = (cursor.fetchone() or {}).get("total", 0)
 
     page, total_pages, offset, has_prev, has_next = paginate(page, per_page, total)
+    if total:
+        start_item = (page - 1) * per_page + 1
+        end_item = min(total, page * per_page)
+    else:
+        start_item = 0
+        end_item = 0
 
     cursor.execute(f"""
         SELECT
@@ -182,6 +188,9 @@ def list_copies():
         total_pages=total_pages,
         has_prev=has_prev,
         has_next=has_next,
+        total_count=total,
+        start_item=start_item,
+        end_item=end_item,
         all_books=all_books,
         all_locations=all_locations,
         all_readers=all_readers,

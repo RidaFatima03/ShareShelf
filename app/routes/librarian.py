@@ -444,6 +444,12 @@ def genres():
     total = (cursor.fetchone() or {}).get("total", 0)
 
     page, total_pages, offset, has_prev, has_next = paginate(page, per_page, total)
+    if total:
+        start_item = (page - 1) * per_page + 1
+        end_item = min(total, page * per_page)
+    else:
+        start_item = 0
+        end_item = 0
 
     # data query
     cursor.execute(f"""
@@ -459,6 +465,7 @@ def genres():
         genres=cursor.fetchall(),
         page=page, total_pages=total_pages, has_prev=has_prev, has_next=has_next,
         search_id=v["search_id"], search_name=v["search_name"],
+        total_count=total, start_item=start_item, end_item=end_item,
     )
 
 

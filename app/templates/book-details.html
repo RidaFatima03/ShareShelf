@@ -126,7 +126,7 @@
                                         <button type="submit" class="borrow-btn">Borrow</button>
                                     </form>
                                 {% elif copy.status == 'On Loan' %}
-                                    <form action="{{ url_for('main.hold_book', book_id=book.book_id) }}" method="POST">
+                                    <form action="{{ url_for('main.hold_book', copy_id=copy.item_barcode) }}" method="POST">
                                         <button type="submit" class="hold-btn">Hold</button>
                                     </form>
                                 {% else %}

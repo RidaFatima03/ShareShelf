@@ -382,8 +382,8 @@ def borrow_book(copy_id):
 
     return redirect(request.referrer or url_for('main.main_page'))
 
-@main_bp.route('/hold/<int:book_id>', methods=['POST'], endpoint='hold_book')
-def hold_book(book_id):
+@main_bp.route('/hold/<string:copy_id>', methods=['POST'], endpoint='hold_book')
+def hold_book(copy_id):
     if 'loggedin' not in session:
         return redirect(url_for('auth.login'))
     
@@ -391,6 +391,21 @@ def hold_book(book_id):
     cursor = get_cursor()
 
     try:
+        cursor.execute("""
+            SELECT book_id, status, acquisition_type
+            FROM Copy
+            WHERE item_barcode = %s
+        """, (copy_id,))
+        copy_row = cursor.fetchone()
+
+        if not copy_row:
+            flash("Copy not found.", "danger")
+            return redirect(request.referrer)
+
+        if copy_row["acquisition_type"] == "Exchange":
+            flash("Exchange copies cannot be placed on hold.", "warning")
+            return redirect(request.referrer)
+
         check_loan_query = """
             SELECT c.checkout_id 
             FROM Checkout c
@@ -399,7 +414,7 @@ def hold_book(book_id):
               AND cp.book_id = %s 
               AND c.returned_date IS NULL
         """
-        cursor.execute(check_loan_query, (user_id, book_id))
+        cursor.execute(check_loan_query, (user_id, copy_row["book_id"]))
         existing_loan = cursor.fetchone()
 
         if existing_loan:
@@ -429,18 +444,6 @@ def hold_book(book_id):
             flash("Hold limit reached based on your policy.", "warning")
             return redirect(request.referrer)
 
-        cursor.execute("""
-            SELECT item_barcode
-            FROM Copy
-            WHERE book_id = %s AND acquisition_type != 'Exchange'
-            ORDER BY CASE WHEN status = 'Available' THEN 0 ELSE 1 END, added_date
-            LIMIT 1
-        """, (book_id,))
-        copy_row = cursor.fetchone()
-        if not copy_row:
-            flash("No copies found for this book.", "danger")
-            return redirect(request.referrer)
-
         check_hold_query = """
             SELECT r.request_id
             FROM Request r
@@ -448,7 +451,7 @@ def hold_book(book_id):
             WHERE r.reader_id = %s AND cp.book_id = %s
               AND r.request_type = 'Hold' AND r.status IN ('Pending', 'Approved')
         """
-        cursor.execute(check_hold_query, (user_id, book_id))
+        cursor.execute(check_hold_query, (user_id, copy_row["book_id"]))
         existing_hold = cursor.fetchone()
 
         if existing_hold:
@@ -458,14 +461,14 @@ def hold_book(book_id):
                 INSERT INTO Request (request_date, expire_date, request_type, status, reader_id, copy_id)
                 VALUES (NOW(), NULL, 'Hold', 'Pending', %s, %s)
             """
-            cursor.execute(insert_query, (user_id, copy_row['item_barcode']))
+            cursor.execute(insert_query, (user_id, copy_id))
             request_id = cursor.lastrowid
             mysql.connection.commit()
             system_log(
                 "Requests",
                 "INFO",
                 "RequestService",
-                f"Hold request created (request_id={request_id}, copy_id={copy_row['item_barcode']})."
+                f"Hold request created (request_id={request_id}, copy_id={copy_id})."
             )
             flash("Hold placed successfully!", "success")
 

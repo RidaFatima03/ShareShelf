@@ -328,6 +328,27 @@ def borrow_book(copy_id):
             return redirect(request.referrer)
 
         cursor.execute("""
+            SELECT p.max_concurrent_loans
+            FROM Reader r
+            JOIN Policy p ON r.policy_id = p.policy_id
+            WHERE r.reader_id = %s
+        """, (user_id,))
+        policy = cursor.fetchone()
+        if not policy:
+            flash("No policy assigned to your account. Please contact a librarian.", "danger")
+            return redirect(request.referrer)
+
+        cursor.execute("""
+            SELECT COUNT(*) AS loan_count
+            FROM Checkout c
+            WHERE c.reader_id = %s AND c.returned_date IS NULL
+        """, (user_id,))
+        active_loans = cursor.fetchone()
+        if active_loans and active_loans["loan_count"] >= policy["max_concurrent_loans"]:
+            flash("Borrow limit reached based on your policy.", "warning")
+            return redirect(request.referrer)
+
+        cursor.execute("""
             SELECT r.request_id
             FROM Request r
             JOIN Copy cp ON r.copy_id = cp.item_barcode
@@ -383,6 +404,29 @@ def hold_book(book_id):
 
         if existing_loan:
             flash("You cannot place a hold on a book you currently have checked out.", "warning")
+            return redirect(request.referrer)
+
+        cursor.execute("""
+            SELECT p.holds_limit_reservation
+            FROM Reader r
+            JOIN Policy p ON r.policy_id = p.policy_id
+            WHERE r.reader_id = %s
+        """, (user_id,))
+        policy = cursor.fetchone()
+        if not policy:
+            flash("No policy assigned to your account. Please contact a librarian.", "danger")
+            return redirect(request.referrer)
+
+        cursor.execute("""
+            SELECT COUNT(*) AS hold_count
+            FROM Request r
+            WHERE r.reader_id = %s
+              AND r.request_type = 'Hold'
+              AND r.status IN ('Pending', 'Approved')
+        """, (user_id,))
+        active_holds = cursor.fetchone()
+        if active_holds and active_holds["hold_count"] >= policy["holds_limit_reservation"]:
+            flash("Hold limit reached based on your policy.", "warning")
             return redirect(request.referrer)
 
         cursor.execute("""

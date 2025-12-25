@@ -316,6 +316,9 @@ def reviews(book_id):
 @main_bp.route('/borrow/<string:copy_id>', methods=['POST'], endpoint='borrow_book')
 def borrow_book(copy_id):
     if 'loggedin' not in session: return redirect(url_for('auth.login'))
+    if session.get('user_type') != 'Reader':
+        flash("Only readers can borrow books.", "warning")
+        return redirect(request.referrer or url_for('main.main_page'))
     user_id = session['userid']
     cursor = get_cursor()
 
@@ -386,6 +389,9 @@ def borrow_book(copy_id):
 def hold_book(copy_id):
     if 'loggedin' not in session:
         return redirect(url_for('auth.login'))
+    if session.get('user_type') != 'Reader':
+        flash("Only readers can place holds.", "warning")
+        return redirect(request.referrer or url_for('main.main_page'))
     
     user_id = session['userid']
     cursor = get_cursor()

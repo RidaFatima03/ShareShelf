@@ -199,7 +199,7 @@ def approve_request(request_id):
         return check
 
     cursor = get_cursor()
-    cursor.execute("SELECT status, request_type, copy_id FROM Request WHERE request_id = %s", (request_id,))
+    cursor.execute("SELECT status, request_type, copy_id, reader_id FROM Request WHERE request_id = %s", (request_id,))
     req = cursor.fetchone()
 
     if not req:
@@ -225,7 +225,7 @@ def reject_request(request_id):
         return check
 
     cursor = get_cursor()
-    cursor.execute("SELECT status, request_type, copy_id FROM Request WHERE request_id = %s", (request_id,))
+    cursor.execute("SELECT status, request_type, copy_id, reader_id FROM Request WHERE request_id = %s", (request_id,))
     req = cursor.fetchone()
 
     if not req:
@@ -253,7 +253,7 @@ def complete_request(request_id):
         return check
 
     cursor = get_cursor()
-    cursor.execute("SELECT status, request_type, copy_id FROM Request WHERE request_id = %s", (request_id,))
+    cursor.execute("SELECT status, request_type, copy_id, reader_id FROM Request WHERE request_id = %s", (request_id,))
     req = cursor.fetchone()
 
     if not req:
@@ -263,6 +263,34 @@ def complete_request(request_id):
     else:
         if req["request_type"] == "Exchange":
             cursor.execute("UPDATE Copy SET status = 'Available' WHERE item_barcode = %s", (req["copy_id"],))
+        elif req["request_type"] in ("Borrow", "Hold"):
+            cursor.execute("""
+                SELECT p.loan_period_days
+                FROM Reader r
+                JOIN Policy p ON r.policy_id = p.policy_id
+                WHERE r.reader_id = %s
+            """, (req["reader_id"],))
+            policy = cursor.fetchone()
+            if not policy:
+                flash("Cannot complete request without a policy assigned.", "danger")
+                return redirect(request.referrer or url_for("librarian.requests"))
+
+            cursor.execute("""
+                SELECT checkout_id
+                FROM Checkout
+                WHERE copy_id = %s AND returned_date IS NULL
+            """, (req["copy_id"],))
+            existing_checkout = cursor.fetchone()
+            if existing_checkout:
+                flash("This copy is already checked out.", "warning")
+                return redirect(request.referrer or url_for("librarian.requests"))
+
+            cursor.execute("""
+                INSERT INTO Checkout (checkout_date, due_date, reader_id, copy_id)
+                VALUES (NOW(), DATE_ADD(NOW(), INTERVAL %s DAY), %s, %s)
+            """, (policy["loan_period_days"], req["reader_id"], req["copy_id"]))
+            cursor.execute("UPDATE Copy SET status = 'On Loan' WHERE item_barcode = %s", (req["copy_id"],))
+
         cursor.execute("UPDATE Request SET status = 'Completed' WHERE request_id = %s", (request_id,))
         mysql.connection.commit()
         system_log("Requests", "INFO", "RequestService", f"Request completed (request_id={request_id}).")

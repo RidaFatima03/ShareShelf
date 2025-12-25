@@ -167,16 +167,18 @@
                 <a href="{{ url_for('main.book_details', book_id=book.book_id) }}" class="view-details-btn"
                     style="text-decoration: none; text-align: center;">Details</a>
 
-                {% if book.available_copies > 0 %}
-                <a href="{{ url_for('main.book_details', book_id=book.book_id, tab='copies') }}" class="borrow-btn"
-                    style="text-decoration: none; text-align: center;">
-                    Borrow Request
-                </a>
-                {% else %}
-                <a href="{{ url_for('main.book_details', book_id=book.book_id, tab='copies') }}" class="hold-btn"
-                    style="text-decoration: none; text-align: center;">
-                    Hold
-                </a>
+                {% if session.get('user_type') == 'Reader' %}
+                    {% if book.available_copies > 0 %}
+                    <a href="{{ url_for('main.book_details', book_id=book.book_id, tab='copies') }}" class="borrow-btn"
+                        style="text-decoration: none; text-align: center;">
+                        Borrow Request
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('main.book_details', book_id=book.book_id, tab='copies') }}" class="hold-btn"
+                        style="text-decoration: none; text-align: center;">
+                        Hold
+                    </a>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>

@@ -11,8 +11,20 @@
         </button>
     </div>
 
+    <div class="request-tabs" style="margin: 0 0 12px;">
+        <a href="{{ url_for('librarian.user_management', tab='readers') }}"
+           class="request-tab-pill {% if active_tab == 'readers' %}active{% endif %}">
+            Readers
+        </a>
+        <a href="{{ url_for('librarian.user_management', tab='staff') }}"
+           class="request-tab-pill {% if active_tab == 'staff' %}active{% endif %}">
+            Librarians & Admins
+        </a>
+    </div>
+
     <div class="table-wrapper">
         <form method="get" action="{{ url_for('librarian.user_management') }}">
+            <input type="hidden" name="tab" value="{{ active_tab }}">
             <table class="activity-table">
                 <thead>
                     <tr>
@@ -50,16 +62,17 @@
                                 <option value="Blocked"  {% if search_status == 'Blocked' %}selected{% endif %}>Blocked</option>
                             </select>
                         </th>
+                        {% if active_tab == 'staff' %}
                         <th>
                             User Type<br>
                             <select name="search_user_type"
                                     class="filter-input filter-input-manage">
                                 <option value="">All</option>
                                 <option value="Librarian"   {% if search_user_type == 'Librarian' %}selected{% endif %}>Librarian</option>
-                                <option value="Reader" {% if search_user_type == 'Reader' %}selected{% endif %}>Reader</option>
                                 <option value="Admin"  {% if search_user_type == 'Admin' %}selected{% endif %}>Admin</option>
                             </select>
                         </th>
+                        {% else %}
                         <th>
                             Policy Name<br>
                             <select name="search_policy" class="filter-input filter-input-manage">
@@ -72,9 +85,10 @@
                                 {% endfor %}
                             </select>
                         </th>
+                        {% endif %}
                         <th>
                             <button type="submit" class="logout-link btn-apply filter-action-btn">Apply</button>
-                            <a href="{{ url_for('librarian.user_management') }}" class="logout-link btn-cancel filter-action-btn">Clear</a>
+                            <a href="{{ url_for('librarian.user_management', tab=active_tab) }}" class="logout-link btn-cancel filter-action-btn">Clear</a>
                         </th>
                     </tr>
                 </thead>
@@ -92,8 +106,11 @@
                         </td>
                         <td>{{ u.user_email }}</td>
                         <td>{{ u.status }}</td>
+                        {% if active_tab == 'staff' %}
                         <td>{{ u.user_type }}</td>
+                        {% else %}
                         <td>{{ u.policy_name }}</td>
+                        {% endif %}
                         <td>
                             <div class="manage-btns">
                                 <button type="button"
@@ -136,6 +153,7 @@
             <li class="page-item {% if not has_prev %}disabled{% endif %}">
             <a class="page-link"
                 href="{% if has_prev %}{{ url_for('librarian.user_management', page=page-1,
+                                                    tab=active_tab,
                                                     search_id=search_id,
                                                     search_full_name=search_full_name,
                                                     search_email=search_email,
@@ -151,6 +169,7 @@
                 <li class="page-item {% if page == 1 %}active{% endif %}">
                     <a class="page-link"
                     href="{{ url_for('librarian.user_management', page=1,
+                                        tab=active_tab,
                                         search_id=search_id,
                                         search_full_name=search_full_name,
                                         search_email=search_email,
@@ -171,6 +190,7 @@
                 <li class="page-item {% if p == page %}active{% endif %}">
                     <a class="page-link"
                     href="{{ url_for('librarian.user_management', page=p,
+                                        tab=active_tab,
                                         search_id=search_id,
                                         search_full_name=search_full_name,
                                         search_email=search_email,
@@ -190,6 +210,7 @@
                     <li class="page-item {% if page == total_pages %}active{% endif %}">
                         <a class="page-link"
                         href="{{ url_for('librarian.user_management', page=total_pages,
+                                            tab=active_tab,
                                             search_id=search_id,
                                             search_full_name=search_full_name,
                                             search_email=search_email,
@@ -206,6 +227,7 @@
             <li class="page-item {% if not has_next %}disabled{% endif %}">
                 <a class="page-link"
                 href="{% if has_next %}{{ url_for('librarian.user_management', page=page+1,
+                                                    tab=active_tab,
                                                     search_id=search_id,
                                                     search_full_name=search_full_name,
                                                     search_email=search_email,
@@ -283,9 +305,9 @@
                 </select>
             </div>
 
-            <div class="filter-input-group">
+            <div class="filter-input-group" id="add_policy_group">
                 <label for="add_policy" class="filter-label">Policy:</label>
-                <select id="add_policy" name="add_policy" class="form-control filter-input" required>
+                <select id="add_policy" name="add_policy" class="form-control filter-input">
                     {% for p in all_policies %}
                     <option value="{{ p.policy_id }}">{{ p.name }}</option>
                     {% endfor %}
@@ -367,9 +389,9 @@
         </select>
     </div>
 
-    <div class="filter-input-group">
+    <div class="filter-input-group" id="edit_policy_group">
         <label for="edit_policy" class="filter-label">Policy:</label>
-        <select id="edit_policy" name="policy_id" class="form-control filter-input" required>
+        <select id="edit_policy" name="policy_id" class="form-control filter-input">
             <option value="" selected>None</option>
             {% for p in all_policies %}
             <option value="{{ p.policy_id }}">{{ p.name }}</option>
@@ -422,6 +444,21 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    const addUserType = document.getElementById('add_user_type');
+    const addPolicyGroup = document.getElementById('add_policy_group');
+    const addPolicy = document.getElementById('add_policy');
+
+    function toggleAddPolicy() {
+        const isReader = addUserType && addUserType.value === 'Reader';
+        if (addPolicyGroup) addPolicyGroup.style.display = isReader ? '' : 'none';
+        if (addPolicy) addPolicy.required = isReader;
+    }
+
+    if (addUserType) {
+        addUserType.addEventListener('change', toggleAddPolicy);
+        toggleAddPolicy();
+    }
+
   // EDIT USER MODAL
   const editModal = document.getElementById('editUserModal');
   const editButtons = document.querySelectorAll('.btn-edit');
@@ -438,6 +475,13 @@ document.addEventListener('DOMContentLoaded', function () {
   const editPasswordInput = document.getElementById('edit_password');
   const editConfirmPasswordInput = document.getElementById('edit_confirm_password');
   const editPolicyInput = document.getElementById('edit_policy');
+  const editPolicyGroup = document.getElementById('edit_policy_group');
+
+  function toggleEditPolicy() {
+    const isReader = editUserTypeInput && editUserTypeInput.value === 'Reader';
+    if (editPolicyGroup) editPolicyGroup.style.display = isReader ? '' : 'none';
+    if (editPolicyInput) editPolicyInput.required = isReader;
+  }
 
   if (editModal && editButtons.length > 0) {
     editButtons.forEach(btn => {
@@ -463,6 +507,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (editPasswordInput) editPasswordInput.value = "";
         if (editConfirmPasswordInput) editConfirmPasswordInput.value = "";
         if (editPolicyInput) editPolicyInput.value = policyId ? String(policyId) : "";
+        toggleEditPolicy();
 
         editModal.classList.add('show');
       });
@@ -473,6 +518,10 @@ document.addEventListener('DOMContentLoaded', function () {
         editModal.classList.remove('show');
       });
     });
+  }
+
+  if (editUserTypeInput) {
+    editUserTypeInput.addEventListener('change', toggleEditPolicy);
   }
 });
 

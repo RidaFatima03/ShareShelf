@@ -9,18 +9,6 @@
         <h1 class="page-title">Exchange Market</h1>
         <p style="color:#666; margin-bottom:20px;">Browse books available for exchange from other readers.</p>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }}" style="padding: 10px; margin-bottom: 20px; border-radius: 5px; 
-                   background-color: {% if category=='success' %}#d4edda{% else %}#f8d7da{% endif %}; 
-                   color: {% if category=='success' %}#155724{% else %}#721c24{% endif %};">
-                {{ message }}
-              </div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-
         <div class="books-list">
             {% if books %}
                 {% for book in books %}

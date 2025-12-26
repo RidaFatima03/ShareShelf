@@ -31,6 +31,12 @@
                     </th>
                     <th>
                         User Name<br>
+                        <input type="text"
+                               name="search_user_name"
+                               form="checkoutFilters"
+                               class="filter-input filter-input-manage"
+                               placeholder="Search user name..."
+                               value="{{ search_user_name }}">
                     </th>
                     <th>
                         Book Title<br>
@@ -114,6 +120,7 @@
                    href="{% if has_prev %}{{ url_for('librarian.checkouts', page=page-1,
                                                     search_checkout_id=search_checkout_id,
                                                     search_user_id=search_user_id,
+                                                    search_user_name=search_user_name,
                                                     search_title=search_title,
                                                     search_barcode=search_barcode,
                                                     search_status=search_status) }}{% else %}#{% endif %}">
@@ -127,6 +134,7 @@
                        href="{{ url_for('librarian.checkouts', page=1,
                                         search_checkout_id=search_checkout_id,
                                         search_user_id=search_user_id,
+                                        search_user_name=search_user_name,
                                         search_title=search_title,
                                         search_barcode=search_barcode,
                                         search_status=search_status) }}">
@@ -146,6 +154,7 @@
                            href="{{ url_for('librarian.checkouts', page=p,
                                             search_checkout_id=search_checkout_id,
                                             search_user_id=search_user_id,
+                                            search_user_name=search_user_name,
                                             search_title=search_title,
                                             search_barcode=search_barcode,
                                             search_status=search_status) }}">
@@ -164,6 +173,7 @@
                            href="{{ url_for('librarian.checkouts', page=total_pages,
                                             search_checkout_id=search_checkout_id,
                                             search_user_id=search_user_id,
+                                            search_user_name=search_user_name,
                                             search_title=search_title,
                                             search_barcode=search_barcode,
                                             search_status=search_status) }}">
@@ -176,11 +186,12 @@
             <li class="page-item {% if not has_next %}disabled{% endif %}">
                 <a class="page-link"
                    href="{% if has_next %}{{ url_for('librarian.checkouts', page=page+1,
-                                                    search_checkout_id=search_checkout_id,
-                                                    search_user_id=search_user_id,
-                                                    search_title=search_title,
-                                                    search_barcode=search_barcode,
-                                                    search_status=search_status) }}{% else %}#{% endif %}">
+                                                   search_checkout_id=search_checkout_id,
+                                                   search_user_id=search_user_id,
+                                                    search_user_name=search_user_name,
+                                                   search_title=search_title,
+                                                   search_barcode=search_barcode,
+                                                   search_status=search_status) }}{% else %}#{% endif %}">
                     Next
                 </a>
             </li>

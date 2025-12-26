@@ -868,9 +868,15 @@ def books():
             flash("Author is required.", "danger")
         else:
             cursor.execute("""
-                INSERT INTO Book (title, isbn, publisher, publication_date, language, physical_description, summary, page_number)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
-            """, (title, isbn, publisher, publication_date, language, physical_description, summary, page_number))
+                INSERT INTO Book (
+                    title, isbn, publisher, publication_date, language,
+                    material_type, physical_description, summary, page_number
+                )
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """, (
+                title, isbn, publisher, publication_date, language,
+                "Book", physical_description, summary, page_number
+            ))
             mysql.connection.commit()
 
             book_id = cursor.lastrowid

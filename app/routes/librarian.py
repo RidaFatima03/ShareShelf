@@ -55,8 +55,6 @@ def librarian_required():
         return "Forbidden", 403
     return None
 
-
-
 @librarian_bp.route("/requests", methods=["GET"], endpoint="requests")
 def requests():
     check = librarian_required()

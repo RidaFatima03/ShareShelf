@@ -401,8 +401,26 @@ def hold_book(book_id):
                 VALUES (NOW(), NULL, 'Hold', 'Pending', %s, %s)
             """
             cursor.execute(insert_query, (user_id, book_id))
+            cursor.execute("""
+                SELECT CONCAT_WS(' ', user_first_name, user_middle_name, user_last_name) AS full_name
+                FROM User
+                WHERE user_id = %s
+            """, (user_id,))
+            user_row = cursor.fetchone() or {}
+            
+            cursor.execute("SELECT title FROM Book WHERE book_id = %s", (book_id,))
+            book_row = cursor.fetchone() or {}
+            
+            user_full_name = user_row.get("full_name") or f"User {user_id}"
+            book_title = book_row.get("title") or f"book {book_id}"
+
             request_id = cursor.lastrowid
             mysql.connection.commit()
+
+            notify_librarians(
+            "New hold request",
+            f"User {user_full_name} created a request to hold {book_title}."
+            )
             system_log(
                 "Requests",
                 "INFO",
@@ -473,6 +491,18 @@ def add_book():
                 request_id = cursor.lastrowid
             
             mysql.connection.commit()
+            cursor.execute("""
+                SELECT CONCAT_WS(' ', user_first_name, user_middle_name, user_last_name) AS full_name
+                FROM User WHERE user_id = %s
+            """, (user_id,))
+            user_row = cursor.fetchone() or {}
+            user_full_name = user_row.get("full_name") or f"User {user_id}"
+
+            notify_librarians(
+                "New donation request",
+                f"{user_full_name} submitted a donation request."
+            )
+
             if request_id:
                 if mode == "existing":
                     system_log(

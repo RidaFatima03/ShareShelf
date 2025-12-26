@@ -11,7 +11,6 @@ from routes.librarian import librarian_bp
 from routes.copies import copies_bp
 from routes.policy import policy_bp
 from routes.request import request_bp
-
 def create_app():
     app = Flask(__name__)
 

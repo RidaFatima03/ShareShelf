@@ -344,7 +344,7 @@ def borrow_book(copy_id):
         book_title = book_row.get("title") or f"book {copy_data['book_id']}"
         notify_librarians(
             "New borrow request",
-            f"User {user_full_name} created a request to borrow {book_title}."
+            f"{user_full_name} created a request to borrow {book_title}."
         )
         system_log(
             "Requests",
@@ -419,7 +419,7 @@ def hold_book(book_id):
 
             notify_librarians(
             "New hold request",
-            f"User {user_full_name} created a request to hold {book_title}."
+            f"{user_full_name} created a request to hold {book_title}."
             )
             system_log(
                 "Requests",
@@ -658,6 +658,7 @@ def confirm_handoff(copy_id):
     
     user_id = session['userid']
     cursor = get_cursor()
+    service = NotificationService(mysql.connection)
     
     cursor.execute("""
         SELECT request_id, reader_id, book_id, exchange_book_id, requester_confirmed, owner_confirmed
@@ -684,14 +685,48 @@ def confirm_handoff(copy_id):
     request_id = req['request_id']
     partner_id = None
     
-    if req_owner:
-        cursor.execute("UPDATE Request SET owner_confirmed = TRUE WHERE request_id = %s", (request_id,))
-        partner_id = req['reader_id'] 
-    elif req_requester:
-        cursor.execute("SELECT owner_id FROM Copy WHERE book_id = %s LIMIT 1", (req['book_id'],))
-        book_owner_data = cursor.fetchone()
-        partner_id = book_owner_data['owner_id']
-        cursor.execute("UPDATE Request SET requester_confirmed = TRUE WHERE request_id = %s", (request_id,))
+    # Identify owner_id once
+    cursor.execute("""
+        SELECT owner_id
+        FROM Copy
+        WHERE book_id = %s AND owner_id IS NOT NULL
+        LIMIT 1
+    """, (req['book_id'],))
+    owner_row = cursor.fetchone()
+
+    if not owner_row:
+        mysql.connection.rollback()
+        flash("Exchange failed: book owner not found.", "danger")
+        return redirect(url_for('main.my_books'))
+
+    owner_id = owner_row['owner_id']
+    requester_id = req['reader_id']
+
+    # Owner confirms
+    if user_id == owner_id:
+        cursor.execute(
+            "UPDATE Request SET owner_confirmed = TRUE WHERE request_id = %s",
+            (request_id,)
+        )
+        partner_id = requester_id
+
+    # Requestor confirms
+    elif user_id == requester_id:
+        cursor.execute(
+            "UPDATE Request SET requester_confirmed = TRUE WHERE request_id = %s",
+            (request_id,)
+        )
+        partner_id = owner_id
+
+    else:
+        mysql.connection.rollback()
+        flash("You are not part of this exchange.", "danger")
+        return redirect(url_for('main.my_books'))
+
+    if not partner_id:
+            mysql.connection.rollback()
+            flash("Exchange failed: partner not identified.", "danger")
+            return redirect(url_for('main.my_books'))
     
     mysql.connection.commit()
 
@@ -708,8 +743,8 @@ def confirm_handoff(copy_id):
         cursor.execute("UPDATE Copy SET status = 'Exchanged' WHERE book_id = %s AND status = 'Pending Handoff'", (req['book_id'],))
 
         msg = "Exchange Successful! Both parties have confirmed the handoff."
-        cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", ("Exchange Complete", msg, user_id))
-        cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", ("Exchange Complete", msg, partner_id))
+        service.add_notification(user_id, "Exchange Complete", msg)
+        service.add_notification(partner_id, "Exchange Complete", msg)
 
         mysql.connection.commit()
         system_log("Requests", "INFO", "ExchangeService", f"Exchange completed (request_id={request_id}).")
@@ -717,7 +752,7 @@ def confirm_handoff(copy_id):
         
     else:
         msg = "Your partner has confirmed the handoff. Please confirm on your 'My Books' page to complete the exchange."
-        cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", ("Handoff Update", msg, partner_id))
+        service.add_notification(partner_id, "Handoff Update", msg)
         
         mysql.connection.commit()
         system_log("Requests", "INFO", "ExchangeService", f"Handoff confirmed (request_id={request_id}).")

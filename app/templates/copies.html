@@ -11,14 +11,15 @@
     </div>
 
     <div class="table-wrapper">
-        <form method="get" action="{{ url_for('copies.list') }}">
-            <table class="activity-table">
+        <form id="copiesFilters" method="get" action="{{ url_for('copies.list') }}"></form>
+        <table class="activity-table">
                 <thead>
                     <tr>
                         <th>
                             Barcode<br>
                             <input type="text"
                                     name="search_barcode"
+                                    form="copiesFilters"
                                     class="filter-input filter-input-manage"
                                     placeholder="Search barcode..."
                                     value="{{ search_barcode }}">
@@ -27,6 +28,7 @@
                             Book Title<br>
                             <input type="text"
                                     name="search_title"
+                                    form="copiesFilters"
                                     class="filter-input filter-input-manage"
                                     placeholder="Search title..."
                                     value="{{ search_title }}">
@@ -35,6 +37,7 @@
                             Book ID<br>
                             <input type="text"
                                     name="search_book_id"
+                                    form="copiesFilters"
                                     class="filter-input filter-input-manage"
                                     placeholder="Book ID..."
                                     value="{{ search_book_id }}">
@@ -42,6 +45,7 @@
                         <th>
                             Status<br>
                             <select name="search_status"
+                                    form="copiesFilters"
                                     class="filter-input filter-input-manage">
                                 <option value="">All</option>
                                 {% for s in ['Available','On Loan','On Hold','Lost','Exchanged','Pending Handoff'] %}
@@ -52,6 +56,7 @@
                         <th>
                             Acquisition<br>
                             <select name="search_acquisition"
+                                    form="copiesFilters"
                                     class="filter-input filter-input-manage">
                                 <option value="">All</option>
                                 {% for a in ['Purchase','Donation','Exchange','Other'] %}
@@ -60,17 +65,10 @@
                             </select>
                         </th>
                         <th>
-                            Material Type<br>
-                            <input type="text"
-                                    name="search_material"
-                                    class="filter-input filter-input-manage"
-                                    placeholder="Type..."
-                                    value="{{ search_material }}">
-                        </th>
-                        <th>
                             Call Number<br>
                             <input type="text"
                                     name="search_call_number"
+                                    form="copiesFilters"
                                     class="filter-input filter-input-manage"
                                     placeholder="Call number..."
                                     value="{{ search_call_number }}">
@@ -78,6 +76,7 @@
                         <th>
                             Location<br>
                             <select name="search_location"
+                                    form="copiesFilters"
                                     class="filter-input filter-input-manage">
                                 <option value="">All</option>
                                 {% for l in all_locations %}
@@ -90,6 +89,7 @@
                         <th>
                             Owner<br>
                             <select name="search_owner"
+                                    form="copiesFilters"
                                     class="filter-input filter-input-manage">
                                 <option value="">All</option>
                                 {% for r in all_readers %}
@@ -100,7 +100,7 @@
                             </select>
                         </th>
                         <th>
-                            <button type="submit" class="logout-link btn-apply filter-action-btn">Apply</button>
+                            <button type="submit" form="copiesFilters" class="logout-link btn-apply filter-action-btn">Apply</button>
                             <a href="{{ url_for('copies.list') }}" class="logout-link btn-cancel filter-action-btn">Clear</a>
                         </th>
                     </tr>
@@ -114,7 +114,6 @@
                             <td>{{ c.book_id }}</td>
                             <td><span class="request-status {{ c.status|lower|replace(' ', '-') }}">{{ c.status }}</span></td>
                             <td>{{ c.acquisition_type }}</td>
-                            <td>{{ c.material_type }}</td>
                             <td>{{ c.call_number or '-' }}</td>
                             <td>{{ c.location_name or '-' }}</td>
                             <td>{{ c.owner_name or '-' }}</td>
@@ -145,14 +144,13 @@
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="10" class="text-center text-muted py-3">
+                            <td colspan="9" class="text-center text-muted py-3">
                                 No copies found.
                             </td>
                         </tr>
                     {% endif %}
                 </tbody>
             </table>
-        </form>
         <p class="logs-footer">{{ start_item }} to {{ end_item }} of {{ total_count }}</p>
     </div>
 
@@ -166,7 +164,6 @@
                                 search_book_id=search_book_id,
                                 search_status=search_status,
                                 search_acquisition=search_acquisition,
-                                search_material=search_material,
                                 search_call_number=search_call_number,
                                 search_location=search_location,
                                 search_owner=search_owner) }}{% else %}#{% endif %}">
@@ -183,7 +180,6 @@
                                 search_book_id=search_book_id,
                                 search_status=search_status,
                                 search_acquisition=search_acquisition,
-                                search_material=search_material,
                                 search_call_number=search_call_number,
                                 search_location=search_location,
                                 search_owner=search_owner) }}">
@@ -206,7 +202,6 @@
                                 search_book_id=search_book_id,
                                 search_status=search_status,
                                 search_acquisition=search_acquisition,
-                                search_material=search_material,
                                 search_call_number=search_call_number,
                                 search_location=search_location,
                                 search_owner=search_owner) }}">
@@ -228,7 +223,6 @@
                                 search_book_id=search_book_id,
                                 search_status=search_status,
                                 search_acquisition=search_acquisition,
-                                search_material=search_material,
                                 search_call_number=search_call_number,
                                 search_location=search_location,
                                 search_owner=search_owner) }}">
@@ -246,7 +240,6 @@
                                 search_book_id=search_book_id,
                                 search_status=search_status,
                                 search_acquisition=search_acquisition,
-                                search_material=search_material,
                                 search_call_number=search_call_number,
                                 search_location=search_location,
                                 search_owner=search_owner) }}{% else %}#{% endif %}">

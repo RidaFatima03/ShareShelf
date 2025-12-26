@@ -1153,7 +1153,7 @@ def renew_checkout(checkout_id):
         cursor.execute("""
             SELECT 
                 c.checkout_id, c.renew_count, c.due_date, c.copy_id, 
-                b.book_id, u.user_type,
+                b.book_id,
                 p.loan_period_days, p.renewals_allowed
             FROM Checkout c
             JOIN Copy cp ON c.copy_id = cp.item_barcode
@@ -1168,11 +1168,17 @@ def renew_checkout(checkout_id):
             flash("Error: Loan not found or already returned.", "danger")
             return redirect(url_for('main.my_checkouts'))
 
-        if loan['due_date'] < datetime.now():
+        due_date = loan.get('due_date')
+        if isinstance(due_date, str):
+            due_date = datetime.strptime(due_date, "%Y-%m-%d %H:%M:%S")
+
+        if due_date and due_date < datetime.now():
             flash("Renewal failed: This book is already overdue.", "warning")
             return redirect(url_for('main.my_checkouts'))
             
-        if loan['renew_count'] >= loan['renewals_allowed']:
+        renew_count = loan.get('renew_count') or 0
+        renewals_allowed = int(loan.get('renewals_allowed') or 0)
+        if renew_count >= renewals_allowed:
             flash(f"Renewal failed: You have reached the maximum renewal limit ({loan['renewals_allowed']}).", "warning")
             return redirect(url_for('main.my_checkouts'))
 
@@ -1190,7 +1196,8 @@ def renew_checkout(checkout_id):
             flash("Renewal failed: Another user has a hold request on this book.", "warning")
             return redirect(url_for('main.my_checkouts'))
         
-        new_due_date = datetime.now() + timedelta(days=loan['loan_period_days'])
+        loan_period_days = int(loan.get('loan_period_days') or 0)
+        new_due_date = datetime.now() + timedelta(days=loan_period_days)
         
         cursor.execute("""
             UPDATE Checkout 
@@ -1272,19 +1279,29 @@ def cancel_hold(request_id):
 def pay_fine():
     fine_id = request.form.get('fine_id')
     if not fine_id:
-        flash("No fine selected for payment.", "error")
+        flash("No fine selected for payment.", "danger")
         return redirect(url_for('main.my_fines'))
     
     cursor = get_cursor()
 
-    query = """
-    UPDATE Fine
-    SET status = 'Paid', payment_method = 'Credit Card', date_paid = NOW()
-    WHERE fine_id = %s
-    """
-    cursor.execute(query, (fine_id,))
-    mysql.connection.commit()
-    cursor.close()
-    system_log("Fines", "INFO", "FineService", f"Fine paid (fine_id={fine_id}).")
+    try:
+        query = """
+        UPDATE Fine
+        SET status = 'Paid', payment_method = 'Credit Card', date_paid = NOW()
+        WHERE fine_id = %s AND status != 'Paid'
+        """
+        cursor.execute(query, (fine_id,))
+        mysql.connection.commit()
+        if cursor.rowcount == 0:
+            flash("Fine not found or already paid.", "warning")
+        else:
+            system_log("Fines", "INFO", "FineService", f"Fine paid (fine_id={fine_id}).")
+            flash("Payment successful.", "success")
+    except Exception as e:
+        mysql.connection.rollback()
+        system_log("Fines", "ERROR", "FineService", f"Fine payment failed: {e}")
+        flash("Payment failed. Please try again.", "danger")
+    finally:
+        cursor.close()
 
     return redirect(url_for('main.my_fines', success=1))

@@ -27,4 +27,31 @@ BEGIN
     AND expire_date <= NOW()
     AND status IN ('Pending', 'Approved');
 END$$
+
+-- Create scheduled job to create/update overdue fines daily
+CREATE EVENT IF NOT EXISTS update_overdue_fines
+ON SCHEDULE EVERY 1 DAY
+DO
+BEGIN
+  INSERT INTO Fine (checkout_id, fine_reason, amount, status)
+  SELECT c.checkout_id, 'Overdue', 0, 'Unpaid'
+  FROM Checkout c
+  JOIN Reader r ON c.reader_id = r.reader_id
+  JOIN Policy p ON r.policy_id = p.policy_id
+  WHERE c.returned_date IS NULL
+    AND c.due_date < NOW()
+    AND NOT EXISTS (
+      SELECT 1 FROM Fine f
+      WHERE f.checkout_id = c.checkout_id AND f.status = 'Unpaid'
+    );
+
+  UPDATE Fine f
+  JOIN Checkout c ON f.checkout_id = c.checkout_id
+  JOIN Reader r ON c.reader_id = r.reader_id
+  JOIN Policy p ON r.policy_id = p.policy_id
+  SET f.amount = ROUND(GREATEST(DATEDIFF(NOW(), c.due_date), 0) * p.fine_per_day, 2)
+  WHERE c.returned_date IS NULL
+    AND c.due_date < NOW()
+    AND f.status = 'Unpaid';
+END$$
 DELIMITER ;

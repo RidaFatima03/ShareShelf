@@ -70,16 +70,6 @@
             <a href="javascript:history.back()" class="back-link">← Go back</a>
         </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }}" style="padding: 15px; margin-bottom: 20px; border-radius: 8px; background-color: #fff3cd; color: #856404;">
-                {{ message }}
-              </div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-
         <section class="reviews-grid" id="reviewsContainer">
             {% if reviews %}
                 {% for review in reviews %}

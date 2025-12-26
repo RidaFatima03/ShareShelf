@@ -369,12 +369,21 @@ def borrow_book(copy_id):
         """, (user_id, copy_id))
         request_id = cursor.lastrowid
 
+        cursor.execute("SELECT title FROM Book WHERE book_id = %s", (copy_data["book_id"],))
+        book_row = cursor.fetchone()
+        book_title = book_row["title"] if book_row else f"book {copy_data['book_id']}"
+        user_name = session.get("username", f"User {user_id}")
+
         mysql.connection.commit()
         system_log(
             "Requests",
             "INFO",
             "RequestService",
             f"Borrow request created (request_id={request_id}, copy_id={copy_id})."
+        )
+        notify_librarians(
+            "New borrow request",
+            f"User {user_name} submitted a borrow request for {book_title}."
         )
         flash("Borrow request sent to Librarian for approval.", "success")
 
@@ -570,6 +579,10 @@ def add_book():
                     "INFO",
                     "RequestService",
                     f"Donation request created (request_id={request_id}, material_id={material_id})."
+                )
+                notify_librarians(
+                    "New donation request",
+                    f"User {user_id} submitted a donation request (request_id={request_id}, material_id={material_id})."
                 )
             flash("Donation request sent to Librarian for approval.", "success")
             return redirect(url_for('request.my_requests')) 
@@ -1027,6 +1040,11 @@ def request_exchange(barcode):
         notif_subject = "New Exchange Request"
         notif_msg = f"A user has requested to exchange for your book: {book_title}. Go to 'Exchange Requests' to view."
         cursor.execute("INSERT INTO Notification (subject, details, is_read, user_id) VALUES (%s, %s, FALSE, %s)", (notif_subject, notif_msg, owner_id))
+        user_name = session.get("username", f"User {user_id}")
+        notify_librarians(
+            "New exchange request",
+            f"User {user_name} submitted an exchange request for {book_title}."
+        )
 
         mysql.connection.commit()
         if request_id:

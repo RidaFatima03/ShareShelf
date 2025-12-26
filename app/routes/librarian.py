@@ -205,6 +205,7 @@ def checkouts():
 
     search_checkout_id = (request.args.get("search_checkout_id") or "").strip()
     search_user_id = (request.args.get("search_user_id") or "").strip()
+    search_user_name = (request.args.get("search_user_name") or "").strip()
     search_title = (request.args.get("search_title") or "").strip()
     search_barcode = (request.args.get("search_barcode") or "").strip()
     search_status = (request.args.get("search_status") or "").strip()
@@ -218,6 +219,9 @@ def checkouts():
     if search_user_id:
         where.append("CAST(u.user_id AS CHAR) LIKE %s")
         params.append(f"%{search_user_id}%")
+    if search_user_name:
+        where.append("CONCAT_WS(' ', u.user_first_name, u.user_middle_name, u.user_last_name) LIKE %s")
+        params.append(f"%{search_user_name}%")
     if search_title:
         where.append("b.title LIKE %s")
         params.append(f"%{search_title}%")
@@ -288,6 +292,7 @@ def checkouts():
         end_item=end_item,
         search_checkout_id=search_checkout_id,
         search_user_id=search_user_id,
+        search_user_name=search_user_name,
         search_title=search_title,
         search_barcode=search_barcode,
         search_status=search_status,

@@ -216,6 +216,8 @@
   if (openAddBtn && addModal) {
     openAddBtn.addEventListener('click', () => {
       addModal.classList.add('show');
+      const form = addModal.querySelector('form');
+      if (form) form.reset();
       const input = addModal.querySelector('#genre_name');
       if (input) setTimeout(() => input.focus(), 100);
     });
@@ -223,6 +225,8 @@
     addCloseElems.forEach(el => {
       el.addEventListener('click', () => {
         addModal.classList.remove('show');
+        const form = addModal.querySelector('form');
+        if (form) form.reset();
       });
     });
   }
@@ -251,6 +255,8 @@
     editCloseElems.forEach(el => {
       el.addEventListener('click', () => {
         editModal.classList.remove('show');
+        const form = editModal.querySelector('form');
+        if (form) form.reset();
       });
     });
   }

@@ -41,7 +41,10 @@ def edit_policy(id):
     cursor = get_cursor()
 
     if request.method == 'POST':
-        name = request.form['name']
+        name = (request.form.get('name') or '').strip()
+        if not name:
+            flash("Policy name is required.", "danger")
+            return redirect(url_for('policy.add_policy'))
         period = request.form['loan_period_days']
         renewals = request.form['renewals_allowed']
         fine = request.form['fine_per_day']

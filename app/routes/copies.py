@@ -101,7 +101,6 @@ def list_copies():
     search_book_id = (request.args.get("search_book_id") or "").strip()
     search_status = (request.args.get("search_status") or "").strip()
     search_acquisition = (request.args.get("search_acquisition") or "").strip()
-    search_material = (request.args.get("search_material") or "").strip()
     search_call_number = (request.args.get("search_call_number") or "").strip()
     search_location = (request.args.get("search_location") or "").strip()
     search_owner = (request.args.get("search_owner") or "").strip()
@@ -124,9 +123,6 @@ def list_copies():
     if search_acquisition:
         where.append("c.acquisition_type = %s")
         params.append(search_acquisition)
-    if search_material:
-        where.append("b.material_type LIKE %s")
-        params.append(f"%{search_material}%")
     if search_call_number:
         where.append("c.call_number LIKE %s")
         params.append(f"%{search_call_number}%")
@@ -160,7 +156,6 @@ def list_copies():
     cursor.execute(f"""
         SELECT
             c.item_barcode,
-            b.material_type AS material_type,
             c.call_number,
             c.acquisition_type,
             c.status,
@@ -199,7 +194,6 @@ def list_copies():
         search_book_id=search_book_id,
         search_status=search_status,
         search_acquisition=search_acquisition,
-        search_material=search_material,
         search_call_number=search_call_number,
         search_location=search_location,
         search_owner=search_owner,

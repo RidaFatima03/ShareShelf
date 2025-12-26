@@ -1,6 +1,5 @@
 import MySQLdb.cursors
 
-
 class NotificationService:
     def __init__(self, db):
         self.db = db

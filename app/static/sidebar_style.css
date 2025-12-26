@@ -2382,6 +2382,77 @@ html.sidebar-closed-init .filters-results.main-content {
     color: #2e7d32;
 }
 
+.request-status.rejected {
+    background-color: #fdecea;
+    color: #c62828;
+}
+
+.request-status.expired {
+    background-color: #fff4e5;
+    color: #e65100;
+}
+
+.request-status.completed {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.request-status.cancelled {
+    background-color: #f2f2f2;
+    color: #757575;
+}
+
+.request-status.active {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.request-status.overdue {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+.request-status.returned {
+    background-color: #e0f2f1;
+    color: #00695c;
+}
+
+.request-status.available {
+    background-color: #f1f8f2;
+    color: #2e7d32;
+}
+
+.request-status.on-loan {
+    background-color: #fdecea;
+    color: #c62828;
+}
+
+.request-status.on-hold {
+    background-color: #fff8e1;
+    color: #f57c00;
+}
+
+.request-status.lost {
+    background-color: #f2f2f2;
+    color: #616161;
+}
+
+.request-status.exchanged {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.request-status.pending-approval,
+.request-status.pending-handoff {
+    background-color: #fff8e1;
+    color: #f57c00;
+}
+
+.request-status.success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
 .cancel-request-btn {
     border: none;
     background-color: #8b6f47;

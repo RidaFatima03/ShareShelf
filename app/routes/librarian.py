@@ -39,6 +39,15 @@ def notify_request_user(request_id, subject, action_verb):
         return
 
     details = f"Your {row['request_type']} request for {row['item_title']} was {action_verb}."
+    
+    # Extra instruction when approved
+    if action_verb.lower() == "approved":
+        details += (
+            "\n\nPlease come to the library to borrow the item and complete "
+            "the borrowing process. The item will be added to your account "
+            "after the borrowing process is completed."
+        )
+        
     NotificationService(mysql.connection).add_notification(
         row["reader_id"],
         subject,

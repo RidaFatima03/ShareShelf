@@ -510,6 +510,8 @@
   if (openAddBtn && addModal) {
     openAddBtn.addEventListener('click', () => {
       addModal.classList.add('show');
+      const form = addModal.querySelector('form');
+      if (form) form.reset();
       const input = addModal.querySelector('#title');
       if (input) setTimeout(() => input.focus(), 100);
     });
@@ -517,6 +519,8 @@
     addCloseElems.forEach(el => {
       el.addEventListener('click', () => {
         addModal.classList.remove('show');
+        const form = addModal.querySelector('form');
+        if (form) form.reset();
       });
     });
   }
@@ -547,8 +551,8 @@
   }
 
  if (editModal && editButtons.length > 0) {
-  editButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
+    editButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
       // fill basic fields
       if (editIdInput) editIdInput.value = btn.dataset.bookId || '';
       if (editTitleInput) editTitleInput.value = btn.dataset.title || '';
@@ -596,6 +600,8 @@
     editCloseElems.forEach(el => {
       el.addEventListener('click', () => {
         editModal.classList.remove('show');
+        const form = editModal.querySelector('form');
+        if (form) form.reset();
       });
     });
   }

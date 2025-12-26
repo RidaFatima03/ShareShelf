@@ -11,10 +11,6 @@
         .tab-btn { padding: 10px 20px; background: none; border: none; font-size: 16px; font-weight: 600; color: #666; cursor: pointer; border-bottom: 3px solid transparent; }
         .tab-btn.active { color: #5c4033; border-bottom-color: #5c4033; }
         
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fff; margin: 2% auto; padding: 25px; width: 700px; max-height: 90vh; overflow-y: auto; border-radius: 8px; }
-        .close-btn { float: right; font-size: 24px; cursor: pointer; }
-        
         .modal-tabs { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 20px; }
         .modal-tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; background: #f9f9f9; color: #666; font-weight: 500; }
         .modal-tab.active { background: #fff; border-bottom: 3px solid #5c4033; color: #5c4033; font-weight: 600; }
@@ -22,9 +18,6 @@
         .search-results { max-height: 200px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px; margin-top: 10px; display: none; }
         .search-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
         .search-item:hover { background-color: #f9f9f9; }
-        
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .full-width { grid-column: span 2; }
     </style>
 
     <div class="my-books-page">
@@ -87,7 +80,7 @@
             </div>
             <div class="table-wrapper">
                 <table class="requests-table">
-                    <thead><tr><th>Book Title</th><th>Author</th><th>Added Date</th><th>Status</th></tr></thead>
+                    <thead><tr><th>Book Title</th><th>Author</th><th>Added Date</th></tr></thead>
                     <tbody>
                         {% if donation_books %}
                             {% for book in donation_books %}
@@ -95,7 +88,6 @@
                                 <td>{{ book.title }}</td>
                                 <td>{{ book.authors }}</td>
                                 <td>{{ book.added_date }}</td>
-                                <td><span class="request-status success">Received</span></td>
                             </tr>
                             {% endfor %}
                         {% else %}
@@ -107,21 +99,25 @@
         </div>
     </div>
 
-    <div id="addBookModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2 id="modalTitle" style="margin-bottom:15px;">Add Book</h2>
-            
+    <div id="addBookModal" class="custom-modal">
+        <div class="custom-modal-backdrop close-add-book-modal"></div>
+
+        <div class="custom-modal-dialog scrollable-modal">
+            <div class="custom-modal-header">
+                <h5 id="modalTitle" class="filters-column-title pop-up-header">Add Book</h5>
+                <button type="button" class="custom-modal-close close-add-book-modal">&times;</button>
+            </div>
+
             <div class="modal-tabs">
                 <div class="modal-tab active" onclick="switchModalTab('search')">Search Existing</div>
                 <div class="modal-tab" onclick="switchModalTab('manual')">Manual Entry (New Book)</div>
             </div>
 
             <div id="searchTab">
-                <div class="form-group">
-                    <label>Search Library Catalog</label>
+                <div class="filter-input-group">
+                    <label class="filter-label">Search Library Catalog</label>
                     <div style="display:flex; gap:10px;">
-                        <input type="text" id="dbSearchInput" class="form-control" placeholder="Search by title, author, or ISBN...">
+                        <input type="text" id="dbSearchInput" class="form-control filter-input" placeholder="Search by title, author, or ISBN...">
                         <button type="button" class="action-button secondary" onclick="searchDatabase()">Search</button>
                     </div>
                 </div>
@@ -133,69 +129,70 @@
                 <input type="hidden" name="type" id="modalType">
                 <input type="hidden" name="mode" value="manual">
                 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>ISBN <span style="color:red">*</span></label>
-                        <input type="text" name="isbn" class="form-control" required placeholder="978-...">
-                    </div>
-                    <div class="form-group">
-                        <label>Language</label>
-                        <select name="language" class="form-control">
-                            <option value="English">English</option>
-                            <option value="Turkish">Turkish</option>
-                            <option value="Spanish">Spanish</option>
-                            <option value="French">French</option>
-                            <option value="German">German</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group full-width">
-                        <label>Book Title <span style="color:red">*</span></label>
-                        <input type="text" name="title" class="form-control" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Author <span style="color:red">*</span></label>
-                        <input type="text" name="author" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Genre <span style="color:red">*</span></label>
-                        <select name="genre" class="form-control">
-                            <option value="Fiction">Fiction</option>
-                            <option value="Non-Fiction">Non-Fiction</option>
-                            <option value="Science Fiction">Science Fiction</option>
-                            <option value="Fantasy">Fantasy</option>
-                            <option value="Mystery">Mystery</option>
-                            <option value="Historical Fiction">Historical Fiction</option>
-                            <option value="Classic Literature">Classic Literature</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Publisher</label>
-                        <input type="text" name="publisher" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label>Publication Date</label>
-                        <input type="date" name="publication_date" class="form-control">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Page Number</label>
-                        <input type="number" name="page_number" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label>Physical Desc.</label>
-                        <input type="text" name="physical_description" class="form-control" placeholder="e.g. Hardcover, 5x8 in">
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label>Summary</label>
-                        <textarea name="summary" class="form-control" rows="3" placeholder="Brief summary..."></textarea>
-                    </div>
+                <div class="filter-input-group">
+                    <label class="filter-label">ISBN <span style="color:red">*</span></label>
+                    <input type="text" name="isbn" class="form-control filter-input" required placeholder="978-...">
+                </div>
+                <div class="filter-input-group">
+                    <label class="filter-label">Language</label>
+                    <select name="language" class="form-control filter-input">
+                        <option value="English">English</option>
+                        <option value="Turkish">Turkish</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="French">French</option>
+                        <option value="German">German</option>
+                    </select>
+                </div>
+                
+                <div class="filter-input-group">
+                    <label class="filter-label">Book Title <span style="color:red">*</span></label>
+                    <input type="text" name="title" class="form-control filter-input" required>
                 </div>
 
-                <button type="submit" class="action-button primary" style="width:100%; margin-top:15px;">Create & Add Book</button>
+                <div class="filter-input-group">
+                    <label class="filter-label">Author <span style="color:red">*</span></label>
+                    <input type="text" name="author" class="form-control filter-input" required>
+                </div>
+                <div class="filter-input-group">
+                    <label class="filter-label">Genre <span style="color:red">*</span></label>
+                    <select name="genre" class="form-control filter-input">
+                        <option value="Fiction">Fiction</option>
+                        <option value="Non-Fiction">Non-Fiction</option>
+                        <option value="Science Fiction">Science Fiction</option>
+                        <option value="Fantasy">Fantasy</option>
+                        <option value="Mystery">Mystery</option>
+                        <option value="Historical Fiction">Historical Fiction</option>
+                        <option value="Classic Literature">Classic Literature</option>
+                    </select>
+                </div>
+
+                <div class="filter-input-group">
+                    <label class="filter-label">Publisher</label>
+                    <input type="text" name="publisher" class="form-control filter-input">
+                </div>
+                <div class="filter-input-group">
+                    <label class="filter-label">Publication Date</label>
+                    <input type="date" name="publication_date" class="form-control filter-input">
+                </div>
+
+                <div class="filter-input-group">
+                    <label class="filter-label">Page Number</label>
+                    <input type="number" name="page_number" class="form-control filter-input">
+                </div>
+                <div class="filter-input-group">
+                    <label class="filter-label">Physical Desc.</label>
+                    <input type="text" name="physical_description" class="form-control filter-input" placeholder="e.g. Hardcover, 5x8 in">
+                </div>
+
+                <div class="filter-input-group">
+                    <label class="filter-label">Summary</label>
+                    <textarea name="summary" class="form-control filter-input" rows="3" placeholder="Brief summary..."></textarea>
+                </div>
+
+                <div class="custom-modal-footer">
+                    <button type="button" class="logout-link btn-cancel close-add-book-modal">Cancel</button>
+                    <button id="modalSubmitBtn" type="submit" class="logout-link btn-save">Create & Add Book</button>
+                </div>
             </form>
         </div>
     </div>
@@ -217,8 +214,9 @@
         }
 
         function openModal(type) {
-            document.getElementById('addBookModal').style.display = 'block';
+            document.getElementById('addBookModal').classList.add('show');
             document.getElementById('modalTitle').textContent = type === 'Exchange' ? 'Add Exchangeable Book' : 'Donate a Book';
+            document.getElementById('modalSubmitBtn').textContent = type === 'Exchange' ? 'Create & Add Book' : 'Submit Donation Request';
             document.getElementById('modalType').value = type;
             
             document.getElementById('manualTab').reset();
@@ -229,7 +227,7 @@
         }
 
         function closeModal() {
-            document.getElementById('addBookModal').style.display = 'none';
+            document.getElementById('addBookModal').classList.remove('show');
         }
 
         function switchModalTab(tab) {
@@ -245,7 +243,7 @@
             } else {
                 searchTab.style.display = 'none';
                 manualTab.style.display = 'block';
-                manualTab.style.display = 'grid'; 
+                manualTab.style.display = 'block'; 
                 tabs[0].classList.remove('active');
                 tabs[1].classList.add('active');
             }
@@ -317,5 +315,11 @@
                 }
             }
         }
+
+        document.querySelectorAll('.close-add-book-modal').forEach(el => {
+            el.addEventListener('click', () => {
+                closeModal();
+            });
+        });
     </script>
 {% endblock %}

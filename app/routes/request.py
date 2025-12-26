@@ -2,11 +2,20 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 import MySQLdb.cursors
 from extensions import mysql
 from utils.system_log import system_log
+from routes.notifications import NotificationService
 
 request_bp = Blueprint("request", __name__, url_prefix="/request")
 
 def get_cursor():
     return mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+def notify_librarians(subject, details):
+    cursor = get_cursor()
+    cursor.execute("SELECT user_id FROM User WHERE user_type = 'Librarian'")
+    librarians = cursor.fetchall()
+    service = NotificationService(mysql.connection)
+    for librarian in librarians:
+        service.add_notification(librarian["user_id"], subject, details)
 
 @request_bp.route("/my_requests", methods=["GET"], endpoint="my_requests")
 def my_requests():
@@ -198,6 +207,10 @@ def new_request():
         "INFO",
         "RequestService",
         f"Request created (request_id={request_id}, material_id={material_id})."
+    )
+    notify_librarians(
+        f"New {add_request_type} request",
+        f"User {reader_id} submitted a {add_request_type} request (request_id={request_id}, material_id={material_id})."
     )
     flash("Request created successfully.", "success")
     return redirect(url_for("request.my_requests"))

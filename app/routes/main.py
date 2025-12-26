@@ -986,14 +986,27 @@ def request_exchange(barcode):
 
     try:
         cursor.execute("""
-            SELECT count(*) as count 
-            FROM Copy 
-            WHERE owner_id = %s AND acquisition_type = 'Exchange' AND status = 'Available'
+            SELECT status, COUNT(*) AS count
+            FROM Copy
+            WHERE owner_id = %s AND acquisition_type = 'Exchange'
+            GROUP BY status
         """, (user_id,))
-        user_inventory = cursor.fetchone()
+        status_rows = cursor.fetchall()
+        status_counts = {row["status"]: row["count"] for row in status_rows}
+        available_count = status_counts.get("Available", 0)
+        pending_approval_count = status_counts.get("Pending Approval", 0)
+        pending_handoff_count = status_counts.get("Pending Handoff", 0)
+        total_exchange_copies = sum(status_counts.values())
 
-        if user_inventory['count'] == 0:
-            flash("You must add at least one 'Available' book to 'My Books' before you can make a request.", "warning")
+        if available_count == 0:
+            if pending_approval_count > 0:
+                flash("Your exchange copy is still pending librarian approval. Once approved, you can request exchanges.", "warning")
+            elif pending_handoff_count > 0:
+                flash("You already have an exchange in progress. Complete or cancel it before requesting another exchange.", "warning")
+            elif total_exchange_copies > 0:
+                flash("Your exchange copies are not available right now. Mark one as available or add another exchange book.", "warning")
+            else:
+                flash("You must add at least one 'Available' book to 'My Books' before you can make a request.", "warning")
             return redirect(url_for('main.exchange_market'))
 
         cursor.execute("SELECT c.book_id, c.owner_id, b.title FROM Copy c JOIN Book b ON c.book_id = b.book_id WHERE c.item_barcode = %s", (barcode,))

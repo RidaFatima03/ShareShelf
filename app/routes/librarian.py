@@ -840,6 +840,7 @@ def books():
         publisher = (request.form.get("publisher") or "").strip()
         publication_date = (request.form.get("publication_date") or "").strip()
         language = (request.form.get("language") or "").strip()
+        material_type = (request.form.get("material_type") or "").strip()
         physical_description = (request.form.get("physical_description") or "").strip()
         summary = (request.form.get("summary") or "").strip()
         page_number = (request.form.get("page_number") or "").strip()
@@ -875,7 +876,7 @@ def books():
                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
             """, (
                 title, isbn, publisher, publication_date, language,
-                "Book", physical_description, summary, page_number
+                material_type, physical_description, summary, page_number
             ))
             mysql.connection.commit()
 
@@ -911,6 +912,7 @@ def books():
     search_publisher = (request.args.get("search_publisher") or "").strip()
     search_publication_date = (request.args.get("search_publication_date") or "").strip()
     search_language = (request.args.get("search_language") or "").strip()
+    search_material_type = (request.args.get("search_material_type") or "").strip()
     search_physical_description = (request.args.get("search_physical_description") or "").strip()
     search_summary = (request.args.get("search_summary") or "").strip()
     search_page_number = (request.args.get("search_page_number") or "").strip()
@@ -943,6 +945,10 @@ def books():
     if search_language:
         where.append("language LIKE %s")
         params.append(f"%{search_language}%")
+
+    if search_material_type:
+        where.append("material_type LIKE %s")
+        params.append(f"%{search_material_type}%")
 
     if search_physical_description:
         where.append("physical_description LIKE %s")
@@ -1033,6 +1039,7 @@ def books():
             b.publisher,
             b.publication_date,
             b.language,
+            b.material_type,
             b.physical_description,
             b.summary,
             b.page_number,
@@ -1074,6 +1081,7 @@ def books():
         search_publisher=search_publisher,
         search_publication_date=search_publication_date,
         search_language=search_language,
+        search_material_type=search_material_type,
         search_physical_description=search_physical_description,
         search_summary=search_summary,
         search_page_number=search_page_number,
@@ -1108,6 +1116,7 @@ def edit_book():
     publisher = (request.form.get("publisher") or "").strip()
     publication_date = (request.form.get("publication_date") or "").strip()
     language = (request.form.get("language") or "").strip()
+    material_type = (request.form.get("material_type") or "").strip()
     physical_description = (request.form.get("physical_description") or "").strip()
     summary = (request.form.get("summary") or "").strip()
     page_number = (request.form.get("page_number") or "").strip()
@@ -1132,6 +1141,9 @@ def edit_book():
         return redirect(url_for("librarian.books"))
     elif not language:
         flash("Language is required.", "danger")
+        return redirect(url_for("librarian.books"))
+    elif not material_type:
+        flash("Material type is required.", "danger")
         return redirect(url_for("librarian.books"))
     elif not physical_description:
         flash("Physical description is required.", "danger")
@@ -1160,13 +1172,14 @@ def edit_book():
             publisher=%s,
             publication_date=%s,
             language=%s,
+            material_type=%s,
             physical_description=%s,
             summary=%s,
             page_number=%s
         WHERE book_id = %s
         """,
         (isbn, title, publisher, publication_date, language,
-         physical_description, summary, page_number, book_id)
+         material_type, physical_description, summary, page_number, book_id)
     )
 
     # Remove old genres & authors

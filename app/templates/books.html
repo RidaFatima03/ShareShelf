@@ -70,6 +70,15 @@
             </th>
 
             <th>
+              Material Type<br>
+              <input type="text"
+                    name="search_material_type"
+                    class="filter-input filter-input-manage"
+                    placeholder="Search material..."
+                    value="{{ search_material_type }}">
+            </th>
+
+            <th>
               Physical description<br>
               <input type="text"
                     name="search_physical_description"
@@ -142,6 +151,7 @@
               <td>{{ b.publisher }}</td>
               <td>{{ b.publication_date }}</td>
               <td>{{ b.language }}</td>
+              <td>{{ b.material_type }}</td>
               <td>{{ b.physical_description }}</td>
               <td>{{ b.summary }}</td>
               <td>{{ b.page_number }}</td>
@@ -157,6 +167,7 @@
                           data-publisher="{{ b.publisher }}"
                           data-publication-date="{{ b.publication_date }}"
                           data-language="{{ b.language }}"
+                          data-material-type="{{ b.material_type }}"
                           data-physical-description="{{ b.physical_description }}"
                           data-summary="{{ b.summary }}"
                           data-page-number="{{ b.page_number }}"
@@ -179,7 +190,7 @@
           {% endfor %}
         {% else %}
           <tr>
-            <td colspan="12" class="text-center text-muted py-3">
+            <td colspan="13" class="text-center text-muted py-3">
               No books found.
             </td>
           </tr>
@@ -203,6 +214,7 @@
                                                     search_publisher=search_publisher,
                                                     search_publication_date=search_publication_date,
                                                     search_language=search_language,
+                                                    search_material_type=search_material_type,
                                                     search_physical_description=search_physical_description,
                                                     search_summary=search_summary,
                                                     search_page_number=search_page_number,
@@ -223,6 +235,7 @@
                                     search_publisher=search_publisher,
                                     search_publication_date=search_publication_date,
                                     search_language=search_language,
+                                    search_material_type=search_material_type,
                                     search_physical_description=search_physical_description,
                                     search_summary=search_summary,
                                     search_page_number=search_page_number,
@@ -248,6 +261,7 @@
                                     search_publisher=search_publisher,
                                     search_publication_date=search_publication_date,
                                     search_language=search_language,
+                                    search_material_type=search_material_type,
                                     search_physical_description=search_physical_description,
                                     search_summary=search_summary,
                                     search_page_number=search_page_number,
@@ -272,6 +286,7 @@
                                     search_publisher=search_publisher,
                                     search_publication_date=search_publication_date,
                                     search_language=search_language,
+                                    search_material_type=search_material_type,
                                     search_physical_description=search_physical_description,
                                     search_summary=search_summary,
                                     search_page_number=search_page_number,
@@ -293,6 +308,7 @@
                                                     search_publisher=search_publisher,
                                                     search_publication_date=search_publication_date,
                                                     search_language=search_language,
+                                                    search_material_type=search_material_type,
                                                     search_physical_description=search_physical_description,
                                                     search_summary=search_summary,
                                                     search_page_number=search_page_number,
@@ -339,6 +355,11 @@
       <div class="filter-input-group">
         <label for="language" class="filter-label">Language:</label>
         <input type="text" id="language" name="language" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
+        <label for="material_type" class="filter-label">Material type:</label>
+        <input type="text" id="material_type" name="material_type" class="form-control filter-input" required>
       </div>
 
       <div class="filter-input-group">
@@ -440,6 +461,11 @@
       </div>
 
       <div class="filter-input-group">
+        <label for="edit_material_type" class="filter-label">Material type:</label>
+        <input type="text" id="edit_material_type" name="material_type" class="form-control filter-input" required>
+      </div>
+
+      <div class="filter-input-group">
         <label for="edit_physical_description" class="filter-label">Physical description:</label>
         <input type="text" id="edit_physical_description" name="physical_description" class="form-control filter-input" required>
       </div>
@@ -536,6 +562,7 @@
   const editPublisherInput = document.getElementById('edit_publisher');
   const editPubDateInput = document.getElementById('edit_publication_date');
   const editLanguageInput = document.getElementById('edit_language');
+  const editMaterialInput = document.getElementById('edit_material_type');
   const editPhysInput = document.getElementById('edit_physical_description');
   const editSummaryInput = document.getElementById('edit_summary');
   const editPageInput = document.getElementById('edit_page_number');
@@ -559,6 +586,7 @@
       if (editIsbnInput) editIsbnInput.value = btn.dataset.isbn || '';
       if (editPublisherInput) editPublisherInput.value = btn.dataset.publisher || '';
       if (editLanguageInput) editLanguageInput.value = btn.dataset.language || '';
+      if (editMaterialInput) editMaterialInput.value = btn.dataset.materialType || '';
       if (editPhysInput) editPhysInput.value = btn.dataset.physicalDescription || '';
       if (editSummaryInput) editSummaryInput.value = btn.dataset.summary || '';
       if (editPageInput) editPageInput.value = btn.dataset.pageNumber || '';
